@@ -1,0 +1,56 @@
+[
+    {
+        "id": 1,
+        "organization_id": 1,
+        "name": "Houston Office",
+        "type": "Office",
+        "address": "1500 Louisiana St, Houston, TX 77002",
+        "coordinates": "29.7604,-95.3698",
+        "created_at": "2025-01-02 08:00:00"
+    },
+    {
+        "id": 2,
+        "organization_id": 1,
+        "name": "West Texas Drilling Site Alpha",
+        "type": "Site",
+        "address": "Permian Basin, West Texas",
+        "coordinates": "31.8457,-102.3676",
+        "created_at": "2025-01-02 08:30:00"
+    },
+    {
+        "id": 3,
+        "organization_id": 1,
+        "name": "Gulf Platform Delta-7",
+        "type": "Vessel",
+        "address": "Gulf of Mexico",
+        "coordinates": "28.7378,-90.4832",
+        "created_at": "2025-01-02 09:00:00"
+    },
+    {
+        "id": 4,
+        "organization_id": 2,
+        "name": "Aberdeen Operations Center",
+        "type": "Office",
+        "address": "Aberdeen, Scotland",
+        "coordinates": "57.1497,-2.0943",
+        "created_at": "2025-01-02 09:30:00"
+    },
+    {
+        "id": 5,
+        "organization_id": 2,
+        "name": "North Sea Platform Bravo-3",
+        "type": "Vessel",
+        "address": "North Sea",
+        "coordinates": "58.5000,1.5000",
+        "created_at": "2025-01-02 10:00:00"
+    },
+    {
+        "id": 6,
+        "organization_id": 3,
+        "name": "Corpus Christi Refinery",
+        "type": "Site",
+        "address": "Corpus Christi, TX",
+        "coordinates": "27.8006,-97.3964",
+        "created_at": "2025-01-02 10:30:00"
+    }
+]
