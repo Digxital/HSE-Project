@@ -5,6 +5,9 @@ const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth");
 const adminRoutes = require("./routes/admin");
 const dashboardRoutes = require("./routes/dashboard");
+const adminAuthRoutes = require("./routes/admin.auth");
+
+
 
 
 const app = express();
@@ -18,6 +21,7 @@ mongoose
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
 app.use("/", dashboardRoutes);
+app.use("/admin", adminAuthRoutes);
 
 
 const PORT = process.env.PORT || 5000;
