@@ -1,8 +1,17 @@
 const bcrypt = require("bcryptjs");
 const User = require("../model/user.model");
 
-exports.createFieldUser = async (req, res) => {
-    const { firstName, lastName, email, password } = req.body;
+// ADMIN only Can create SUPERVISOR or FIELD_USER
+
+exports.createUser = async (req, res) => {
+    const { firstName, lastName, email, password, role } = req.body;
+
+    // Admin can only create these roles
+    if (!["SUPERVISOR", "FIELD_USER"].includes(role)) {
+        return res.status(400).json({
+            message: "Admin can only create Supervisor or Field User"
+        });
+    }
 
     const exists = await User.findOne({ email });
     if (exists) {
@@ -17,8 +26,10 @@ exports.createFieldUser = async (req, res) => {
         lastName,
         email,
         passwordHash,
-        role: "FIELD_USER"
+        role
     });
 
-    res.status(201).json({ message: "Field user created successfully" });
+    res.status(201).json({
+        message: `${role} created successfully`
+    });
 };

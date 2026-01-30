@@ -1,13 +1,16 @@
-const router = require("express").Router();
+const express = require("express");
+const router = express.Router();
+
 const auth = require("../middleware/auth");
 const authorize = require("../middleware/authorize");
-const { createFieldUser } = require("../controller/admin.controller");
+const { createUser } = require("../controller/admin.controller");
+
 
 router.post(
   "/users",
   auth,
   authorize(["ADMIN"], ["web"]),
-  createFieldUser
+  createUser
 );
 
 module.exports = router;

@@ -4,6 +4,8 @@ const mongoose = require("mongoose");
 
 const authRoutes = require("./routes/auth");
 const adminRoutes = require("./routes/admin");
+const dashboardRoutes = require("./routes/dashboard");
+
 
 const app = express();
 app.use(express.json());
@@ -15,6 +17,8 @@ mongoose
 
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
+app.use("/", dashboardRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
