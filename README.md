@@ -263,3 +263,7 @@ The MVP is accepted when:
 ## License & Confidentiality
 
 This project contains confidential information and is governed by client confidentiality agreements.
+
+
+npm run login
+npm run deploy
