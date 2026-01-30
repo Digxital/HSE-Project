@@ -267,3 +267,4 @@ This project contains confidential information and is governed by client confide
 
 npm run login
 npm run deploy
+npx vercel dev
