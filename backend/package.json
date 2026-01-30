@@ -10,7 +10,8 @@
   "author": "ugonna",
   "license": "ISC",
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "vercel": "^50.9.5"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
