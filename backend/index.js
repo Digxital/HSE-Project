@@ -15,6 +15,22 @@ mongoose
     .then(() => console.log("MongoDB connected"))
     .catch(err => console.log("MongoDB error:", err.message));
 
+// Add before other routes
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'HSE Backend API',
+    status: 'running',
+    endpoints: {
+      auth: '/api/auth/*',
+      admin: '/api/admin/*',
+      dashboard: '/api/*'
+    }
+  });
+});
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
