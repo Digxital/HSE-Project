@@ -7,9 +7,6 @@ const adminRoutes = require("./routes/admin");
 const dashboardRoutes = require("./routes/dashboard");
 const adminAuthRoutes = require("./routes/admin.auth");
 
-
-
-
 const app = express();
 app.use(express.json());
 
@@ -18,11 +15,11 @@ mongoose
     .then(() => console.log("MongoDB connected"))
     .catch(err => console.log("MongoDB error:", err.message));
 
-app.use("/auth", authRoutes);
-app.use("/admin", adminRoutes);
-app.use("/", dashboardRoutes);
-app.use("/admin", adminAuthRoutes);
 
+app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/admin", adminAuthRoutes);
+app.use("/api", dashboardRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
