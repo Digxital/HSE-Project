@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index"
+    "start": "nodemon index",
+    "deploy": "vercel --prod",
+    "deploy:dev": "vercel",
+    "login": "vercel login"
   },
   "author": "ugonna",
   "license": "ISC",
