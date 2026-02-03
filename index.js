@@ -6,6 +6,9 @@ const authRoutes = require("./routes/auth");
 const adminRoutes = require("./routes/admin");
 const dashboardRoutes = require("./routes/dashboard");
 const adminAuthRoutes = require("./routes/admin.auth");
+const clientRoutes = require("./routes/client");
+const locationRoutes = require("./routes/location");
+
 
 const app = express();
 app.use(express.json());
@@ -20,6 +23,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin", adminAuthRoutes);
 app.use("/api", dashboardRoutes);
+app.use("/api", clientRoutes);
+app.use("/api", locationRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
