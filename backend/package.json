@@ -5,21 +5,17 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index",
-    "deploy": "vercel --prod",
-    "deploy:dev": "vercel",
-    "login": "vercel login"
+    "start": "nodemon index"
   },
   "author": "ugonna",
   "license": "ISC",
   "devDependencies": {
-    "nodemon": "^3.1.10",
-    "vercel": "^50.9.5"
+    "nodemon": "^3.1.10"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
-    "cors": "^2.8.5",
+    "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "ejs": "^3.1.10",
     "express": "^5.2.1",

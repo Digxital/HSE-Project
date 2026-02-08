@@ -1,7 +1,2 @@
-venv/
-*.log
-node_modules/
-build/
-__pycache__
-.vercel
-.env*.local
+node_modules
+.env

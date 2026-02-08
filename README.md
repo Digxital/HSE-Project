@@ -264,8 +264,12 @@ The MVP is accepted when:
 
 This project contains confidential information and is governed by client confidentiality agreements.
 
+//Api base_url 
+https://hse-backend-production.up.railway.app
 
-npm run login
-npm run deploy
-npx vercel dev
-npx vercel dev
+Vercel CLI 50.13.2
+🔍  Inspect: https://vercel.com/eshanokpe-daniels-projects/hse-frontend/aWF8kPgANUDc3F5T3LWY4oKS7EFy [6s]
+✅  Production: https://hse-frontend-if3cshqi2-eshanokpe-daniels-projects.vercel.app [39s]
+🔗  Aliased: https://hse-frontend-eight.vercel.app [39s]
+
+vercel --prod --confirm
