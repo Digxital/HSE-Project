@@ -1,4 +1,6 @@
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import logoImage from '@/assets/images/aegix-logo.png';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -13,6 +15,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isMobileOpen = false,
   onMobileClose,
 }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const menuItems = [
     {
       icon: (
@@ -26,7 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </svg>
       ),
       label: 'Dashboard',
-      active: true,
+      path: '/dashboard',
     },
     {
       icon: (
@@ -40,7 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </svg>
       ),
       label: 'Reports',
-      active: false,
+      path: '/reports',
     },
     {
       icon: (
@@ -54,7 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </svg>
       ),
       label: 'Actions',
-      active: false,
+      path: '/actions',
     },
     {
       icon: (
@@ -68,7 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </svg>
       ),
       label: 'Analytics',
-      active: false,
+      path: '/analytics',
     },
     {
       icon: (
@@ -82,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </svg>
       ),
       label: 'Users',
-      active: false,
+      path: '/users',
       hasDropdown: true,
     },
     {
@@ -97,7 +102,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </svg>
       ),
       label: 'Profile',
-      active: false,
+      path: '/profile',
     },
     {
       icon: (
@@ -111,7 +116,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </svg>
       ),
       label: 'Certification',
-      active: false,
+      path: '/certification',
     },
     {
       icon: (
@@ -131,7 +136,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </svg>
       ),
       label: 'Setting',
-      active: false,
+      path: '/settings',
     },
   ];
 
@@ -147,11 +152,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
         {!isCollapsed && (
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">A</span>
-            </div>
+            <img 
+              src={logoImage} 
+              alt="Aegix Logo" 
+              className="w-8 h-8"
+            />
             <span className="text-xl font-bold text-gray-900">Aegix</span>
           </div>
+        )}
+        
+        {isCollapsed && (
+          <img 
+            src={logoImage} 
+            alt="Aegix Logo" 
+            className="w-8 h-8 mx-auto"
+          />
         )}
 
         {/* Desktop collapse button */}
@@ -182,35 +197,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Navigation Menu */}
       <nav className="flex-1 px-4 py-6 space-y-1">
-        {menuItems.map((item, index) => (
-          <button
-            key={index}
-            className={`w-full flex items-center ${
-              isCollapsed ? 'justify-center px-3' : 'justify-start px-4'
-            } py-3 rounded-lg transition-all ${
-              item.active
-                ? 'bg-primary-50 text-primary-600'
-                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-            }`}
-          >
-            <span className="flex-shrink-0">{item.icon}</span>
-            {!isCollapsed && (
-              <>
-                <span className="ml-3 font-medium">{item.label}</span>
-                {item.hasDropdown && (
-                  <svg
-                    className="ml-auto w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                )}
-              </>
-            )}
-          </button>
-        ))}
+        {menuItems.map((item, index) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <button
+              key={index}
+              onClick={() => navigate(item.path)}
+              className={`w-full flex items-center ${
+                isCollapsed ? 'justify-center px-3' : 'justify-start px-4'
+              } py-3 rounded-lg transition-all ${
+                isActive
+                  ? 'bg-primary-50 text-primary-600'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <span className="flex-shrink-0">{item.icon}</span>
+              {!isCollapsed && (
+                <>
+                  <span className="ml-3 font-medium">{item.label}</span>
+                  {item.hasDropdown && (
+                    <svg
+                      className="ml-auto w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  )}
+                </>
+              )}
+            </button>
+          );
+        })}
       </nav>
 
       {/* Feedback Section */}
