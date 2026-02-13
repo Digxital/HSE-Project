@@ -9,6 +9,7 @@ const adminAuthRoutes = require("./routes/admin.auth");
 const clientRoutes = require("./routes/client");
 const locationRoutes = require("./routes/location");
 const reportRoutes = require("./routes/report");
+const configRoutes = require("./routes/config");
 
 
 
@@ -28,6 +29,7 @@ app.use("/api", dashboardRoutes);
 app.use("/api", clientRoutes);
 app.use("/api", locationRoutes);
 app.use("/api", reportRoutes);
+app.use("/api", configRoutes);
 
 
 const PORT = process.env.PORT || 5000;
