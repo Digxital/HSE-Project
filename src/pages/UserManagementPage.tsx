@@ -218,9 +218,9 @@ export const UserManagementPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Search and Filter - Hidden on mobile */}
-              <div className="hidden lg:flex items-center justify-end gap-3 mb-6" data-aos="fade-up" data-aos-delay="100">
-                <div className="relative w-64">
+              {/* Search and Filter */}
+              <div className="flex flex-row gap-3 mb-6" data-aos="fade-up" data-aos-delay="100">
+                <div className="flex-1 relative">
                   <svg
                     className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
                     fill="none"
@@ -239,11 +239,11 @@ export const UserManagementPage: React.FC = () => {
                     placeholder="Search user, status, role...."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2.5 bg-[#FFF9F5] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-sm"
                   />
                 </div>
-                <button className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-2 whitespace-nowrap">
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button className="px-4 py-2.5 bg-[#FFF9F5] border border-gray-200 rounded-lg hover:bg-[#FFFEFB] transition-colors flex items-center gap-2 text-sm font-medium text-gray-700 justify-center whitespace-nowrap">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -251,7 +251,7 @@ export const UserManagementPage: React.FC = () => {
                       d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
                     />
                   </svg>
-                  <span className="text-gray-600">Filter</span>
+                  <span>Filter</span>
                 </button>
               </div>
 
@@ -271,14 +271,15 @@ export const UserManagementPage: React.FC = () => {
                       </thead>
                       <tbody>
                         {filteredUsers.map((user) => (
-                          <tr key={user.id} className="bg-[#FFFAF5] hover:bg-[#FFFEFB] transition-colors border-l-4 border-l-[#C24438] border-b border-b-gray-200">
+                          <tr 
+                            key={user.id} 
+                            onClick={() => setSelectedUser(user)}
+                            className="bg-[#FFFAF5] hover:bg-[#FFFEFB] transition-colors border-l-4 border-l-[#C24438] border-b border-b-gray-200 cursor-pointer"
+                          >
                             <td className="py-3 md:py-4 px-3 md:px-4">
-                              <button
-                                onClick={() => setSelectedUser(user)}
-                                className="font-medium text-gray-900 text-xs md:text-sm hover:text-[#C24438] transition-colors text-left"
-                              >
+                              <div className="font-medium text-gray-900 text-xs md:text-sm">
                                 {user.name}
-                              </button>
+                              </div>
                             </td>
                             <td className="py-3 md:py-4 px-3 md:px-4">
                               <div className="text-gray-600 text-xs md:text-sm">{user.email}</div>
@@ -294,7 +295,13 @@ export const UserManagementPage: React.FC = () => {
                               <div className="text-gray-600 text-sm whitespace-pre-line">{user.lastLogin}</div>
                             </td>
                             <td className="hidden lg:table-cell py-4 px-4">
-                              <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // Handle action menu
+                                }}
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                              >
                                 <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
                                   <circle cx="12" cy="5" r="2" />
                                   <circle cx="12" cy="12" r="2" />

@@ -83,12 +83,16 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+        className={`fixed inset-0 bg-black z-50 flex items-center justify-center p-4 transition-opacity duration-300 ${
+          isOpen ? 'bg-opacity-50' : 'bg-opacity-0'
+        }`}
         onClick={onClose}
       >
         {/* Modal */}
         <div
-          className="bg-white rounded-lg shadow-xl w-full max-w-2xl relative"
+          className={`bg-white rounded-lg shadow-xl w-full max-w-2xl relative transform transition-all duration-300 ${
+            isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+          }`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close Button */}

@@ -10,8 +10,18 @@ const InvitationSentModal: React.FC<InvitationSentModalProps> = ({ isOpen, onClo
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4">
+    <div 
+      className={`fixed inset-0 z-60 flex items-center justify-center bg-black transition-opacity duration-300 ${
+        isOpen ? 'bg-opacity-50' : 'bg-opacity-0'
+      }`}
+      onClick={onClose}
+    >
+      <div 
+        className={`bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4 transform transition-all duration-300 ${
+          isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+        }`}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Success Icon */}
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">

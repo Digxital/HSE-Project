@@ -17,12 +17,16 @@ export const DeactivateUserModal: React.FC<DeactivateUserModalProps> = ({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center"
+        className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-[60] flex items-center justify-center transition-opacity duration-300 ${
+          isOpen ? 'opacity-100' : 'opacity-0'
+        }`}
         onClick={onClose}
       >
         {/* Modal */}
         <div
-          className="bg-white rounded-lg shadow-xl w-[90%] max-w-md p-6 relative"
+          className={`bg-white rounded-lg shadow-xl w-[90%] max-w-md p-6 relative transform transition-all duration-300 ${
+            isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+          }`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close Button */}

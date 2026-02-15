@@ -1,10 +1,20 @@
 import React, { useState } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
+import { ReportDetailsModal } from '@/components/reports/ReportDetailsModal';
 
 type ReportType = 'All' | 'Incidents' | 'Hazard';
 type RiskLevel = 'High' | 'Medium' | 'Low';
 type ReportStatus = 'Open' | 'In Progress' | 'Closed';
+type ActionStatus = 'Open' | 'In Progress' | 'Completed';
+
+interface Action {
+  id: string;
+  action: string;
+  assignedTo: string;
+  dueDate: string;
+  status: ActionStatus;
+}
 
 interface Report {
   id: string;
@@ -14,6 +24,7 @@ interface Report {
   risk: RiskLevel;
   status: ReportStatus;
   dateReported: string;
+  actions: Action[];
 }
 
 export const ReportsPage: React.FC = () => {
@@ -21,8 +32,9 @@ export const ReportsPage: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<ReportType>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
-  const [reports] = useState<Report[]>([
+  const [reports, setReports] = useState<Report[]>([
     {
       id: 'INC-0104',
       type: 'Incident',
@@ -31,6 +43,22 @@ export const ReportsPage: React.FC = () => {
       risk: 'High',
       status: 'Open',
       dateReported: '21 Jan 2026\n08:42 AM',
+      actions: [
+        {
+          id: 'ACT-001',
+          action: 'Secure loose handrail',
+          assignedTo: 'Maintenance Lead',
+          dueDate: 'Feb 08, 2026',
+          status: 'In Progress',
+        },
+        {
+          id: 'ACT-002',
+          action: 'Inspect nearby rails',
+          assignedTo: 'Safety Officer',
+          dueDate: 'Feb 08, 2026',
+          status: 'Open',
+        },
+      ],
     },
     {
       id: 'INC-0103',
@@ -40,6 +68,22 @@ export const ReportsPage: React.FC = () => {
       risk: 'High',
       status: 'In Progress',
       dateReported: '21 Jan 2026\n08:42 AM',
+      actions: [
+        {
+          id: 'ACT-003',
+          action: 'Emergency gas shut-off',
+          assignedTo: 'Operations Manager',
+          dueDate: 'Feb 01, 2026',
+          status: 'Completed',
+        },
+        {
+          id: 'ACT-004',
+          action: 'Review gas detection system',
+          assignedTo: 'Technical Lead',
+          dueDate: 'Feb 10, 2026',
+          status: 'In Progress',
+        },
+      ],
     },
     {
       id: 'INC-0102',
@@ -49,6 +93,7 @@ export const ReportsPage: React.FC = () => {
       risk: 'Low',
       status: 'Closed',
       dateReported: '21 Jan 2026\n08:42 AM',
+      actions: [],
     },
     {
       id: 'INC-0101',
@@ -58,6 +103,15 @@ export const ReportsPage: React.FC = () => {
       risk: 'Medium',
       status: 'In Progress',
       dateReported: '21 Jan 2026\n08:42 AM',
+      actions: [
+        {
+          id: 'ACT-005',
+          action: 'Seal affected pipeline section',
+          assignedTo: 'Field Engineer',
+          dueDate: 'Feb 12, 2026',
+          status: 'In Progress',
+        },
+      ],
     },
     {
       id: 'HAZ-0061',
@@ -67,6 +121,22 @@ export const ReportsPage: React.FC = () => {
       risk: 'Medium',
       status: 'Open',
       dateReported: '21 Jan 2026\n08:42 AM',
+      actions: [
+        {
+          id: 'ACT-006',
+          action: 'Update safety protocols',
+          assignedTo: 'Safety Manager',
+          dueDate: 'Feb 15, 2026',
+          status: 'Open',
+        },
+        {
+          id: 'ACT-007',
+          action: 'Conduct team safety briefing',
+          assignedTo: 'Team Lead',
+          dueDate: 'Feb 16, 2026',
+          status: 'Open',
+        },
+      ],
     },
     {
       id: 'HAZ-0060',
@@ -76,6 +146,15 @@ export const ReportsPage: React.FC = () => {
       risk: 'Medium',
       status: 'Open',
       dateReported: '21 Jan 2026\n08:42 AM',
+      actions: [
+        {
+          id: 'ACT-008',
+          action: 'Implement new safety checks',
+          assignedTo: 'Operations Team',
+          dueDate: 'Feb 20, 2026',
+          status: 'In Progress',
+        },
+      ],
     },
     {
       id: 'HAZ-0059',
@@ -85,6 +164,7 @@ export const ReportsPage: React.FC = () => {
       risk: 'Low',
       status: 'Closed',
       dateReported: '21 Jan 2026\n08:42 AM',
+      actions: [],
     },
     {
       id: 'HAZ-0058',
@@ -94,6 +174,7 @@ export const ReportsPage: React.FC = () => {
       risk: 'Low',
       status: 'Closed',
       dateReported: '21 Jan 2026\n08:42 AM',
+      actions: [],
     },
   ]);
 
@@ -118,6 +199,60 @@ export const ReportsPage: React.FC = () => {
 
     return matchesType && matchesSearch;
   });
+
+  const handleCloseReport = (reportId: string) => {
+    setReports(prevReports =>
+      prevReports.map(report =>
+        report.id === reportId ? { ...report, status: 'Closed' as ReportStatus } : report
+      )
+    );
+    setSelectedReport(null); // Close the modal
+  };
+
+  const handleAddAction = (
+    reportId: string,
+    actionData: {
+      actionTitle: string;
+      assignedTo: string;
+      dueDate: string;
+      priority: string;
+      description: string;
+    }
+  ) => {
+    // Generate a new action ID
+    const newActionId = `ACT-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
+
+    // Format the due date to match the existing format (e.g., "Feb 08, 2026")
+    const formatDate = (dateStr: string) => {
+      const date = new Date(dateStr);
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${months[date.getMonth()]} ${String(date.getDate()).padStart(2, '0')}, ${date.getFullYear()}`;
+    };
+
+    const newAction: Action = {
+      id: newActionId,
+      action: actionData.actionTitle,
+      assignedTo: actionData.assignedTo,
+      dueDate: formatDate(actionData.dueDate),
+      status: 'Open',
+    };
+
+    // Update the reports array with the new action
+    setReports(prevReports =>
+      prevReports.map(report =>
+        report.id === reportId
+          ? { ...report, actions: [...report.actions, newAction] }
+          : report
+      )
+    );
+
+    // Update selectedReport to reflect the new action immediately in the modal
+    setSelectedReport(prevReport =>
+      prevReport && prevReport.id === reportId
+        ? { ...prevReport, actions: [...prevReport.actions, newAction] }
+        : prevReport
+    );
+  };
 
   const getRiskBadge = (risk: RiskLevel) => {
     const styles = {
@@ -159,6 +294,7 @@ export const ReportsPage: React.FC = () => {
         <TopBar
           pageTitle="Report"
           onMenuClick={() => setMobileMenuOpen(true)}
+          showMenuButton={true}
           userName="Peter Omorogbolahan"
           userRole="System Administrator"
           notificationCount={3}
@@ -211,7 +347,7 @@ export const ReportsPage: React.FC = () => {
             </div>
 
             {/* Search and Filter */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-6" data-aos="fade-up" data-aos-delay="100">
+            <div className="flex flex-row gap-3 mb-6" data-aos="fade-up" data-aos-delay="100">
               <div className="flex-1 relative">
                 <svg
                   className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -231,10 +367,10 @@ export const ReportsPage: React.FC = () => {
                   placeholder="Search by incident, hazard, Risk level, status..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-sm"
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#FFF9F5] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-sm"
                 />
               </div>
-              <button className="px-4 py-2.5 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2 text-sm font-medium text-gray-700 justify-center sm:justify-start">
+              <button className="px-4 py-2.5 bg-[#FFF9F5] border border-gray-200 rounded-lg hover:bg-[#FFFEFB] transition-colors flex items-center gap-2 text-sm font-medium text-gray-700 justify-center whitespace-nowrap">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -273,6 +409,7 @@ export const ReportsPage: React.FC = () => {
                     {filteredReports.map((report) => (
                       <tr
                         key={report.id}
+                        onClick={() => setSelectedReport(report)}
                         className="bg-[#FFFAF5] hover:bg-[#FFFEFB] transition-colors border-l-4 border-l-[#C24438] border-b border-b-gray-200 cursor-pointer"
                       >
                         <td className="py-3 md:py-4 px-3 md:px-4">
@@ -300,6 +437,15 @@ export const ReportsPage: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {/* Report Details Modal */}
+      <ReportDetailsModal
+        isOpen={selectedReport !== null}
+        onClose={() => setSelectedReport(null)}
+        onCloseReport={handleCloseReport}
+        onAddAction={handleAddAction}
+        report={selectedReport}
+      />
     </div>
   );
 };
