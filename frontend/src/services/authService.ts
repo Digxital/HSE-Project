@@ -6,6 +6,7 @@ interface LoginCredentials {
 }
 
 export const authService = {
+
   async adminLogin(credentials: LoginCredentials) {
     const response = await api.post('/api/admin/auth/login', credentials);
     return response.data; 
@@ -21,7 +22,7 @@ export const authService = {
     try {
       const refreshToken = localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token');
       if (refreshToken) {
-        await api.post('/api/admin/auth/logout', { refreshToken });
+        await api.post('admin/auth/logout', { refreshToken });
       }
     } catch (error) {
       console.error('Logout API error:', error);

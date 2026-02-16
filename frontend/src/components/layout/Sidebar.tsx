@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { authService } from '@/services/authService';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logoImage from '@/assets/images/aegix-logo.png';
+import { removeAuthToken, removeRefreshToken, removeUserData } from '@/utils/authStorage';
+import { useToast } from '@/hooks/useToast';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -17,6 +20,52 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { showToast } = useToast();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+   const handleLogout = async () => {
+      try {
+        setIsLoggingOut(true);
+        
+        // Call logout API
+        await authService.logout();
+        
+        // Clear all stored tokens and user data
+        removeAuthToken();
+        removeRefreshToken();
+        removeUserData();
+        
+        // Show success message
+        showToast({
+          type: 'success',
+          message: 'Logged out successfully',
+        });
+        
+        
+        // Navigate to login page
+        navigate('/login', { replace: true });
+        
+      } catch (error) {
+        console.error('Logout error:', error);
+        
+        // Even if API fails, clear local storage and redirect
+        removeAuthToken();
+        removeRefreshToken();
+        removeUserData();
+        
+        showToast({
+          type: 'error',
+          message: 'Error during logout, but you have been signed out locally',
+        });
+        
+        navigate('/login', { replace: true });
+        
+      } finally {
+        setIsLoggingOut(false);
+        setShowUserMenu(false);
+      }
+    };
 
   const menuItems = [
     {
@@ -254,6 +303,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Logout Button */}
       <div className="px-4 py-4 border-t border-gray-100">
         <button
+          onClick={handleLogout}
+          disabled={isLoggingOut}
           className={`w-full flex items-center ${
             isCollapsed ? 'justify-center px-3' : 'justify-start px-4'
           } py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all`}
@@ -266,7 +317,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
             />
           </svg>
-          {!isCollapsed && <span className="ml-3 font-medium">Log out</span>}
+          
+          {!isCollapsed && <span className="ml-3 font-medium"> {isLoggingOut ? 'Logging out...' : 'Logout'}</span>}
         </button>
       </div>
     </aside>

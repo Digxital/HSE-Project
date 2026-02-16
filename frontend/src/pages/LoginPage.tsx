@@ -140,11 +140,7 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handleForgotPassword = () => {
-    navigate('/forgot-password', { 
-      state: { email: formData.email } // Pre-fill email if provided
-    });
-  };
+  
 
   if (isLoading) {
     return <LoadingScreen message="Authenticating..." />;
@@ -222,18 +218,7 @@ export const LoginPage: React.FC = () => {
 
                   {/* Password Input */}
                   <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="block text-sm font-medium text-gray-700">
-                        Password
-                      </label>
-                      <button
-                        type="button"
-                        onClick={handleForgotPassword}
-                        className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
-                      >
-                        Forgot password?
-                      </button>
-                    </div>
+                    
                     <div className="relative">
                       <input
                         type={showPassword ? 'text' : 'password'}
