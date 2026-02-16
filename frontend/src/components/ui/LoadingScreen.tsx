@@ -1,15 +1,42 @@
 import React from 'react';
 import logoImage from '@/assets/images/aegix-logo.png'; // Update extension if needed
 
+
 export const LoadingScreen: React.FC = () => {
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
-      {/* Logo with subtle animation */}
-      <div className="animate-pulse">
+      {/* Logo with progressive border animation */}
+      <div className="relative w-40 h-40 flex items-center justify-center">
+        {/* SVG for progressive border drawing */}
+        <svg 
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 160 160"
+        >
+          <rect
+            x="8"
+            y="8"
+            width="144"
+            height="144"
+            rx="24"
+            ry="24"
+            fill="none"
+            stroke="#C24438"
+            strokeWidth="4"
+            strokeLinecap="round"
+            className="animate-[draw_2s_ease-in-out_infinite]"
+            style={{
+              strokeDasharray: '580',
+              strokeDashoffset: '580',
+              animation: 'draw 2s ease-in-out infinite'
+            }}
+          />
+        </svg>
+        
+        {/* Logo */}
         <img 
           src={logoImage} 
           alt="Aegix Logo" 
-          className="w-32 h-32"
+          className="w-32 h-32 relative z-10"
         />
       </div>
 
@@ -17,6 +44,18 @@ export const LoadingScreen: React.FC = () => {
       <h1 className="mt-6 text-3xl font-bold text-gray-900">
         Aegix
       </h1>
+
+      {/* CSS animation for progressive border drawing */}
+      <style>{`
+        @keyframes draw {
+          0% {
+            stroke-dashoffset: 580;
+          }
+          100% {
+            stroke-dashoffset: 0;
+          }
+        }
+      `}</style>
     </div>
   );
 };

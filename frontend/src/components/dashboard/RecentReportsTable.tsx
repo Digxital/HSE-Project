@@ -108,7 +108,7 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
+                <tr className="bg-[#FFF9F5] border-b border-gray-100">
                   <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Report ID
                   </th>
@@ -136,7 +136,7 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
                 {reports.map((report, index) => (
                   <tr
                     key={report.id}
-                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="bg-[#FFFAF5] hover:bg-[#FFFEFB] transition-colors cursor-pointer"
                   >
                     {/* Red indicator line for first row */}
                     <td className="py-4 px-6 text-sm font-medium text-gray-900 relative">
