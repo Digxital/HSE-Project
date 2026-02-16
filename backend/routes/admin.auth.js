@@ -7,6 +7,7 @@ const {
 } = require("../controller/admin.auth.controller");
 
 router.post("/register", adminRegister);
-router.post("/login", adminLogin);
-
-module.exports = router;
+router.post("/login", adminLogin); 
+router.post("/logout", adminLogout);
+  
+module.exports = router; 

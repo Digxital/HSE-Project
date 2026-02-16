@@ -5,18 +5,61 @@ const cors = require("cors");
 
 const app = express();
 
-// ========== MIDDLEWARE ==========
+// ========== CORS CONFIGURATION - MUST BE FIRST ==========
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://localhost:5000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+  'http://127.0.0.1:5175',
+  'http://127.0.0.1:5000',
+  process.env.FRONTEND_URL,
+  // Remove this line - it's your backend URL, not frontend
+  'https://hse-backend-production.up.railway.app'
+].filter(Boolean);
+
+// CORS middleware - MUST BE FIRST
 app.use(cors({
-  origin: ['http://localhost:3000', process.env.FRONTEND_URL].filter(Boolean),
-  credentials: true
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, etc)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      console.log('🚫 Blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range']
 }));
 
+// Handle preflight requests explicitly
+// app.options('*', cors());
+
+// ========== OTHER MIDDLEWARE ==========
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Request logging
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  console.log('Origin:', req.headers.origin);
+  console.log('CORS headers:', res.getHeaders()['access-control-allow-origin']);
   next();
+});
+
+// ========== TEST ROUTE TO VERIFY CORS ==========
+app.get('/test-cors', (req, res) => {
+  res.json({ 
+    message: 'CORS is working!',
+    origin: req.headers.origin 
+  });
 });
 
 // ========== BASIC ROUTES ==========
@@ -74,11 +117,10 @@ const connectDB = async () => {
       return;
     }
     
-    await mongoose.connect(mongoURI || "mongodb://localhost:27017/hse-db");
+    await mongoose.connect(mongoURI);
     console.log("✅ MongoDB connected successfully");
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err.message);
-    console.log("💡 Continuing without database connection");
   }
 };
 
@@ -89,8 +131,10 @@ const loadRoutes = () => {
   const routes = [
     { name: "auth", path: "./routes/auth", routePath: "/api/auth" },
     { name: "admin", path: "./routes/admin", routePath: "/api/admin" },
+    
     { name: "dashboard", path: "./routes/dashboard", routePath: "/api/dashboard" },
     { name: "admin.auth", path: "./routes/admin.auth", routePath: "/api/admin/auth" },
+
     { name: "client", path: "./routes/client", routePath: "/api/client" },
     { name: "location", path: "./routes/location", routePath: "/api/location" },
     { name: "report", path: "./routes/report", routePath: "/api/report" }
@@ -102,19 +146,10 @@ const loadRoutes = () => {
       app.use(routePath, router);
       console.log(`✅ Loaded ${name} routes at ${routePath}`);
     } catch (error) {
-      console.warn(`⚠️ Could not load ${name} routes from ${path}: ${error.message}`);
+      console.warn(`⚠️ Could not load ${name} routes: ${error.message}`);
       
-      // Create basic placeholder route
       const placeholderRouter = express.Router();
-      placeholderRouter.get("/", (req, res) => {
-        res.json({
-          message: `${name.toUpperCase()} API`,
-          status: "Placeholder route",
-          note: `Create ${path} file for actual implementation`
-        });
-      });
       
-      // Add basic CRUD placeholders
       if (name === "auth") {
         placeholderRouter.post("/login", (req, res) => {
           const { email, password } = req.body;
@@ -142,8 +177,6 @@ const loadRoutes = () => {
 loadRoutes();
 
 // ========== ERROR HANDLING ==========
-
-// 404 Handler - MUST BE AFTER ALL OTHER ROUTES
 app.use((req, res) => {
   res.status(404).json({
     error: "Route not found",
@@ -153,15 +186,19 @@ app.use((req, res) => {
   });
 });
 
-// Global error handler
 app.use((err, req, res, next) => {
   console.error("❌ Server error:", err.stack || err.message);
   
-  const statusCode = err.statusCode || 500;
-  const message = err.message || "Internal server error";
+  // Handle CORS errors specifically
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({
+      error: 'CORS error: Origin not allowed',
+      origin: req.headers.origin
+    });
+  }
   
-  res.status(statusCode).json({
-    error: message,
+  res.status(500).json({
+    error: err.message || "Internal server error",
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 });
@@ -173,7 +210,9 @@ const server = app.listen(PORT, () => {
   console.log(`📡 MongoDB: ${mongoose.connection.readyState === 1 ? '✅ Connected' : '❌ Disconnected'}`);
   console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Base URL: http://localhost:${PORT}`);
+  console.log('✅ Allowed origins:', allowedOrigins);
 });
+
 
 // ========== GRACEFUL SHUTDOWN ==========
 process.on('SIGTERM', () => {

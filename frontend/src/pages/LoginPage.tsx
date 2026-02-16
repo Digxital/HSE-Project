@@ -125,7 +125,7 @@ export const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await authService.login({
+      const response = await authService.adminLogin({
         email: formData.email.trim(),
         password: formData.password,
       });

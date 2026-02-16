@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { authService } from '@/services/authService';
+import { removeAuthToken, removeRefreshToken, removeUserData } from '@/utils/authStorage';
+import { useToast } from '@/hooks/useToast';
 
 interface TopBarProps {
   pageTitle: string;
@@ -8,19 +12,71 @@ interface TopBarProps {
   notificationCount?: number;
   onMenuClick?: () => void;
   showMenuButton?: boolean;
+  onLogout?: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
   pageTitle,
-  userName,
+  userName, 
   userRole,
   syncStatus = 'synced',
   notificationCount = 0,
   onMenuClick,
   showMenuButton = false,
+  onLogout
 }) => {
+  const navigate = useNavigate();
+  const { showToast } = useToast();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      
+      // Call logout API
+      await authService.logout();
+      
+      // Clear all stored tokens and user data
+      removeAuthToken();
+      removeRefreshToken();
+      removeUserData();
+      
+      // Show success message
+      showToast({
+        type: 'success',
+        message: 'Logged out successfully',
+      });
+      
+      // Call parent onLogout callback if provided
+      if (onLogout) {
+        onLogout();
+      }
+      
+      // Navigate to login page
+      navigate('/login', { replace: true });
+      
+    } catch (error) {
+      console.error('Logout error:', error);
+      
+      // Even if API fails, clear local storage and redirect
+      removeAuthToken();
+      removeRefreshToken();
+      removeUserData();
+      
+      showToast({
+        type: 'error',
+        message: 'Error during logout, but you have been signed out locally',
+      });
+      
+      navigate('/login', { replace: true });
+      
+    } finally {
+      setIsLoggingOut(false);
+      setShowUserMenu(false);
+    }
+  };
 
   const getSyncStatusConfig = () => {
     switch (syncStatus) {
@@ -146,7 +202,7 @@ export const TopBar: React.FC<TopBarProps> = ({
               <div className="w-8 h-8 md:w-10 md:h-10 bg-primary-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-semibold text-sm md:text-base">
                   {userName.charAt(0)}
-                </span>
+                </span> 
               </div>
               <div className="hidden md:block text-left">
                 <p className="text-sm font-semibold text-gray-900">{userName}</p>
@@ -168,8 +224,17 @@ export const TopBar: React.FC<TopBarProps> = ({
                     Settings
                   </button>
                   <hr className="my-2" />
-                  <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded">
-                    Logout
+                  <button 
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
+                  >
+                    <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
+                    {isLoggingOut && (
+                      <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    )}
                   </button>
                 </div>
               </div>

@@ -31,3 +31,13 @@ export const setUserData = (user: any, remember: boolean = false) => {
   const storage = remember ? localStorage : sessionStorage;
   storage.setItem(USER_KEY, JSON.stringify(user));
 };
+
+export const removeRefreshToken = () => {
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+};
+
+export const removeUserData = () => {
+  localStorage.removeItem(USER_KEY);
+  sessionStorage.removeItem(USER_KEY);
+};

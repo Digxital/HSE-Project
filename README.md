@@ -266,6 +266,7 @@ This project contains confidential information and is governed by client confide
 
 //Api base_url 
 https://hse-backend-production.up.railway.app
+railway up
 
 Vercel CLI 50.13.2
 🔍  Inspect: https://vercel.com/eshanokpe-daniels-projects/hse-frontend/aWF8kPgANUDc3F5T3LWY4oKS7EFy [6s]
@@ -273,3 +274,7 @@ Vercel CLI 50.13.2
 🔗  Aliased: https://hse-frontend-eight.vercel.app [39s]
 
 vercel --prod --confirm
+
+admin@aegix.com
+Admin123
+
