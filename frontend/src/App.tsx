@@ -6,6 +6,7 @@ import { UserManagementPage } from '@/pages/UserManagementPage';
 import { ReportsPage } from '@/pages/ReportsPage';
 import { ActionsPage } from '@/pages/ActionsPage';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
+import { ToastProvider } from '@/contexts/ToastContext';
 // import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage';
 // import { CheckYourMailPage } from '@/pages/CheckYourMailPage';
 import AOS from 'aos';
@@ -34,18 +35,20 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/login" element={<LoginPage />} />
-         <Route path="/dashboard" element={<DashboardPage />} />
-         <Route path="/users" element={<UserManagementPage />} />
-         <Route path="/reports" element={<ReportsPage />} />
-         <Route path="/actions" element={<ActionsPage />} />
-        {/* <Route path="/forgot-password" element={<ForgotPasswordPage />} /> */}
-        {/* <Route path="/check-your-mail" element={<CheckYourMailPage />} /> */}
-      </Routes>
-    </Router>
+    <ToastProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/users" element={<UserManagementPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/actions" element={<ActionsPage />} />
+          {/* <Route path="/forgot-password" element={<ForgotPasswordPage />} /> */}
+          {/* <Route path="/check-your-mail" element={<CheckYourMailPage />} /> */}
+        </Routes>
+      </Router>
+    </ToastProvider>
   );
 }
 

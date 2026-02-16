@@ -1,17 +1,18 @@
 import React from 'react';
-import logoImage from '@/assets/images/aegix-logo.png'; // Update extension if needed
+import logoImage from '@/assets/images/aegix-logo.png';
 
+interface LoadingScreenProps {
+  message?: string;
+}
 
-export const LoadingScreen: React.FC = () => {
+export const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
-      {/* Logo with progressive border animation */}
       <div className="relative w-40 h-40 flex items-center justify-center">
-        {/* SVG for progressive border drawing */}
         <svg 
           className="absolute inset-0 w-full h-full"
           viewBox="0 0 160 160"
-        >
+        > 
           <rect
             x="8"
             y="8"
@@ -23,7 +24,6 @@ export const LoadingScreen: React.FC = () => {
             stroke="#C24438"
             strokeWidth="4"
             strokeLinecap="round"
-            className="animate-[draw_2s_ease-in-out_infinite]"
             style={{
               strokeDasharray: '580',
               strokeDashoffset: '580',
@@ -32,7 +32,6 @@ export const LoadingScreen: React.FC = () => {
           />
         </svg>
         
-        {/* Logo */}
         <img 
           src={logoImage} 
           alt="Aegix Logo" 
@@ -40,12 +39,14 @@ export const LoadingScreen: React.FC = () => {
         />
       </div>
 
-      {/* Aegix text */}
       <h1 className="mt-6 text-3xl font-bold text-gray-900">
         Aegix
       </h1>
+      
+      {message && (
+        <p className="mt-2 text-gray-600 text-sm">{message}</p>
+      )}
 
-      {/* CSS animation for progressive border drawing */}
       <style>{`
         @keyframes draw {
           0% {
