@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:invera_hse/api/auth_service.dart';
 import 'package:invera_hse/component/get_text.dart';
 import 'package:invera_hse/component/screen_properties.dart';
 import 'package:invera_hse/utils/app_colours.dart';
 import 'package:invera_hse/utils/app_file_paths.dart';
 import 'package:invera_hse/utils/common_image_view.dart';
+import 'package:invera_hse/utils/route.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -191,6 +193,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           child: InkWell(
                             onTap: () {
                               _storeOnBoardingInfo();
+                              context.push(AppRoutes.login);
                             },
                             child: const Center(
                               child: Text(
