@@ -2,12 +2,16 @@ const TOKEN_KEY = 'auth_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'user_data';
 
+export type UserData = {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+}
+
 export const setAuthToken = (token: string, remember: boolean = false) => {
-  if (remember) {
-    localStorage.setItem(TOKEN_KEY, token);
-  } else {
-    sessionStorage.setItem(TOKEN_KEY, token);
-  }
+  const storage = remember ? localStorage : sessionStorage;
+  storage.setItem(TOKEN_KEY, token);
 };
 
 export const getAuthToken = (): string | null => {
@@ -20,21 +24,30 @@ export const removeAuthToken = () => {
 };
 
 export const setRefreshToken = (token: string, remember: boolean = false) => {
-  if (remember) {
-    localStorage.setItem(REFRESH_TOKEN_KEY, token);
-  } else {
-    sessionStorage.setItem(REFRESH_TOKEN_KEY, token);
-  }
-};
-
-export const setUserData = (user: any, remember: boolean = false) => {
   const storage = remember ? localStorage : sessionStorage;
-  storage.setItem(USER_KEY, JSON.stringify(user));
+  storage.setItem(REFRESH_TOKEN_KEY, token);
 };
 
 export const removeRefreshToken = () => {
   localStorage.removeItem(REFRESH_TOKEN_KEY);
   sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+};
+
+export const setUserData = (user: UserData, remember: boolean = false) => {
+  const storage = remember ? localStorage : sessionStorage;
+  storage.setItem(USER_KEY, JSON.stringify(user));
+};
+
+export const getUserData = (): UserData | null => {
+  const userJson = localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
+  if (userJson) {
+    try {
+      return JSON.parse(userJson);
+    } catch {
+      return null;
+    }
+  }
+  return null;
 };
 
 export const removeUserData = () => {

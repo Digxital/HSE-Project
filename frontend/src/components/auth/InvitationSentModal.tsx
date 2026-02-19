@@ -13,7 +13,7 @@ const InvitationSentModal: React.FC<InvitationSentModalProps> = ({ isOpen, onClo
     <div 
       className={`fixed inset-0 z-60 flex items-center justify-center bg-black transition-opacity duration-300 ${
         isOpen ? 'bg-opacity-50' : 'bg-opacity-0'
-      }`}
+      }`}  
       onClick={onClose}
     >
       <div 

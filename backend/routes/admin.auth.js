@@ -3,7 +3,8 @@ const router = express.Router();
 
 const {
     adminRegister,
-    adminLogin
+    adminLogin,
+    adminLogout
 } = require("../controller/admin.auth.controller");
 
 router.post("/register", adminRegister);

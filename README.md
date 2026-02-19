@@ -278,3 +278,5 @@ vercel --prod --confirm
 admin@aegix.com
 Admin123
 
+https://documenter.getpostman.com/view/51894802/2sBXcAHNNF
+

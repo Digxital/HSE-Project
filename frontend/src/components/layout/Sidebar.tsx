@@ -301,26 +301,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       {/* Logout Button */}
-      <div className="px-4 py-4 border-t border-gray-100">
-        <button
-          onClick={handleLogout}
-          disabled={isLoggingOut}
-          className={`w-full flex items-center ${
-            isCollapsed ? 'justify-center px-3' : 'justify-start px-4'
-          } py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all`}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-            />
-          </svg>
-          
-          {!isCollapsed && <span className="ml-3 font-medium"> {isLoggingOut ? 'Logging out...' : 'Logout'}</span>}
-        </button>
-      </div>
+       {showUserMenu && (
+        <div className="px-4 py-4 border-t border-gray-100">
+          <button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className={`w-full flex items-center ${
+              isCollapsed ? 'justify-center px-3' : 'justify-start px-4'
+            } py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
+            </svg>
+            
+            {!isCollapsed && <span className="ml-3 font-medium"> {isLoggingOut ? 'Logging out...' : 'Logout'}</span>}
+          </button>
+        </div>
+      )}
     </aside>
   );
 };

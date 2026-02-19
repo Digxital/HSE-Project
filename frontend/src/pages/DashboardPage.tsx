@@ -4,8 +4,10 @@ import { TopBar } from '@/components/layout/TopBar';
 import { StatsOverview } from '@/components/dashboard/StatsOverview';
 import { AIInsights } from '@/components/dashboard/AIInsights';
 import { RecentReportsTable } from '@/components/dashboard/RecentReportsTable';
+import { getUserData, type UserData } from '@/utils/authStorage';
 
 export const DashboardPage: React.FC = () => {
+  const [user, setUser] = useState<UserData | null>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -14,6 +16,9 @@ export const DashboardPage: React.FC = () => {
 
   // Check if mobile on mount and window resize
   useEffect(() => {
+    const userData = getUserData();
+    setUser(userData);
+
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
     }; 
@@ -31,6 +36,10 @@ export const DashboardPage: React.FC = () => {
   const closeMobileSidebar = () => {
     setIsMobileSidebarOpen(false);
   };
+  
+  if (!user) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-background-light">
@@ -59,8 +68,8 @@ export const DashboardPage: React.FC = () => {
         {/* Top Bar */}
         <TopBar
           pageTitle="Dashboard"
-          userName="Peter C"
-          userRole="Admin"
+          userName={user.name}
+          userRole={user.role}
           syncStatus="synced"
           notificationCount={4}
           onMenuClick={handleMobileSidebarToggle}

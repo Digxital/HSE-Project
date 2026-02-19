@@ -10,7 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@azure/identity": "^4.13.0",
     "@hookform/resolvers": "^5.2.2",
+    "@microsoft/microsoft-graph-client": "^3.0.7",
     "aos": "^2.3.4",
     "axios": "^1.13.4",
     "clsx": "^2.1.1",

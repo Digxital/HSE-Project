@@ -2,10 +2,10 @@ import axios from 'axios';
 import { getAuthToken } from '@/utils/authStorage';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
-// baseURL: 'http://localhost:5000',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000',
   headers: {
     'Content-Type': 'application/json',
+    'X-PLATFORM': 'web'
   },
 }); 
 

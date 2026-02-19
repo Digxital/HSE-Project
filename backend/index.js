@@ -7,6 +7,7 @@ const app = express();
 
 // ========== CORS CONFIGURATION - MUST BE FIRST ==========
 const allowedOrigins = [
+  // Local development
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175',
@@ -15,9 +16,15 @@ const allowedOrigins = [
   'http://127.0.0.1:5174',
   'http://127.0.0.1:5175',
   'http://127.0.0.1:5000',
+  
+  // Production frontend (Vercel)
+  'https://hse-frontend-eight.vercel.app',
+   
+  // Environment variable for flexibility
   process.env.FRONTEND_URL,
+  
   // Remove this line - it's your backend URL, not frontend
-  'https://hse-backend-production.up.railway.app'
+  // 'https://hse-backend-production.up.railway.app'
 ].filter(Boolean);
 
 // CORS middleware - MUST BE FIRST
@@ -35,12 +42,9 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With','x-platform'],
   exposedHeaders: ['Content-Range', 'X-Content-Range']
 }));
-
-// Handle preflight requests explicitly
-// app.options('*', cors());
 
 // ========== OTHER MIDDLEWARE ==========
 app.use(express.json());
@@ -61,7 +65,7 @@ app.get('/test-cors', (req, res) => {
     origin: req.headers.origin 
   });
 });
-
+app.use('/api/microsoft', require('./routes/microsoft'));
 // ========== BASIC ROUTES ==========
 app.get("/", (req, res) => {
   res.json({
