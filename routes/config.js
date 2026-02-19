@@ -43,33 +43,33 @@ const {
 router.use(auth, platformWeb, authorize(["ADMIN"], ["web"]));
 
 // Incident Categories
-router.post("/config/incident-categories", createIncidentCategory);
-router.get("/config/incident-categories", getIncidentCategories);
-router.put("/config/incident-categories/:id", updateIncidentCategory);
-router.delete("/config/incident-categories/:id", deleteIncidentCategory);
+router.post("/incident-categories", createIncidentCategory);
+router.get("/incident-categories", getIncidentCategories);
+router.put("/incident-categories/:id", updateIncidentCategory);
+router.delete("/incident-categories/:id", deleteIncidentCategory);
 
 // Risk Levels
-router.post("/config/risk-levels", createRiskLevel);
-router.get("/config/risk-levels", getRiskLevels);
-router.put("/config/risk-levels/:id", updateRiskLevel);
-router.delete("/config/risk-levels/:id", deleteRiskLevel);
+router.post("/risk-levels", createRiskLevel);
+router.get("/risk-levels", getRiskLevels);
+router.put("/risk-levels/:id", updateRiskLevel);
+router.delete("/risk-levels/:id", deleteRiskLevel);
 
 // Inspection Templates
-router.post("/config/inspection-templates", createInspectionTemplate);
-router.get("/config/inspection-templates", getInspectionTemplates);
-router.put("/config/inspection-templates/:id", updateInspectionTemplate);
-router.delete("/config/inspection-templates/:id", deleteInspectionTemplate);
+router.post("/inspection-templates", createInspectionTemplate);
+router.get("/inspection-templates", getInspectionTemplates);
+router.put("/inspection-templates/:id", updateInspectionTemplate);
+router.delete("/inspection-templates/:id", deleteInspectionTemplate);
 
 // Safety Policies
-router.post("/config/safety-policies", createSafetyPolicy);
-router.get("/config/safety-policies", getSafetyPolicies);
-router.put("/config/safety-policies/:id", updateSafetyPolicy);
-router.delete("/config/safety-policies/:id", deleteSafetyPolicy);
+router.post("/safety-policies", createSafetyPolicy);
+router.get("/safety-policies", getSafetyPolicies);
+router.put("/safety-policies/:id", updateSafetyPolicy);
+router.delete("/safety-policies/:id", deleteSafetyPolicy);
 
 // System Settings
-router.post("/config/system-settings", createSystemSetting);
-router.get("/config/system-settings", getSystemSettings);
-router.put("/config/system-settings/:id", updateSystemSetting);
-router.delete("/config/system-settings/:id", deleteSystemSetting);
+router.post("/system-settings", createSystemSetting);
+router.get("/system-settings", getSystemSettings);
+router.put("/system-settings/:id", updateSystemSetting);
+router.delete("/system-settings/:id", deleteSystemSetting);
 
 module.exports = router;

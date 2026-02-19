@@ -10,6 +10,7 @@ const clientRoutes = require("./routes/client");
 const locationRoutes = require("./routes/location");
 const reportRoutes = require("./routes/report");
 const configRoutes = require("./routes/config");
+const incidentRoutes = require("./routes/incident")
 
 
 
@@ -29,7 +30,9 @@ app.use("/api", dashboardRoutes);
 app.use("/api", clientRoutes);
 app.use("/api", locationRoutes);
 app.use("/api", reportRoutes);
-app.use("/api", configRoutes);
+app.use("/api/config", configRoutes);
+app.use("/api/incidents", incidentRoutes);
+app.use("/uploads", express.static("uploads"));
 
 
 const PORT = process.env.PORT || 5000;
