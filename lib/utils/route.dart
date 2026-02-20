@@ -14,7 +14,11 @@ class AppRoutes {
   static const String home = '/home';
   static const String profile = '/profile';
 
+  // ================= Bottom Navbar Route paths =================
+  static const String bottomNav = '/bottom-nav';
+
   // Route names (optional, for named routes)
+  static const String bottomNavName = 'b ottom-nav';
   static const String onboardingName = 'onboarding';
   static const String loginName = 'login';
   static const String homeName = 'home';

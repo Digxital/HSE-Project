@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:invera_hse/component/account_option.dart';
 import 'package:invera_hse/component/custom_textfield.dart';
 import 'package:invera_hse/component/get_text.dart';
@@ -7,6 +8,7 @@ import 'package:invera_hse/constant/extension.dart';
 import 'package:invera_hse/utils/app_colours.dart';
 import 'package:invera_hse/utils/app_file_paths.dart';
 import 'package:invera_hse/utils/common_image_view.dart';
+import 'package:invera_hse/utils/route.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -107,7 +109,7 @@ class _LoginState extends State<Login> {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () {
-                        // context.push(AppRoutes.login);
+                        context.push(AppRoutes.bottomNav);
                       },
                       child: Center(
                         child: Row(

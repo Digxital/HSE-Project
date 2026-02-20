@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:invera_hse/bottom_nav.dart';
 import 'package:invera_hse/home_screen.dart';
 import 'package:invera_hse/login.dart';
 import 'package:invera_hse/onboarding_screen.dart';
@@ -69,6 +70,15 @@ class AppRouter {
           ),
 
 // ================= Bottom Navbar routes =================
+
+          // Bottom Navbar route
+          GoRoute(
+            path: AppRoutes.bottomNav,
+            name: AppRoutes.bottomNavName,
+            builder: (BuildContext context, GoRouterState state) {
+              return const BottomNav();
+            },
+          ),
 
           // Home route
           GoRoute(
