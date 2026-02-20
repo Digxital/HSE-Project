@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:invera_hse/component/get_text.dart';
 import 'package:invera_hse/component/screen_properties.dart';
 import 'package:invera_hse/home_screen.dart';
-import 'package:invera_hse/login.dart';
 import 'package:invera_hse/profile_screen.dart';
 import 'package:invera_hse/report_screen.dart';
 import 'package:invera_hse/review_screen.dart';
@@ -31,8 +30,6 @@ class _BottomNavState extends State<BottomNav> {
       selectedIndex = index;
       active = selectedIndex == index;
     });
-    print("selectedIndex: $selectedIndex");
-    print("active: $active");
   }
 
   final List _pages = [
@@ -66,10 +63,8 @@ class _BottomNavState extends State<BottomNav> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  // navItem(Icons.home_rounded, "Home", 0),
                   bottomNNavItem(
                       AppFilePaths.homeActive, active ? "Home" : "", 0),
-                  // navItem(Icons.refresh_rounded, "", 1),
                   bottomNNavItem(AppFilePaths.report, "", 1),
 
                   /// CENTER BUTTON
@@ -103,10 +98,7 @@ class _BottomNavState extends State<BottomNav> {
                       ),
                     ),
                   ),
-
-                  // navItem(Icons.cleaning_services_outlined, "", 3),
                   bottomNNavItem(AppFilePaths.review, "", 3),
-                  // navItem(Icons.person_outline, "", 4),
                   bottomNNavItem(AppFilePaths.profile, "", 4),
                 ],
               ),
