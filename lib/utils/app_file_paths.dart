@@ -30,4 +30,6 @@ class AppFilePaths {
   static const String reportBlack = "assets/images/report_black.png";
   static const String warning = "assets/images/warning.png";
   static const String warning2 = "assets/images/warning2.png";
+  static const String microphone = "assets/images/microphone.png";
+  static const String calendar = "assets/images/calendar.png";
 }

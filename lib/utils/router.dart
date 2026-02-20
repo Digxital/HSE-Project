@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:invera_hse/bottom_nav.dart';
+import 'package:invera_hse/create_report_screen.dart';
 import 'package:invera_hse/home_screen.dart';
 import 'package:invera_hse/login.dart';
 import 'package:invera_hse/onboarding_screen.dart';
 import 'package:invera_hse/profile_screen.dart';
+import 'package:invera_hse/report_screen.dart';
+import 'package:invera_hse/review_screen.dart';
 import 'package:invera_hse/utils/route.dart';
 
 /// Router configuration for the application
@@ -88,6 +91,39 @@ class AppRouter {
               return const HomeScreen();
             },
           ),
+
+// ================= Report routes =================
+
+          // Report route
+          GoRoute(
+            path: AppRoutes.report,
+            name: AppRoutes.reportName,
+            builder: (BuildContext context, GoRouterState state) {
+              return const ReportScreen();
+            },
+          ),
+
+          // Create Report route
+          GoRoute(
+            path: AppRoutes.createReport,
+            name: AppRoutes.createReportName,
+            builder: (BuildContext context, GoRouterState state) {
+              return const CreateReportScreen();
+            },
+          ),
+
+// ================= Review routes =================
+
+          // Review route
+          GoRoute(
+            path: AppRoutes.review,
+            name: AppRoutes.reviewName,
+            builder: (BuildContext context, GoRouterState state) {
+              return const ReviewScreen();
+            },
+          ),
+
+// ================= Profile routes =================
 
           // Profile route
           GoRoute(

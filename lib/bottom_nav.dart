@@ -1,15 +1,18 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:invera_hse/component/get_text.dart';
 import 'package:invera_hse/component/screen_properties.dart';
 import 'package:invera_hse/home_screen.dart';
+import 'package:invera_hse/login.dart';
 import 'package:invera_hse/profile_screen.dart';
 import 'package:invera_hse/report_screen.dart';
 import 'package:invera_hse/review_screen.dart';
 import 'package:invera_hse/utils/app_colours.dart';
 import 'package:invera_hse/utils/app_file_paths.dart';
 import 'package:invera_hse/utils/common_image_view.dart';
+import 'package:invera_hse/utils/route.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -72,8 +75,7 @@ class _BottomNavState extends State<BottomNav> {
                   /// CENTER BUTTON
                   GestureDetector(
                     onTap: () {
-                      onTap(2);
-                      showReportUpdate(true, true);
+                      _showReportBottomSheet();
                     },
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 20),
@@ -176,47 +178,57 @@ class _BottomNavState extends State<BottomNav> {
     );
   }
 
-  void showReportUpdate(isDeposit, isReceivingAccount) {
+  void _showReportBottomSheet() {
     showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.white,
-        // isScrollControlled: true,
-        useRootNavigator: true,
-        builder: (BuildContext context) {
-          return const SizedBox(
-              height: 411,
-              width: double.infinity,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(top: 30, left: 30, right: 30),
-                    child: Divider(
-                      height: 45,
-                      thickness: 0.2,
-                      color: AppColors.lightGrey4,
-                    ),
-                  ),
-                  DataOption(
-                      title: "Incident",
-                      description:
-                          "An unsafe event that happened but did not\ncause serious injury"),
-                  DataOption(
-                      title: "Hazard",
-                      description:
-                          "An event that caused injury, harm, or serious\ndamage."),
-                ],
-              ));
-        });
+      context: context,
+      backgroundColor: Colors.white,
+      builder: (BuildContext context) {
+        return SizedBox(
+          height: 300,
+          width: double.infinity,
+          child: Column(
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 30, left: 30, right: 30),
+                child: Divider(
+                  height: 45,
+                  thickness: 0.2,
+                  color: AppColors.lightGrey4,
+                ),
+              ),
+              DataOption(
+                onTap: () {
+                  context.push(AppRoutes.createReport);
+                },
+                title: "Incident",
+                description:
+                    "An unsafe event that happened but did not\ncause serious injury",
+              ),
+              DataOption(
+                onTap: () {
+                  context.push(AppRoutes.createReport);
+                },
+                title: "Hazard",
+                description:
+                    "An event that caused injury, harm, or serious\ndamage.",
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
 class DataOption extends StatelessWidget {
   final String title;
   final String description;
+  final VoidCallback? onTap;
   const DataOption({
     super.key,
     required this.title,
     required this.description,
+    required this.onTap,
   });
 
   @override
@@ -226,35 +238,38 @@ class DataOption extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              CommonImageView(
-                imagePath: AppFilePaths.warning,
-                height: 24,
-                width: 24,
-                fit: BoxFit.scaleDown,
-              ),
-              addHorizontalSpace(5),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  getText(
-                      context: context,
-                      title: title,
-                      fontSize: 14,
-                      weight: FontWeight.w500,
-                      color: AppColors.black3),
-                  addVerticalSpace(5),
-                  getText(
-                      context: context,
-                      title: description,
-                      fontSize: 12,
-                      weight: FontWeight.w400,
-                      color: AppColors.black3),
-                ],
-              )
-            ],
+          InkWell(
+            onTap: onTap,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                CommonImageView(
+                  imagePath: AppFilePaths.warning,
+                  height: 24,
+                  width: 24,
+                  fit: BoxFit.scaleDown,
+                ),
+                addHorizontalSpace(5),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    getText(
+                        context: context,
+                        title: title,
+                        fontSize: 14,
+                        weight: FontWeight.w500,
+                        color: AppColors.black3),
+                    addVerticalSpace(5),
+                    getText(
+                        context: context,
+                        title: description,
+                        fontSize: 12,
+                        weight: FontWeight.w400,
+                        color: AppColors.black3),
+                  ],
+                )
+              ],
+            ),
           ),
           const Divider(
             height: 50,
