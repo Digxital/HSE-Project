@@ -11,6 +11,7 @@ const locationRoutes = require("./routes/location");
 const reportRoutes = require("./routes/report");
 const configRoutes = require("./routes/config");
 const incidentRoutes = require("./routes/incident")
+const inspectionRoutes = require("./routes/inspection");
 
 
 
@@ -33,6 +34,7 @@ app.use("/api", reportRoutes);
 app.use("/api/config", configRoutes);
 app.use("/api/incidents", incidentRoutes);
 app.use("/uploads", express.static("uploads"));
+app.use("/api/inspections", inspectionRoutes);
 
 
 const PORT = process.env.PORT || 5000;
