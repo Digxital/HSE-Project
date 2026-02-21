@@ -155,6 +155,7 @@ export const ActionsPage: React.FC = () => {
           pageTitle="Actions"
           userName="Peter Omojolaibiun"
           userRole="Admin"
+          notificationCount={4}
           onMenuClick={() => setMobileMenuOpen(true)}
           showMenuButton={true}
         />

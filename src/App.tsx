@@ -5,6 +5,7 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { UserManagementPage } from '@/pages/UserManagementPage';
 import { ReportsPage } from '@/pages/ReportsPage';
 import { ActionsPage } from '@/pages/ActionsPage';
+import { AnalyticsPage } from '@/pages/AnalyticsPage';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 // import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage';
 // import { CheckYourMailPage } from '@/pages/CheckYourMailPage';
@@ -42,6 +43,7 @@ function App() {
          <Route path="/users" element={<UserManagementPage />} />
          <Route path="/reports" element={<ReportsPage />} />
          <Route path="/actions" element={<ActionsPage />} />
+         <Route path="/analytics" element={<AnalyticsPage />} />
         {/* <Route path="/forgot-password" element={<ForgotPasswordPage />} /> */}
         {/* <Route path="/check-your-mail" element={<CheckYourMailPage />} /> */}
       </Routes>
