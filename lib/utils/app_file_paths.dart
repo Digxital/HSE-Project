@@ -27,9 +27,15 @@ class AppFilePaths {
   static const String arrowUpRight = "assets/images/arrow_up_right.png";
   static const String avatar = "assets/images/avatar.png";
   static const String notification = "assets/images/notification.png";
+  static const String notification2 = "assets/images/notification2.png";
+  static const String smsNotification = "assets/images/sms_notification.png";
   static const String reportBlack = "assets/images/report_black.png";
   static const String warning = "assets/images/warning.png";
   static const String warning2 = "assets/images/warning2.png";
   static const String microphone = "assets/images/microphone.png";
   static const String calendar = "assets/images/calendar.png";
+  static const String gallery = "assets/images/gallery.png";
+  static const String done = "assets/images/done.png";
+  static const String done2 = "assets/images/done2.png";
+  static const String star = "assets/images/star.png";
 }

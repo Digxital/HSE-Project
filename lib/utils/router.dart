@@ -4,10 +4,12 @@ import 'package:invera_hse/bottom_nav.dart';
 import 'package:invera_hse/create_report_screen.dart';
 import 'package:invera_hse/home_screen.dart';
 import 'package:invera_hse/login.dart';
+import 'package:invera_hse/notification_screen.dart';
 import 'package:invera_hse/onboarding_screen.dart';
 import 'package:invera_hse/profile_screen.dart';
 import 'package:invera_hse/report_screen.dart';
 import 'package:invera_hse/review_screen.dart';
+import 'package:invera_hse/success_screen.dart';
 import 'package:invera_hse/utils/route.dart';
 
 /// Router configuration for the application
@@ -83,12 +85,25 @@ class AppRouter {
             },
           ),
 
+// ================= Bottom Navbar routes =================
+
           // Home route
           GoRoute(
             path: AppRoutes.home,
             name: AppRoutes.homeName,
             builder: (BuildContext context, GoRouterState state) {
               return const HomeScreen();
+            },
+          ),
+
+// ================= Notification routes =================
+
+          // Notification route
+          GoRoute(
+            path: AppRoutes.notification,
+            name: AppRoutes.notificationName,
+            builder: (BuildContext context, GoRouterState state) {
+              return const NotificationScreen();
             },
           ),
 
@@ -109,6 +124,15 @@ class AppRouter {
             name: AppRoutes.createReportName,
             builder: (BuildContext context, GoRouterState state) {
               return const CreateReportScreen();
+            },
+          ),
+
+          // Success Screen route
+          GoRoute(
+            path: AppRoutes.successScreen,
+            name: AppRoutes.successScreenName,
+            builder: (BuildContext context, GoRouterState state) {
+              return const SuccessScreen();
             },
           ),
 

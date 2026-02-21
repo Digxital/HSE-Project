@@ -14,6 +14,7 @@ class CustomTextArea extends StatelessWidget {
   final Color filledColor;
   final Color hintTextColor;
   final bool isFilled;
+  final bool isSuffix;
   final Widget? suffixIcon;
   const CustomTextArea(
       {super.key,
@@ -24,6 +25,7 @@ class CustomTextArea extends StatelessWidget {
       this.validator,
       this.filledColor = AppColors.grey2,
       this.isFilled = false,
+      this.isSuffix = true,
       this.suffixIcon,
       this.borderColor = Colors.transparent,
       this.hintTextColor = AppColors.lightBrown2});
@@ -69,16 +71,21 @@ class CustomTextArea extends StatelessWidget {
               validator: validator,
               autovalidateMode: AutovalidateMode.onUserInteraction,
             ),
-            Positioned(
-              top: 15,
-              right: 20,
-              child: CommonImageView(
-                imagePath: AppFilePaths.microphone,
-                height: 16,
-                width: 16,
-                fit: BoxFit.scaleDown,
-              ),
-            ),
+            isSuffix
+                ? Positioned(
+                    top: 15,
+                    right: 20,
+                    child: InkWell(
+                      onTap: () {},
+                      child: CommonImageView(
+                        imagePath: AppFilePaths.microphone,
+                        height: 16,
+                        width: 16,
+                        fit: BoxFit.scaleDown,
+                      ),
+                    ),
+                  )
+                : const SizedBox(),
           ],
         ),
       ],

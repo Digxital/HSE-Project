@@ -18,6 +18,10 @@ class AppRoutes {
 
   // ================= Report Route paths =================
   static const String createReport = '/create-report';
+  static const String successScreen = '/success-screen';
+
+  // ================= Notifications Route paths =================
+  static const String notification = '/notification-screen';
 
   // ================= Bottom Navbar Route paths =================
   static const String bottomNav = '/bottom-nav';
@@ -28,10 +32,12 @@ class AppRoutes {
   static const String loginName = 'login';
   static const String forgotPasswordName = 'forgot-password';
   static const String homeName = 'home';
+  static const String notificationName = 'notification-screen';
   static const String reportName = 'report';
   static const String reviewName = 'review';
   static const String profileName = 'profile';
   static const String createReportName = 'create-report';
+  static const String successScreenName = 'success-screen';
 
   // Helper methods for building routes with parameters
   static String profileWithId(String id) => '$profile/$id';

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:invera_hse/component/get_container.dart';
 import 'package:invera_hse/component/get_text.dart';
 import 'package:invera_hse/component/screen_properties.dart';
+import 'package:invera_hse/login.dart';
 import 'package:invera_hse/utils/app_colours.dart';
 import 'package:invera_hse/utils/app_file_paths.dart';
 import 'package:invera_hse/utils/common_image_view.dart';
+import 'package:invera_hse/utils/route.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -44,6 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              addVerticalSpace(20),
               const Header(),
               addVerticalSpace(50),
               const ReportCards(),
@@ -373,11 +377,14 @@ class Header extends StatelessWidget {
           ),
           Stack(
             children: [
-              CommonImageView(
-                imagePath: AppFilePaths.notification,
-                height: 24,
-                width: 24,
-                fit: BoxFit.scaleDown,
+              InkWell(
+                onTap: () => context.push(AppRoutes.notification),
+                child: CommonImageView(
+                  imagePath: AppFilePaths.notification,
+                  height: 24,
+                  width: 24,
+                  fit: BoxFit.scaleDown,
+                ),
               ),
               // if (hasUnread)
               Positioned(

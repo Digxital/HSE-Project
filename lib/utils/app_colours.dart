@@ -26,5 +26,16 @@ class AppColors {
   static const lightBrown = Color(0XFF620000);
   static const lightBrown2 = Color(0XFF3E0000);
 
+  static const orange = Color(0XFFFD9B07);
   static const lightOrange = Color(0XFFFFF4E6);
+  static const lightOrange2 = Color.fromRGBO(255, 244, 230, 0.4);
+  static const lightOrange3 = Color(0XFFFFCDAB);
+  static const lightOrange4 = Color(0XFFFFF8E5);
+
+  static const green = Color(0XFF509712);
+  static const green2 = Color(0XFF77BC68);
+  static const lightGreen = Color(0XFFEBFEF2);
+
+  static const red = Color(0XFFFF2828);
+  static const red2 = Color(0XFFFF6F51);
 }
