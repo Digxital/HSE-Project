@@ -283,17 +283,17 @@ export const AnalyticsPage: React.FC = () => {
 
               {/* Reports by Location */}
               <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100" data-aos="fade-up" data-aos-delay="200">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <div className="flex flex-col gap-4 mb-4">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">Reports by Location</h3>
                     <p className="text-sm text-gray-500">Locations with the highest number of reports</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     {['12 months', '30 days', '7 days', 'Custom range'].map((filter) => (
                       <button
                         key={filter}
                         onClick={() => setLocationFilter(filter as TimeFilter)}
-                        className={`px-2 py-1 text-xs rounded-lg transition-colors ${
+                        className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
                           locationFilter === filter
                             ? 'bg-[#C24438] text-white'
                             : 'bg-white text-gray-600 hover:bg-gray-100'
