@@ -8,17 +8,9 @@ import { useToast } from '@/hooks/useToast';
 import { authService } from '@/services/authService';
 import { setAuthToken, setRefreshToken, setUserData } from '@/utils/authStorage';
 import engineerImage from '@/assets/images/engineer-cooperation-img.png';
+import type { LoginResponse } from '@/types/auth';
 
-interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-  };
-}
+
 
 interface LoginError {
   message: string;
@@ -130,7 +122,8 @@ export const LoginPage: React.FC = () => {
         password: formData.password,
       });
 
-      handleLoginSuccess(response);
+
+      handleLoginSuccess(response as any);
     } catch (error: any) {
       handleLoginError(error.response?.data || {
         message: 'Unable to connect to the server. Please check your internet connection.',

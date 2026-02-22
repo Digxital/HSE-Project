@@ -32,7 +32,7 @@ export interface UserResponse {
  
 export const userService = {
   async createUser(userData: CreateUserData): Promise<UserResponse & { temporaryPassword?: string; microsoftWarning?: string }> {
-    try {
+    try { 
       // Get token
       const token = getAuthToken();
       
@@ -43,7 +43,7 @@ export const userService = {
       console.log('📝 Creating user with data:', userData);
        
       // Generate a random password if not provided
-      const password = userData.password || generateRandomPassword();
+      // const password = userData.password || generateRandomPassword();
        
       const payload = {
         firstName: userData.firstName,
@@ -228,11 +228,11 @@ export const userService = {
 };
 
 // Helper function to generate random password
-function generateRandomPassword(length: number = 10): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-  let password = '';
-  for (let i = 0; i < length; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return password;
-}
+// function generateRandomPassword(length: number = 10): string {
+//   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+//   let password = '';
+//   for (let i = 0; i < length; i++) {
+//     password += chars.charAt(Math.floor(Math.random() * chars.length));
+//   }
+//   return password;
+// }

@@ -21,7 +21,7 @@ export const DashboardPage: React.FC = () => {
 
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
-    }; 
+    };  
 
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -57,7 +57,7 @@ export const DashboardPage: React.FC = () => {
         onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         isMobileOpen={isMobileSidebarOpen}
         onMobileClose={closeMobileSidebar}
-      />
+      /> 
 
       {/* Main Content Area */}
       <div

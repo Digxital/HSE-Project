@@ -268,8 +268,8 @@ export const CreateUserModal: React.FC<CreateUserModal> = ({
                 {createMicrosoftAccount && (
                   <div className="mt-3 ml-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-sm text-blue-700">
-                      <span className="font-semibold">📱 Mobile App Access</span>
-                      <br />
+                      {/* <span className="font-semibold">📱 Mobile App Access</span>
+                      <br /> */}
                       <span className="text-xs">
                         A Microsoft account will be created. The user can use these credentials 
                         to log into your mobile app. A temporary password will be generated.

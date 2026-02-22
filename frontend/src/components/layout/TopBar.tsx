@@ -11,7 +11,7 @@ interface TopBarProps {
   syncStatus?: 'synced' | 'syncing' | 'error';
   notificationCount?: number;
   onMenuClick?: () => void;
-  showMenuButton?: boolean;
+  showMenuButton?: boolean; 
   onLogout?: () => void;
 }
 
@@ -217,12 +217,16 @@ export const TopBar: React.FC<TopBarProps> = ({
             {showUserMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                 <div className="p-2">
-                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
+                  <button 
+                    onClick={() => navigate('/profile')}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
                     Profile
                   </button>
-                  <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
+                  <button 
+                    onClick={() => navigate('/settings')}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
                     Settings
-                  </button>
+                  </button>  
                   <hr className="my-2" />
                   <button 
                     onClick={handleLogout}

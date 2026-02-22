@@ -14,7 +14,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed,
-  onToggle,
+  onToggle, 
   isMobileOpen = false,
   onMobileClose,
 }) => {
@@ -220,7 +220,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Desktop collapse button */}
         <button
-          onClick={onToggle}
+          onClick={onToggle} 
           className="hidden lg:block p-1.5 text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors"
         >
           <svg

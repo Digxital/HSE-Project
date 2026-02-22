@@ -128,6 +128,11 @@ export const UserManagementPage: React.FC = () => {
   useEffect(() => {
     const userData = getUserData();
     setUser(userData);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    }; 
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
     fetchUsers();
   }, []);
 
@@ -264,7 +269,7 @@ export const UserManagementPage: React.FC = () => {
         createdAt: newUser.createdAt,
       };
 
-      setUsers(prevUsers => [...prevUsers, transformedUser]);
+      setUsers(prevUsers => [transformedUser, ...prevUsers]);
       setShowCreateUserModal(false);
       
       // Show different success message based on Microsoft account creation
@@ -359,7 +364,7 @@ export const UserManagementPage: React.FC = () => {
       );
       
       // Close dropdown
-      setOpenMenuId(null);
+      setOpenMenuId(null); 
       
       showToast({
         type: 'success',
