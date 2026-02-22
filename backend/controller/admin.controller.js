@@ -33,3 +33,106 @@ exports.createUser = async (req, res) => {
         message: `${role} created successfully`
     });
 };
+
+exports.getUsers = async (req, res) => {
+    try {
+        const users = await User.find().select("-passwordHash");
+
+        return res.json({
+            success: true,
+            message: "Users fetched successfully",
+            data: users
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch users",
+            data: {}
+        });
+    }
+};
+
+exports.getUserById = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select("-passwordHash");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+                data: {}
+            });
+        }
+
+        return res.json({
+            success: true,
+            message: "User fetched successfully",
+            data: user
+        });
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid ID",
+            data: {}
+        });
+    }
+};
+
+exports.updateUser = async (req, res) => {
+    try {
+        const { name, email, role } = req.body;
+
+        const user = await User.findByIdAndUpdate(
+            req.params.id,
+            { name, email, role },
+            { new: true, runValidators: true }
+        ).select("-password");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+                data: {}
+            });
+        }
+
+        return res.json({
+            success: true,
+            message: "User updated successfully",
+            data: user
+        });
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: "Failed to update user",
+            data: {}
+        });
+    }
+};
+
+exports.deleteUser = async (req, res) => {
+    try {
+        const user = await User.findByIdAndDelete(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+                data: {}
+            });
+        }
+
+        return res.json({
+            success: true,
+            message: "User deleted successfully",
+            data: {}
+        });
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid ID",
+            data: {}
+        });
+    }
+};
+

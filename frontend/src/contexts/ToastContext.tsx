@@ -3,7 +3,7 @@ import toast, { Toaster } from 'react-hot-toast';
 
 interface ToastContextType {
   showToast: (options: { 
-    type: 'success' | 'error'; 
+    type: 'success' | 'error' | 'warning'; 
     message: string;
   }) => void;
 }
@@ -23,7 +23,7 @@ interface ToastProviderProps {
 }
 
 export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
-  const showToast = ({ type, message }: { type: 'success' | 'error'; message: string }) => {
+  const showToast = ({ type, message }: { type: 'success' | 'error' |  'warning'; message: string }) => {
     if (type === 'success') {
       toast.success(message);
     } else {

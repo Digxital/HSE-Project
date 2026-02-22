@@ -3,10 +3,16 @@ import React from 'react';
 interface InvitationSentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  email: string;
+  title?: string;
+  message?: string;
 }
 
-const InvitationSentModal: React.FC<InvitationSentModalProps> = ({ isOpen, onClose, email }) => {
+const InvitationSentModal: React.FC<InvitationSentModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  title = "Success!",
+  message = "Operation completed successfully"
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -44,11 +50,10 @@ const InvitationSentModal: React.FC<InvitationSentModalProps> = ({ isOpen, onClo
         {/* Content */}
         <div className="text-center mb-6">
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            Invitation Sent
+            {title}
           </h3>
           <p className="text-gray-600">
-            An invitation email has been sent to{' '}
-            <span className="font-medium text-gray-900">{email}</span>
+            {message}
           </p>
         </div>
 

@@ -8,7 +8,7 @@ export type UserData = {
   name: string;
   role: string;
 }
-
+ 
 export const setAuthToken = (token: string, remember: boolean = false) => {
   const storage = remember ? localStorage : sessionStorage;
   storage.setItem(TOKEN_KEY, token);

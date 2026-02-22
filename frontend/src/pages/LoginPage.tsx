@@ -70,7 +70,7 @@ export const LoginPage: React.FC = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
+ 
   const handleLoginSuccess = (response: LoginResponse) => {
     // Store tokens based on "Remember Me" preference
     setAuthToken(response.accessToken, rememberMe);

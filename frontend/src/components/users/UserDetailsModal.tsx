@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import johnMatthewImg from '@/assets/images/Jhn-Matthew-profileImg.jpg';
+import johnMatthewImg from '@/assets/images/avatar-profile-user.svg';
 import { DeactivateUserModal } from './DeactivateUserModal';
 
 interface UserDetailsModalProps {
@@ -62,6 +62,23 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onCl
     console.log('Edit user:', user.id);
   };
 
+  const getRoleBadge = (role: string) => {
+    const styles: Record<string, string> = {
+      'ADMIN': 'bg-purple-100 text-purple-800',
+      'SUPERVISOR': 'bg-blue-100 text-blue-800',
+      'FIELD_USER': 'bg-green-100 text-green-800',
+      'HSE_OFFICER': 'bg-orange-100 text-orange-800',
+    };
+
+    const displayRole = role.replace('_', ' ');
+    
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[role] || 'bg-gray-100 text-gray-800'}`}>
+        {displayRole}
+      </span>
+    );
+  };
+
   return (
     <>
       {/* Backdrop */}
@@ -94,7 +111,7 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onCl
           {/* User Profile */}
           <div className="flex items-start gap-4 mb-6">
             <img
-              src={user.name === 'John Matthews' ? johnMatthewImg : undefined}
+              src={user.name  ? johnMatthewImg : johnMatthewImg}
               alt={user.name}
               className="w-20 h-20 rounded-full object-cover bg-gradient-to-br from-[#C24438] to-[#a03830]"
               onError={(e) => {
@@ -111,7 +128,7 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onCl
             </div>
             <div className="flex-1">
               <h2 className="text-xl font-semibold text-gray-900 mb-1">{user.name}</h2>
-              <p className="text-sm text-gray-600 mb-2">Role: {user.role}</p>
+              <p className="text-sm text-gray-600 mb-2">Role: {getRoleBadge(user.role)}</p>
               <span
                 className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
                   user.status === 'Active'

@@ -8,7 +8,7 @@ const {
     getClients
 } = require("../controller/client.controller");
 
-// Admin only
+// Admin only 
 router.post(
     "/clients",
     auth,

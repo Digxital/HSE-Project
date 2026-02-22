@@ -1,14 +1,14 @@
 import { Client } from '@microsoft/microsoft-graph-client';
 import { getAuthToken } from '@/utils/authStorage';
-
+ 
 export interface MicrosoftUserData {
   firstName: string;
-  lastName: string;
+  lastName: string; 
   email: string;
   jobTitle: string;
   department?: string;
   usageLocation?: string;
-}
+} 
 
 export interface MicrosoftSku {
   skuId: string;

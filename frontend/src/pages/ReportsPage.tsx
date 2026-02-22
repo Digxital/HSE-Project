@@ -297,7 +297,7 @@ export const ReportsPage: React.FC = () => {
           showMenuButton={true}
           userName="Peter Omorogbolahan"
           userRole="System Administrator"
-          notificationCount={3}
+          notificationCount={4}
         />
 
         {/* Main Content Area */}

@@ -1,54 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { type CreateUserData } from '@/services/userService';
-import { useToast } from '@/hooks/useToast';
-import { microsoft365Service, type MicrosoftSku } from '@/services/microsoft365Service';
+import React, { useState } from 'react';
 
-interface CreateUserModalProps {
+interface CreateUserModal {
   isOpen: boolean;
   onClose: () => void;
-  onUserCreated: (userData: CreateUserData) => void;
+  onUserCreated: (userData: {
+    firstName: string;
+    surname: string;
+    email: string;
+    role: string;
+    jobPosition: string;
+    createMicrosoftAccount?: boolean;
+  }) => void;
 }
-
-export const CreateUserModal: React.FC<CreateUserModalProps> = ({
+ 
+export const CreateUserModal: React.FC<CreateUserModal> = ({
   isOpen,
   onClose,
   onUserCreated,
 }) => {
-  const { showToast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
   const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [surname, setSurname] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
   const [jobPosition, setJobPosition] = useState('');
-  const [createMicrosoftAccount, setCreateMicrosoftAccount] = useState(false);
-  const [assignLicense, setAssignLicense] = useState(false);
-  const [availableSkus, setAvailableSkus] = useState<MicrosoftSku[]>([]);
-  const [selectedSku, setSelectedSku] = useState<string>('');
+  const [createMicrosoftAccount, setCreateMicrosoftAccount] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Fetch SKUs when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      fetchAvailableSkus();
-    }
-  }, [isOpen]);
-
-  const fetchAvailableSkus = async () => {
-    try {
-      const skus = await microsoft365Service.getAvailableSkus();
-      setAvailableSkus(skus);
-      if (skus.length > 0) {
-        setSelectedSku(skus[0].skuId); // Set first SKU as default
-      }
-    } catch (error) {
-      console.error('Failed to fetch SKUs:', error);
-      showToast({
-        type: 'error',
-        message: 'Failed to load Microsoft license options',
-      });
-    }
-  };
+  if (!isOpen) return null;
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -57,8 +35,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       newErrors.firstName = 'First name is required';
     }
 
-    if (!lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
+    if (!surname.trim()) {
+      newErrors.surname = 'Surname is required';
     }
 
     if (!email.trim()) {
@@ -79,55 +57,43 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) {
       return;
     }
 
-    setIsLoading(true);
+    onUserCreated({
+      firstName,
+      surname,
+      email,
+      role,
+      jobPosition,
+      createMicrosoftAccount,
+    });
 
-    try {
-      const userData: CreateUserData = {
-        firstName,
-        lastName,
-        email,
-        role,
-        jobPosition,
-        createMicrosoftAccount,
-        assignLicense: assignLicense && createMicrosoftAccount,
-        licenseSkuId: assignLicense && createMicrosoftAccount ? selectedSku : undefined,
-      };
-
-      await onUserCreated(userData);
-      
-      // Reset form
-      setFirstName('');
-      setLastName('');
-      setEmail('');
-      setRole('');
-      setJobPosition('');
-      setCreateMicrosoftAccount(false);
-      setAssignLicense(false);
-      setSelectedSku(availableSkus[0]?.skuId || '');
-      setErrors({});
-      
-      // Close modal
-      onClose();
-      
-    } catch (error: any) {
-      console.error('Create user error:', error);
-      showToast({
-        type: 'error',
-        message: error.message || 'Failed to create user. Please try again.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Reset form
+    setFirstName('');
+    setSurname('');
+    setEmail('');
+    setRole('');
+    setJobPosition('');
+    setCreateMicrosoftAccount(false);
+    setErrors({});
+    onClose();
   };
 
-  if (!isOpen) return null;
+  const handleClose = () => {
+    setFirstName('');
+    setSurname('');
+    setEmail('');
+    setRole('');
+    setJobPosition('');
+    setCreateMicrosoftAccount(false);
+    setErrors({});
+    onClose();
+  };
 
   return (
     <>
@@ -136,7 +102,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         className={`fixed inset-0 bg-black z-50 flex items-center justify-center p-4 transition-opacity duration-300 ${
           isOpen ? 'bg-opacity-50' : 'bg-opacity-0 pointer-events-none'
         }`}
-        onClick={onClose}
+        onClick={handleClose}
       >
         {/* Modal */}
         <div
@@ -147,9 +113,8 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         >
           {/* Close Button */}
           <button
-            onClick={onClose}
-            disabled={isLoading}
-            className="absolute top-6 right-6 p-1 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleClose}
+            className="absolute top-6 right-6 p-1 hover:bg-gray-100 rounded-full transition-colors"
           >
             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -157,29 +122,28 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
           </button>
 
           {/* Header */}
-          <div className="p-6 pb-4">
+          <div className="p-6 pb-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900 mb-1">Create New User</h2>
-            <p className="text-sm text-gray-500">Add a user to the system and optionally create Microsoft 365 account</p>
+            <p className="text-sm text-gray-500">Add a new user to the system</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="px-6 pb-6">
+          <form onSubmit={handleSubmit} className="p-6">
             <div className="space-y-4">
-              {/* First Name and Last Name */}
+              {/* First Name and Surname */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-700 mb-2">First Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    First Name <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
                     value={firstName}
                     onChange={(e) => {
                       setFirstName(e.target.value);
-                      if (errors.firstName) {
-                        setErrors(prev => ({ ...prev, firstName: '' }));
-                      }
+                      if (errors.firstName) setErrors(prev => ({ ...prev, firstName: '' }));
                     }}
-                    disabled={isLoading}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500 ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${
                       errors.firstName ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="Enter first name"
@@ -189,187 +153,150 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-700 mb-2">Last Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Surname <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
-                    value={lastName}
+                    value={surname}
                     onChange={(e) => {
-                      setLastName(e.target.value);
-                      if (errors.lastName) {
-                        setErrors(prev => ({ ...prev, lastName: '' }));
-                      }
+                      setSurname(e.target.value);
+                      if (errors.surname) setErrors(prev => ({ ...prev, surname: '' }));
                     }}
-                    disabled={isLoading}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500 ${
-                      errors.lastName ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${
+                      errors.surname ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder="Enter last name"
+                    placeholder="Enter surname"
                   />
-                  {errors.lastName && (
-                    <p className="text-red-500 text-xs mt-1">{errors.lastName}</p>
+                  {errors.surname && (
+                    <p className="text-red-500 text-xs mt-1">{errors.surname}</p>
                   )}
                 </div>
               </div>
 
-              {/* Email and Role */}
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${
+                    errors.email ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="user@example.com"
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                )}
+              </div>
+
+              {/* Role and Job Position */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-700 mb-2">Email Address</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      if (errors.email) {
-                        setErrors(prev => ({ ...prev, email: '' }));
-                      }
-                    }}
-                    disabled={isLoading}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500 ${
-                      errors.email ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="user@yourcompany.com"
-                  />
-                  {errors.email && (
-                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-700 mb-2">Role</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Role <span className="text-red-500">*</span>
+                  </label>
                   <select
                     value={role}
                     onChange={(e) => {
                       setRole(e.target.value);
-                      if (errors.role) {
-                        setErrors(prev => ({ ...prev, role: '' }));
-                      }
+                      if (errors.role) setErrors(prev => ({ ...prev, role: '' }));
                     }}
-                    disabled={isLoading}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-gray-700 bg-white disabled:bg-gray-50 disabled:text-gray-500 ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${
                       errors.role ? 'border-red-500' : 'border-gray-300'
                     }`}
                   >
-                    <option value="">Choose role</option>
-                    <option value="ADMIN">Admin</option>
-                    <option value="SUPERVISOR">Supervisor</option>
-                    <option value="FIELD_USER">Field User</option>
-                    <option value="HSE_OFFICER">HSE Officer</option>
+                    <option value="">Select role</option>
+                    {/* <option value="Admin">Admin</option> */}
+                    <option value="Supervisor">Supervisor</option>
+                    <option value="Field_User">Field User</option>
+                    <option value="HSE_Officer">HSE Officer</option>
                   </select>
                   {errors.role && (
                     <p className="text-red-500 text-xs mt-1">{errors.role}</p>
                   )}
                 </div>
-              </div>
-
-              {/* Job Position */}
-              <div>
-                <label className="block text-sm text-gray-700 mb-2">Job Position</label>
-                <select
-                  value={jobPosition}
-                  onChange={(e) => {
-                    setJobPosition(e.target.value);
-                    if (errors.jobPosition) {
-                      setErrors(prev => ({ ...prev, jobPosition: '' }));
-                    }
-                  }}
-                  disabled={isLoading}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-gray-700 bg-white disabled:bg-gray-50 disabled:text-gray-500 ${
-                    errors.jobPosition ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                >
-                  <option value="">Choose position</option>
-                  <option value="Safety Manager">Safety Manager</option>
-                  <option value="Field Supervisor">Field Supervisor</option>
-                  <option value="HSE Officer">HSE Officer</option>
-                  <option value="Operations Manager">Operations Manager</option>
-                  <option value="Engineer">Engineer</option>
-                  <option value="Technician">Technician</option>
-                </select>
-                {errors.jobPosition && (
-                  <p className="text-red-500 text-xs mt-1">{errors.jobPosition}</p>
-                )}
-              </div>
-
-              {/* Microsoft 365 Options */}
-              <div className="border-t border-gray-200 pt-4 mt-4">
-                <h3 className="text-sm font-medium text-gray-900 mb-3">Microsoft 365 Integration</h3>
-                
-                <div className="space-y-3">
-                  <label className="flex items-center space-x-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={createMicrosoftAccount}
-                      onChange={(e) => setCreateMicrosoftAccount(e.target.checked)}
-                      disabled={isLoading}
-                      className="w-4 h-4 text-[#C24438] border-gray-300 rounded focus:ring-[#C24438]"
-                    />
-                    <span className="text-sm text-gray-700">Create Microsoft 365 account</span>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Job Position <span className="text-red-500">*</span>
                   </label>
-
-                  {createMicrosoftAccount && (
-                    <>
-                      <label className="flex items-center space-x-3 cursor-pointer ml-7">
-                        <input
-                          type="checkbox"
-                          checked={assignLicense}
-                          onChange={(e) => setAssignLicense(e.target.checked)}
-                          disabled={isLoading}
-                          className="w-4 h-4 text-[#C24438] border-gray-300 rounded focus:ring-[#C24438]"
-                        />
-                        <span className="text-sm text-gray-700">Assign Microsoft 365 license</span>
-                      </label>
-
-                      {assignLicense && (
-                        <div className="ml-7 mt-3">
-                          <label className="block text-sm text-gray-700 mb-2">License Type</label>
-                          <select
-                            value={selectedSku}
-                            onChange={(e) => setSelectedSku(e.target.value)}
-                            disabled={isLoading || availableSkus.length === 0}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-gray-700 bg-white disabled:bg-gray-50 disabled:text-gray-500"
-                          >
-                            {availableSkus.length === 0 ? (
-                              <option value="">No licenses available</option>
-                            ) : (
-                              availableSkus.map((sku) => (
-                                <option key={sku.skuId} value={sku.skuId}>
-                                  {sku.skuPartNumber} ({sku.consumedUnits}/{sku.prepaidUnits?.enabled || 0} used)
-                                </option>
-                              ))
-                            )}
-                          </select>
-                          <p className="text-xs text-gray-500 mt-1">
-                            Select the appropriate license type for this user
-                          </p>
-                        </div>
-                      )}
-                    </>
+                  <select
+                    value={jobPosition}
+                    onChange={(e) => {
+                      setJobPosition(e.target.value);
+                      if (errors.jobPosition) setErrors(prev => ({ ...prev, jobPosition: '' }));
+                    }}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${
+                      errors.jobPosition ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  >
+                    <option value="">Select position</option>
+                    <option value="Safety Manager">Safety Manager</option>
+                    <option value="Field Supervisor">Field Supervisor</option>
+                    <option value="HSE Officer">HSE Officer</option>
+                    <option value="Operations Manager">Operations Manager</option>
+                    <option value="Engineer">Engineer</option>
+                    <option value="Technician">Technician</option>
+                  </select>
+                  {errors.jobPosition && (
+                    <p className="text-red-500 text-xs mt-1">{errors.jobPosition}</p>
                   )}
                 </div>
               </div>
 
-              {/* Submit Button */}
+              {/* Microsoft 365 Account Section */}
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="createMicrosoftAccount"
+                    checked={createMicrosoftAccount}
+                    onChange={(e) => setCreateMicrosoftAccount(e.target.checked)}
+                    className="w-4 h-4 text-[#C24438] border-gray-300 rounded focus:ring-[#C24438]"
+                  />
+                  <label htmlFor="createMicrosoftAccount" className="ml-2 text-sm font-medium text-gray-700">
+                    Also create Microsoft 365 account for mobile app login
+                  </label>
+                </div>
+                
+                {createMicrosoftAccount && (
+                  <div className="mt-3 ml-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-700">
+                      <span className="font-semibold">📱 Mobile App Access</span>
+                      <br />
+                      <span className="text-xs">
+                        A Microsoft account will be created. The user can use these credentials 
+                        to log into your mobile app. A temporary password will be generated.
+                      </span>
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Form Actions */}
+            <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C24438] transition-colors"
+              >
+                Cancel
+              </button>
               <button
                 type="submit"
-                disabled={isLoading || (createMicrosoftAccount && assignLicense && availableSkus.length === 0)}
-                className="w-full py-3 bg-[#C24438] hover:bg-[#a03830] text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-white bg-[#C24438] border border-transparent rounded-lg hover:bg-[#a03830] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C24438] transition-colors flex items-center gap-2"
               >
-                {isLoading ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>Creating User...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Create User</span>
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                    </svg>
-                  </>
-                )}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Create User
               </button>
             </div>
           </form>

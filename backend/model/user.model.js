@@ -27,7 +27,8 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["ADMIN", "SUPERVISOR", "FIELD_USER"],
       required: true
-    }
+    },
+    jobPosition: { type: String },
   },
   { timestamps: true }
 );
