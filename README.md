@@ -273,7 +273,7 @@ Vercel CLI 50.13.2
 ✅  Production: https://hse-frontend-if3cshqi2-eshanokpe-daniels-projects.vercel.app [39s]
 🔗  Aliased: https://hse-frontend-eight.vercel.app [39s]
 
-vercel --prod --confirm
+vercel --prod --yes
 
 admin@aegix.com
 Admin123

@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 
 const app = express();
-
+ 
 // ========== CORS CONFIGURATION - MUST BE FIRST ==========
 const allowedOrigins = [
   // Local development
@@ -18,19 +18,19 @@ const allowedOrigins = [
   'http://127.0.0.1:5000',
   // Production frontend (Vercel) 
   'https://hse-frontend-eight.vercel.app',
-   
-  // Environment variable for flexibility
+  'https://www.hse-frontend-eight.vercel.app',
   process.env.FRONTEND_URL,
-  
-  // Remove this line - it's your backend URL, not frontend
-  // 'https://hse-backend-production.up.railway.app'
 ].filter(Boolean);
+
 
 // CORS middleware - MUST BE FIRST
 app.use(cors({
   origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, etc)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      // In production, you might want to log these
+      console.log('⚠️ Request with no origin:', origin);
+      return callback(null, true);
+    }
     
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
       callback(null, true);
@@ -63,11 +63,6 @@ app.get('/test-cors', (req, res) => {
     origin: req.headers.origin 
   });
 });
-
-// ========== ROUTES ==========
-// Microsoft routes
-// app.use('/api/microsoft', require('./routes/microsoft')); 
-// app.use('/api/microsoft/users', require('./routes/microsoft.users')); 
 
 // ========== MICROSOFT ROUTES ==========
 // Combined Microsoft routes (SKUs, token, and user management)

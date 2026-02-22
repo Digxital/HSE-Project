@@ -2,8 +2,6 @@ import api from '@/lib/axios';
 import { getAuthToken } from '@/utils/authStorage';
 
 export interface CreateUserData {
-  id: string;
-  _id?: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -33,7 +31,7 @@ export interface UserResponse {
 export const userService = {
   async createUser(userData: CreateUserData): Promise<UserResponse & { temporaryPassword?: string; microsoftWarning?: string }> {
     try { 
-      // Get token
+      // Get token 
       const token = getAuthToken();
       
       if (!token) {

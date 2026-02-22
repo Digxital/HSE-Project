@@ -225,10 +225,10 @@ export const UserManagementPage: React.FC = () => {
     createMicrosoftAccount?: boolean;
   }) => {
     try {
+      await fetchUsers();
       setIsLoading(true);
       // List of verified domains in your Microsoft 365 tenant
-      const verifiedDomains = ['croxxtalent.com']; // Replace with actual domains
-      // Extract domain from email
+      const verifiedDomains = ['croxxtalent.com']; 
       const emailDomain = userData.email.split('@')[1];
       // Check if domain is verified
       if (userData.createMicrosoftAccount && !verifiedDomains.includes(emailDomain)) {
@@ -242,8 +242,6 @@ export const UserManagementPage: React.FC = () => {
       
       // Call API to create user (with Microsoft option)
       const newUser = await userService.createUser({
-        id: userData.firstName,
-        _id: userData.firstName,
         firstName: userData.firstName, 
         lastName: userData.surname,
         email: userData.email,
@@ -268,7 +266,7 @@ export const UserManagementPage: React.FC = () => {
         tenantId: newUser.tenantId,
         createdAt: newUser.createdAt,
       };
-
+      await fetchUsers();
       setUsers(prevUsers => [transformedUser, ...prevUsers]);
       setShowCreateUserModal(false);
       
@@ -290,6 +288,7 @@ export const UserManagementPage: React.FC = () => {
           });
         }
       } else {
+        await fetchUsers();
         showToast({
           type: 'success',
           message: '✅ Local user created successfully!',
@@ -299,6 +298,7 @@ export const UserManagementPage: React.FC = () => {
       }
 
     } catch (error: any) {
+      await fetchUsers();
       console.error('❌ Error in handleUserCreated:', error);
       showToast({
         type: 'error',

@@ -8,6 +8,8 @@ const MICROSOFT_TENANT_ID = process.env.MICROSOFT_TENANT_ID;
 const MICROSOFT_CLIENT_ID = process.env.MICROSOFT_CLIENT_ID;
 const MICROSOFT_CLIENT_SECRET = process.env.MICROSOFT_CLIENT_SECRET;
 
+
+
 // Helper function to get Microsoft Graph access token
 async function getMicrosoftAccessToken() {
   try {
@@ -71,6 +73,7 @@ router.get('/skus', authenticateToken, async (req, res) => {
 });
 
 // ========== TOKEN ROUTE ==========
+// REMOVED: router.options('/token') - Let CORS middleware handle it
 router.get('/token', authenticateToken, async (req, res) => {
   try {
     console.log('📡 Fetching Microsoft token...');
