@@ -227,7 +227,7 @@ export const UserManagementPage: React.FC = () => {
     try {
       setIsLoading(true);
       // List of verified domains in your Microsoft 365 tenant
-      const verifiedDomains = ['croxxtalent.com', 'yourdomain.com']; // Replace with actual domains
+      const verifiedDomains = ['croxxtalent.com']; // Replace with actual domains
       // Extract domain from email
       const emailDomain = userData.email.split('@')[1];
       // Check if domain is verified
