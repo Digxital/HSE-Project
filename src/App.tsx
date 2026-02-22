@@ -6,6 +6,9 @@ import { UserManagementPage } from '@/pages/UserManagementPage';
 import { ReportsPage } from '@/pages/ReportsPage';
 import { ActionsPage } from '@/pages/ActionsPage';
 import { AnalyticsPage } from '@/pages/AnalyticsPage';
+import { ProfilePage } from '@/pages/ProfilePage';
+import { CertificationPage } from '@/pages/CertificationPage';
+import { SettingsPage } from '@/pages/SettingsPage';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 // import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage';
 // import { CheckYourMailPage } from '@/pages/CheckYourMailPage';
@@ -44,6 +47,9 @@ function App() {
          <Route path="/reports" element={<ReportsPage />} />
          <Route path="/actions" element={<ActionsPage />} />
          <Route path="/analytics" element={<AnalyticsPage />} />
+         <Route path="/profile" element={<ProfilePage />} />
+         <Route path="/certification" element={<CertificationPage />} />
+         <Route path="/settings" element={<SettingsPage />} />
         {/* <Route path="/forgot-password" element={<ForgotPasswordPage />} /> */}
         {/* <Route path="/check-your-mail" element={<CheckYourMailPage />} /> */}
       </Routes>
