@@ -5,11 +5,15 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { UserManagementPage } from '@/pages/UserManagementPage';
 import { ReportsPage } from '@/pages/ReportsPage';
 import { ActionsPage } from '@/pages/ActionsPage';
+import { AnalyticsPage } from '@/pages/AnalyticsPage';
+import { ProfilePage } from '@/pages/ProfilePage';
+import { CertificationPage } from '@/pages/CertificationPage';
+import { SettingsPage } from '@/pages/SettingsPage';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { authService } from '@/services/authService';
 import { getAuthToken } from '@/utils/authStorage';
-
+ 
 import AOS from 'aos';
 
 // Create a separate component for the authenticated routes
@@ -48,6 +52,10 @@ const AppRoutes = () => {
       <Route path="/users" element={<UserManagementPage />} />
       <Route path="/reports" element={<ReportsPage />} />
       <Route path="/actions" element={<ActionsPage />} />
+      <Route path="/analytics" element={<AnalyticsPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/certification" element={<CertificationPage />} />
+      <Route path="/settings" element={<SettingsPage />} />
     </Routes>
   );
 };
