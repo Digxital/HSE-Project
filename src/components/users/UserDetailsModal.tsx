@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import johnMatthewImg from '@/assets/images/Jhn-Matthew-profileImg.jpg';
+import johnMatthewImg from '@/assets/images/Jhn-Matthew-profileImg.jpg'; 
 import { DeactivateUserModal } from './DeactivateUserModal';
 
 interface UserDetailsModalProps {

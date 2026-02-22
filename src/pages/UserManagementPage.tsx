@@ -96,7 +96,7 @@ export const UserManagementPage: React.FC = () => {
     role: string;
     jobPosition: string;
   }) => {
-    const newUser: User = {
+    const newUser: User = { 
       id: String(users.length + 1),
       name: `${userData.firstName} ${userData.surname}`,
       email: userData.email,
