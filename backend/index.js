@@ -66,8 +66,12 @@ app.get('/test-cors', (req, res) => {
 
 // ========== ROUTES ==========
 // Microsoft routes
-app.use('/api/microsoft', require('./routes/microsoft')); // Handles: /skus, /token
-app.use('/api/microsoft/users', require('./routes/microsoft.users')); // Handles: /users, /users/:userId/assignLicense, etc.
+// app.use('/api/microsoft', require('./routes/microsoft')); 
+// app.use('/api/microsoft/users', require('./routes/microsoft.users')); 
+
+// ========== MICROSOFT ROUTES ==========
+// Combined Microsoft routes (SKUs, token, and user management)
+app.use('/api/microsoft', require('./routes/microsoft'));
 
 // ========== BASIC ROUTES ==========
 app.get("/", (req, res) => {
@@ -148,7 +152,7 @@ connectDB();
 
 // ========== LOAD ROUTES ==========
 const loadRoutes = () => {
-  const routes = [
+  const routes = [ 
     { name: "auth", path: "./routes/auth", routePath: "/api/auth" },
     { name: "admin", path: "./routes/admin", routePath: "/api/admin" }, 
     
