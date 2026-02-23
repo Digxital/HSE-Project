@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { StatsCard } from './StatsCard';
 
 interface StatsOverviewProps {
@@ -6,6 +7,7 @@ interface StatsOverviewProps {
 }
 
 export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) => {
+  const navigate = useNavigate();
   // Mock data - will be replaced with API data later
   const stats = hasData
     ? {
@@ -49,7 +51,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) 
             subtitle={stats.totalReportsChange}
             subtitleColor="green"
             linkText={hasData ? "View all reports" : undefined}
-            onLinkClick={() => console.log('View all reports clicked')}
+            onLinkClick={() => navigate('/reports')}
             icon={
               <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -66,7 +68,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) 
             subtitle={stats.highRiskImmediate}
             subtitleColor="red"
             linkText={hasData ? "View high-risk items" : undefined}
-            onLinkClick={() => console.log('View high-risk items clicked')}
+            onLinkClick={() => navigate('/analytics')}
             icon={
               <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -83,7 +85,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) 
             subtitle={stats.openActionsOverdue}
             subtitleColor="orange"
             linkText={hasData ? "View open actions" : undefined}
-            onLinkClick={() => console.log('View open actions clicked')}
+            onLinkClick={() => navigate('/actions')}
             icon={
               <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

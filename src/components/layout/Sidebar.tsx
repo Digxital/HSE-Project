@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logoImage from '@/assets/images/aegix-logo.png';
+import { FeedbackModal } from '@/components/common/FeedbackModal';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -17,6 +18,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   const menuItems = [
     {
@@ -88,7 +90,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ),
       label: 'Users',
       path: '/users',
-      hasDropdown: true,
     },
     {
       icon: (
@@ -213,19 +214,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <span className="flex-shrink-0">{item.icon}</span>
               {!isCollapsed && (
-                <>
-                  <span className="ml-3 font-medium">{item.label}</span>
-                  {item.hasDropdown && (
-                    <svg
-                      className="ml-auto w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  )}
-                </>
+                <span className="ml-3 font-medium">{item.label}</span>
               )}
             </button>
           );
@@ -235,21 +224,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Feedback Section */}
       {!isCollapsed && (
         <div className="px-4 py-4 border-t border-gray-100">
-          <div className="bg-yellow-50 rounded-lg p-4 mb-4">
+          <div 
+            className="bg-yellow-50 rounded-lg p-4 mb-4 cursor-pointer hover:bg-yellow-100 transition-colors"
+            onClick={() => setShowFeedbackModal(true)}
+          >
             <div className="flex items-start space-x-3">
               <span className="text-2xl">👍</span>
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900 mb-1">Tell us what's working and what's not</p>
                 <p className="text-xs text-gray-600 mb-3">We're building Aegix for you.</p>
-                <button className="text-xs font-medium text-primary-600 hover:text-primary-700 flex items-center space-x-1">
+                <div className="text-xs font-medium text-primary-600 hover:text-primary-700 flex items-center space-x-1">
                   <span>Give Feedback</span>
                   <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Feedback Modal */}
+      <FeedbackModal 
+        isOpen={showFeedbackModal} 
+        onClose={() => setShowFeedbackModal(false)} 
+      />
 
       {/* Logout Button */}
       <div className="px-4 py-4 border-t border-gray-100">
