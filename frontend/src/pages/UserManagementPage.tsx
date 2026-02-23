@@ -138,7 +138,7 @@ export const UserManagementPage: React.FC = () => {
 
   const fetchUsers = async () => {
     setIsLoading(true);
-    try {
+    try { 
       const data = await userService.getUsers();
       console.log('📊 Raw user data:', data);
       
@@ -225,7 +225,6 @@ export const UserManagementPage: React.FC = () => {
     createMicrosoftAccount?: boolean;
   }) => {
     try {
-      await fetchUsers();
       setIsLoading(true);
       // List of verified domains in your Microsoft 365 tenant
       const verifiedDomains = ['croxxtalent.com']; 
@@ -251,6 +250,7 @@ export const UserManagementPage: React.FC = () => {
       });
 
       console.log('✅ User created:', newUser);
+      await fetchUsers();
 
       // Transform and add to local state
       const transformedUser: User = {
@@ -266,17 +266,17 @@ export const UserManagementPage: React.FC = () => {
         tenantId: newUser.tenantId,
         createdAt: newUser.createdAt,
       };
-      await fetchUsers();
+
       setUsers(prevUsers => [transformedUser, ...prevUsers]);
       setShowCreateUserModal(false);
       
       // Show different success message based on Microsoft account creation
       if (userData.createMicrosoftAccount) {
         if (newUser.microsoftAccountStatus === 'created') {
+          
           showToast({
             type: 'success',
-            message: `✅ Microsoft account created!\n\nEmail: ${userData.email}
-            \nUser can now log into mobile app with these credentials.`,
+            message: `Microsoft account created!\n\nEmail: ${userData.email}\nUser can now log into mobile app with these credentials.`,
           }); 
           //  \nTemporary Password: ${newUser.temporaryPassword}\n
           
@@ -284,21 +284,18 @@ export const UserManagementPage: React.FC = () => {
         } else if (newUser.microsoftAccountStatus === 'failed') {
           showToast({
             type: 'warning',
-            message: `⚠️ User created locally but Microsoft account failed: ${newUser.microsoftWarning}`,
+            message: `User created locally but Microsoft account failed: ${newUser.microsoftWarning}`,
           });
         }
       } else {
-        await fetchUsers();
         showToast({
           type: 'success',
           message: '✅ Local user created successfully!',
         });
-        
         setShowInvitationSentModal(true);
       }
 
     } catch (error: any) {
-      await fetchUsers();
       console.error('❌ Error in handleUserCreated:', error);
       showToast({
         type: 'error',
@@ -615,7 +612,7 @@ export const UserManagementPage: React.FC = () => {
                           currentUsers.map((user, index) => (
                             <tr 
                               key={user.id} 
-                              // onClick={() => setSelectedUser(user)}
+                              onClick={() => setSelectedUser(user)}
                               className="bg-[#FFFAF5] hover:bg-[#FFFEFB] transition-colors border-l-4 border-l-[#C24438] border-b border-b-gray-200 cursor-pointer"
                             >
                               <td className="py-3 md:py-4 px-3 md:px-4">
