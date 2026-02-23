@@ -9,7 +9,9 @@ const {
   getUsers,
   getUserById,
   updateUser,
-  deleteUser
+  deleteUser,
+  deactivateUser,
+  activateUser
 } = require("../controller/admin.controller");
 
 // Create user
@@ -50,6 +52,22 @@ router.delete(
   auth,
   authorize(["ADMIN"], ["web"]),
   deleteUser
+);
+
+// Deactivate user
+router.patch(
+  "/users/:id/deactivate",
+  auth,
+  authorize(["ADMIN"], ["web"]),
+  deactivateUser
+);
+
+// Activate user
+router.patch(
+  "/users/:id/activate",
+  auth,
+  authorize(["ADMIN"], ["web"]),
+  activateUser
 );
 
 module.exports = router;

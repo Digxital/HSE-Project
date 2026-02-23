@@ -136,3 +136,60 @@ exports.deleteUser = async (req, res) => {
     }
 };
 
+exports.deactivateUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+                data: {}
+            });
+        }
+
+        user.isActive = false;
+        await user.save();
+
+        return res.json({
+            success: true,
+            message: "User deactivated successfully",
+            data: {}
+        });
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid ID",
+            data: {}
+        });
+    }
+};
+
+exports.activateUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+                data: {}
+            });
+        }
+
+        user.isActive = true;
+        await user.save();
+
+        return res.json({
+            success: true,
+            message: "User activated successfully",
+            data: {}
+        });
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid ID",
+            data: {}
+        });
+    }
+};

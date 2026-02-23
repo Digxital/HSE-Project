@@ -6,11 +6,20 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
+
     if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // BLOCK DEACTIVATED USERS
+    if (!user.isActive) {
+        return res.status(403).json({
+            message: "Account is deactivated. Contact admin."
+        });
+    }
+
     const isMatch = await bcrypt.compare(password, user.passwordHash);
+
     if (!isMatch) {
         return res.status(401).json({ message: "Invalid credentials" });
     }

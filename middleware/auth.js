@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const User = require("../model/user.model");
 
-module.exports = (req, res, next) => {
+module.exports = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1];
 
@@ -9,7 +10,17 @@ module.exports = (req, res, next) => {
   }
 
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findById(decoded.id);
+
+    if (!user || !user.isActive) {
+      return res.status(401).json({
+        message: "Account is deactivated"
+      });
+    }
+
+    req.user = decoded;
     next();
   } catch {
     return res.status(401).json({ message: "Invalid token" });
