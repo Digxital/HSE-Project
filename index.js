@@ -35,6 +35,7 @@ app.use("/api/config", configRoutes);
 app.use("/api/incidents", incidentRoutes);
 app.use("/uploads", express.static("uploads"));
 app.use("/api/inspections", inspectionRoutes);
+app.use("/api/feedback", require("./routes/feedback.routes"));
 
 
 const PORT = process.env.PORT || 5000;
