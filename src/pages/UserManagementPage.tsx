@@ -191,10 +191,10 @@ export const UserManagementPage: React.FC = () => {
                 
                 {/* Tooltip */}
                 {showHeaderTooltip && (
-                  <div className={`absolute bottom-full ${isMobile ? 'left-0' : 'left-1/2 -translate-x-1/2'} mb-2 px-3 py-2 bg-gray-900/90 text-white text-xs rounded-lg whitespace-nowrap z-50 shadow-lg`}>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900/90 text-white text-xs rounded-lg whitespace-nowrap z-50 shadow-lg">
                     Overview of all users and their roles
                     {/* Arrow */}
-                    <div className={`absolute top-full ${isMobile ? 'left-3' : 'left-1/2 -translate-x-1/2'} border-4 border-transparent border-t-gray-900/90`}></div>
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900/90"></div>
                   </div>
                 )}
               </div>
