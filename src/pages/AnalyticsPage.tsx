@@ -128,40 +128,40 @@ export const AnalyticsPage: React.FC = () => {
             {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" data-aos="fade-up">
               {/* Total Reports */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">Total Reports</span>
-                  <span className="text-green-600 bg-green-50 px-2 py-1 rounded-full text-xs">+12% from last 30 days</span>
+              <div className="bg-white rounded-xl p-4 md:p-6 border border-gray-100">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2 gap-2">
+                  <span className="order-2 md:order-1 text-sm text-gray-600">Total Reports</span>
+                  <span className="order-1 md:order-2 text-green-600 bg-green-50 px-1.5 py-0.5 md:px-2 md:py-1 rounded-full text-[10px] md:text-xs w-fit">+12% from last 30 days</span>
                 </div>
                 <div className="text-2xl md:text-3xl font-bold text-gray-900">248</div>
-                <p className="text-xs text-gray-500 mt-1">Hazard and Incident reported</p>
+                <p className="text-xs text-gray-500 mt-1">Hazard & Incident reported</p>
               </div>
 
               {/* Total Actions */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">Total Actions</span>
-                  <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">+8 new actions this week </span>
+              <div className="bg-white rounded-xl p-4 md:p-6 border border-gray-100">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2 gap-2">
+                  <span className="order-2 md:order-1 text-sm text-gray-600">Total Actions</span>
+                  <span className="order-1 md:order-2 text-green-600 bg-green-50 px-1.5 py-0.5 md:px-2 md:py-1 rounded-full text-[10px] md:text-xs w-fit">+8 new actions this week</span>
                 </div>
                 <div className="text-2xl md:text-3xl font-bold text-gray-900">190</div>
                 <p className="text-xs text-gray-500 mt-1">Corrective actions created</p>
               </div>
 
               {/* Open Actions */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">Open Actions</span>
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">12 in progress</span>
+              <div className="bg-white rounded-xl p-4 md:p-6 border border-gray-100">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2 gap-2">
+                  <span className="order-2 md:order-1 text-sm text-gray-600">Open Actions</span>
+                  <span className="order-1 md:order-2 text-gray-500 bg-gray-100 px-1.5 py-0.5 md:px-2 md:py-1 rounded-full text-[10px] md:text-xs w-fit">12 in progress</span>
                 </div>
                 <div className="text-2xl md:text-3xl font-bold text-gray-900">34</div>
                 <p className="text-xs text-gray-500 mt-1">Actions not yet completed</p>
               </div>
 
               {/* Overdue Actions */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">Overdue Actions</span>
-                  <span className="text-xs text-[#C24438] bg-red-50 px-2 py-1 rounded-full">Requires attention</span>
+              <div className="bg-white rounded-xl p-4 md:p-6 border border-gray-100">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2 gap-2">
+                  <span className="order-2 md:order-1 text-sm text-gray-600">Overdue Actions</span>
+                  <span className="order-1 md:order-2 text-[#C24438] bg-red-50 px-1.5 py-0.5 md:px-2 md:py-1 rounded-full text-[10px] md:text-xs w-fit">Requires attention</span>
                 </div>
                 <div className="text-2xl md:text-3xl font-bold text-gray-900">6</div>
                 <p className="text-xs text-gray-500 mt-1">Past due date</p>

@@ -1,14 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { EmptyState } from '../common/EmptyState';
+import { ReportDetailsModal } from '../reports/ReportDetailsModal';
+
+type RiskLevel = 'High' | 'Medium' | 'Low';
+type ReportStatus = 'Open' | 'In Progress' | 'Closed';
+type ActionStatus = 'Open' | 'In Progress' | 'Completed';
+
+interface Action {
+  id: string;
+  action: string;
+  assignedTo: string;
+  dueDate: string;
+  status: ActionStatus;
+}
 
 interface Report {
   id: string;
   title: string;
+  type: 'Incident' | 'Hazard';
   category: string;
   location: string;
-  risk: 'High' | 'Medium' | 'Low';
-  status: 'Open' | 'Progress' | 'Closed';
+  risk: RiskLevel;
+  status: ReportStatus;
   date: string;
+  dateReported: string;
+  actions: Action[];
 }
 
 interface RecentReportsTableProps {
@@ -16,38 +32,129 @@ interface RecentReportsTableProps {
 }
 
 export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData = true }) => {
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+
   // Mock data - will be replaced with API data later
-  const reports: Report[] = hasData
+  const [reports, setReports] = useState<Report[]>(hasData
     ? [
       {
-        id: 'RPT-1042',
+        id: 'HAZ-1042',
         title: 'Oil spill near pump',
+        type: 'Hazard',
         category: 'Environmental Hazard',
         location: 'Gulf of Mexico',
         risk: 'High',
         status: 'Open',
         date: '21 Jan 2026',
+        dateReported: '21 Jan 2026\n08:42 AM',
+        actions: [
+          {
+            id: 'ACT-001',
+            action: 'Contain oil spill area',
+            assignedTo: 'Environmental Lead',
+            dueDate: 'Feb 08, 2026',
+            status: 'In Progress',
+          },
+          {
+            id: 'ACT-002',
+            action: 'Deploy cleanup equipment',
+            assignedTo: 'Operations Manager',
+            dueDate: 'Feb 08, 2026',
+            status: 'Open',
+          },
+        ],
       },
       {
-        id: 'RPT-1038',
+        id: 'HAZ-1038',
         title: 'Slippery deck',
+        type: 'Hazard',
         category: 'Unsafe Condition',
         location: 'North Sea',
         risk: 'Medium',
-        status: 'Progress',
+        status: 'In Progress',
         date: '19 Jan 2026',
+        dateReported: '19 Jan 2026\n10:15 AM',
+        actions: [
+          {
+            id: 'ACT-003',
+            action: 'Apply non-slip coating',
+            assignedTo: 'Maintenance Lead',
+            dueDate: 'Feb 01, 2026',
+            status: 'In Progress',
+          },
+          {
+            id: 'ACT-004',
+            action: 'Install warning signs',
+            assignedTo: 'Safety Officer',
+            dueDate: 'Feb 10, 2026',
+            status: 'Completed',
+          },
+        ],
       },
       {
-        id: 'RPT-1031',
+        id: 'INC-1031',
         title: 'Minor hand injury',
+        type: 'Incident',
         category: 'Incident',
         location: 'Houston Office',
         risk: 'Low',
         status: 'Closed',
         date: '17 Jan 2026',
+        dateReported: '17 Jan 2026\n02:30 PM',
+        actions: [],
       },
     ]
-    : [];
+    : []);
+
+  const handleCloseReport = (reportId: string) => {
+    setReports(prevReports =>
+      prevReports.map(report =>
+        report.id === reportId ? { ...report, status: 'Closed' as ReportStatus } : report
+      )
+    );
+    setSelectedReport(null);
+  };
+
+  const handleAddAction = (
+    reportId: string,
+    actionData: {
+      actionTitle: string;
+      assignedTo: string;
+      dueDate: string;
+      priority: string;
+      description: string;
+    }
+  ) => {
+    const newActionId = `ACT-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
+
+    const formatDate = (dateStr: string) => {
+      const date = new Date(dateStr);
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${months[date.getMonth()]} ${String(date.getDate()).padStart(2, '0')}, ${date.getFullYear()}`;
+    };
+
+    const newAction: Action = {
+      id: newActionId,
+      action: actionData.actionTitle,
+      assignedTo: actionData.assignedTo,
+      dueDate: formatDate(actionData.dueDate),
+      status: 'Open',
+    };
+
+    setReports(prevReports =>
+      prevReports.map(report =>
+        report.id === reportId
+          ? { ...report, actions: [...report.actions, newAction] }
+          : report
+      )
+    );
+
+    setSelectedReport(prevReport =>
+      prevReport && prevReport.id === reportId
+        ? { ...prevReport, actions: [...prevReport.actions, newAction] }
+        : prevReport
+    );
+  };
 
   const getRiskBadgeColor = (risk: string) => {
     switch (risk) {
@@ -66,7 +173,7 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
     switch (status) {
       case 'Open':
         return 'text-gray-700';
-      case 'Progress':
+      case 'In Progress':
         return 'text-blue-700';
       case 'Closed':
         return 'text-gray-500';
@@ -136,6 +243,7 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
                 {reports.map((report, index) => (
                   <tr
                     key={report.id}
+                    onClick={() => setSelectedReport(report)}
                     className="bg-[#FFFAF5] hover:bg-[#FFFEFB] transition-colors cursor-pointer"
                   >
                     {/* Red indicator line for first row */}
@@ -168,6 +276,15 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
           </div>
         )}
       </div>
+
+      {/* Report Details Modal */}
+      <ReportDetailsModal
+        isOpen={selectedReport !== null}
+        onClose={() => setSelectedReport(null)}
+        onCloseReport={handleCloseReport}
+        onAddAction={handleAddAction}
+        report={selectedReport}
+      />
     </div>
   );
 };

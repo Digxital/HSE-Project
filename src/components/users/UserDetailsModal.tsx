@@ -5,14 +5,14 @@ import { DeactivateUserModal } from './DeactivateUserModal';
 interface UserDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpdateUserStatus: (userId: string, newStatus: 'Active' | 'Deactivated' | 'Pending') => void;
+  onUpdateUserStatus: (userId: string, newStatus: 'Active' | 'Deactivated' | 'Unassigned') => void;
   user: {
     id: string;
     name: string;
     email: string;
     role: string;
     location: string;
-    status: 'Active' | 'Deactivated' | 'Pending';
+    status: 'Active' | 'Deactivated' | 'Unassigned';
     lastLogin: string;
     firstName?: string;
     surname?: string;

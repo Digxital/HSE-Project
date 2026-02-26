@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { ReportDetailsModal } from '@/components/reports/ReportDetailsModal';
@@ -33,66 +33,79 @@ export const ReportsPage: React.FC = () => {
   const [selectedType, setSelectedType] = useState<ReportType>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [showHeaderTooltip, setShowHeaderTooltip] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const [reports, setReports] = useState<Report[]>([
     {
-      id: 'INC-0104',
-      type: 'Incident',
-      category: 'Fire Incident',
-      location: 'North Boa Platform A',
+      id: 'HAZ-1042',
+      type: 'Hazard',
+      category: 'Environmental Hazard',
+      location: 'Gulf of Mexico',
       risk: 'High',
       status: 'Open',
       dateReported: '21 Jan 2026\n08:42 AM',
       actions: [
         {
           id: 'ACT-001',
-          action: 'Secure loose handrail',
-          assignedTo: 'Maintenance Lead',
+          action: 'Contain oil spill area',
+          assignedTo: 'Environmental Lead',
           dueDate: 'Feb 08, 2026',
           status: 'In Progress',
         },
         {
           id: 'ACT-002',
-          action: 'Inspect nearby rails',
-          assignedTo: 'Safety Officer',
+          action: 'Deploy cleanup equipment',
+          assignedTo: 'Operations Manager',
           dueDate: 'Feb 08, 2026',
           status: 'Open',
         },
       ],
     },
     {
-      id: 'INC-0103',
-      type: 'Incident',
-      category: 'Gas Leak',
-      location: 'Gulf of Mexico',
-      risk: 'High',
+      id: 'HAZ-1038',
+      type: 'Hazard',
+      category: 'Unsafe Condition',
+      location: 'North Sea',
+      risk: 'Medium',
       status: 'In Progress',
-      dateReported: '21 Jan 2026\n08:42 AM',
+      dateReported: '19 Jan 2026\n10:15 AM',
       actions: [
         {
           id: 'ACT-003',
-          action: 'Emergency gas shut-off',
-          assignedTo: 'Operations Manager',
+          action: 'Apply non-slip coating',
+          assignedTo: 'Maintenance Lead',
           dueDate: 'Feb 01, 2026',
-          status: 'Completed',
+          status: 'In Progress',
         },
         {
           id: 'ACT-004',
-          action: 'Review gas detection system',
-          assignedTo: 'Technical Lead',
+          action: 'Install warning signs',
+          assignedTo: 'Safety Officer',
           dueDate: 'Feb 10, 2026',
-          status: 'In Progress',
+          status: 'Completed',
         },
       ],
     },
     {
-      id: 'INC-0102',
+      id: 'INC-1031',
       type: 'Incident',
-      category: 'Gas Leak',
-      location: 'Gulf of Mexico',
+      category: 'Incident',
+      location: 'Houston Office',
       risk: 'Low',
       status: 'Closed',
-      dateReported: '21 Jan 2026\n08:42 AM',
+      dateReported: '17 Jan 2026\n02:30 PM',
       actions: [],
     },
     {
@@ -307,16 +320,34 @@ export const ReportsPage: React.FC = () => {
             <div className="flex items-center justify-between mb-6" data-aos="fade-down">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-semibold text-gray-900">Reports List</h1>
-                <button className="p-1 hover:bg-gray-100 rounded-full">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </button>
+                <div 
+                  className="relative"
+                  onMouseEnter={() => setShowHeaderTooltip(true)}
+                  onMouseLeave={() => setShowHeaderTooltip(false)}
+                >
+                  <button 
+                    onClick={() => setShowHeaderTooltip(!showHeaderTooltip)}
+                    className="p-1 hover:bg-gray-100 rounded-full"
+                  >
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </button>
+                  
+                  {/* Tooltip */}
+                  {showHeaderTooltip && (
+                    <div className={`absolute bottom-full ${isMobile ? 'left-0' : 'left-1/2 -translate-x-1/2'} mb-2 px-3 py-2 bg-gray-900/90 text-white text-xs rounded-lg whitespace-nowrap z-50 shadow-lg`}>
+                      View and manage all submitted reports
+                      {/* Arrow */}
+                      <div className={`absolute top-full ${isMobile ? 'left-3' : 'left-1/2 -translate-x-1/2'} border-4 border-transparent border-t-gray-900/90`}></div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

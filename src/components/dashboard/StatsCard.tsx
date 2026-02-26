@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface StatsCardProps {
   title: string;
@@ -8,6 +8,8 @@ interface StatsCardProps {
   linkText?: string;
   onLinkClick?: () => void;
   icon?: React.ReactNode;
+  tooltip?: string;
+  tooltipPosition?: 'center' | 'left';
 }
 
 export const StatsCard: React.FC<StatsCardProps> = ({
@@ -18,7 +20,23 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   linkText,
   onLinkClick,
   icon,
+  tooltip,
+  tooltipPosition = 'center',
 }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const getSubtitleColorClass = () => {
     switch (subtitleColor) {
       case 'green':
@@ -30,6 +48,27 @@ export const StatsCard: React.FC<StatsCardProps> = ({
       default:
         return 'text-gray-600';
     }
+  };
+
+  const handleIconClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowTooltip(!showTooltip);
+  };
+
+  const getTooltipPositionClass = () => {
+    // On mobile, always position left to avoid overflow
+    if (isMobile || tooltipPosition === 'left') {
+      return 'left-0';
+    }
+    return 'left-1/2 -translate-x-1/2';
+  };
+
+  const getArrowPositionClass = () => {
+    // On mobile, always position arrow left
+    if (isMobile || tooltipPosition === 'left') {
+      return 'left-3';
+    }
+    return 'left-1/2 -translate-x-1/2';
   };
 
   return (
@@ -57,10 +96,35 @@ export const StatsCard: React.FC<StatsCardProps> = ({
 
       {/* Subtitle */}
       {subtitle && (
-        <div className="flex items-center space-x-1 mt-auto">
-          {icon}
-          <p className={`text-sm ${getSubtitleColorClass()} flex items-center space-x-1`}>
-            <span>{subtitle}</span>
+        <div className="flex items-center space-x-1.5 mt-auto relative">
+          {icon && tooltip && (
+            <div 
+              className="relative"
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+            >
+              <button
+                onClick={handleIconClick}
+                className="flex-shrink-0 cursor-pointer"
+              >
+                {icon}
+              </button>
+              
+              {/* Tooltip */}
+              {showTooltip && (
+                <div className={`absolute bottom-full ${getTooltipPositionClass()} mb-2 px-3 py-2 bg-gray-900/90 text-white text-xs rounded-lg whitespace-nowrap z-50 shadow-lg`}>
+                  {tooltip}
+                  {/* Arrow */}
+                  <div className={`absolute top-full ${getArrowPositionClass()} border-4 border-transparent border-t-gray-900/90`}></div>
+                </div>
+              )}
+            </div>
+          )}
+          {icon && !tooltip && (
+            <span className="flex-shrink-0">{icon}</span>
+          )}
+          <p className={`text-sm ${getSubtitleColorClass()}`}>
+            {subtitle}
           </p>
         </div>
       )}

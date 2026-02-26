@@ -1,13 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
-import { Button } from '@/components/ui/Button';
 import { UserDetailsModal } from '@/components/users/UserDetailsModal';
-import { CreateUserModal } from '@/components/users/CreateUserModal';
-import InvitationSentModal from '@/components/auth/InvitationSentModal';
 
 type UserRole = 'All' | 'Admin' | 'Supervisor' | 'Field User' | 'HSE Officer';
-type UserStatus = 'Active' | 'Deactivated' | 'Pending';
+type UserStatus = 'Active' | 'Deactivated' | 'Unassigned';
 
 interface User {
   id: string;
@@ -22,13 +19,12 @@ interface User {
 export const UserManagementPage: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
-  const [showInvitationSentModal, setShowInvitationSentModal] = useState(false);
-  const [invitationEmail, setInvitationEmail] = useState('');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [showHeaderTooltip, setShowHeaderTooltip] = useState(false);
   const [users, setUsers] = useState<User[]>([
     {
       id: '1',
@@ -72,10 +68,30 @@ export const UserManagementPage: React.FC = () => {
       email: 'linda.chen@inveraenergy.com',
       role: 'Supervisor',
       location: 'Singapore Refi.',
-      status: 'Pending',
+      status: 'Unassigned',
       lastLogin: '21 Jan 2026\n06:15 PM',
     },
   ]);
+
+  // Check if mobile on mount and window resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const handleMobileSidebarToggle = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const closeMobileSidebar = () => {
+    setMobileMenuOpen(false);
+  };
 
   const updateUserStatus = (userId: string, newStatus: UserStatus) => {
     setUsers(prevUsers =>
@@ -87,31 +103,6 @@ export const UserManagementPage: React.FC = () => {
     if (selectedUser?.id === userId) {
       setSelectedUser(prev => prev ? { ...prev, status: newStatus } : null);
     }
-  };
-
-  const createNewUser = (userData: {
-    firstName: string;
-    surname: string;
-    email: string;
-    role: string;
-    jobPosition: string;
-  }) => {
-    const newUser: User = { 
-      id: String(users.length + 1),
-      name: `${userData.firstName} ${userData.surname}`,
-      email: userData.email,
-      role: userData.role,
-      location: userData.jobPosition, // Using job position as location
-      status: 'Pending',
-      lastLogin: 'Never',
-    };
-
-    setUsers(prevUsers => [...prevUsers, newUser]);
-    setShowCreateUserModal(false);
-    
-    // Show success modal
-    setInvitationEmail(userData.email);
-    setShowInvitationSentModal(true);
   };
 
   const roles: { label: UserRole; count: number }[] = [
@@ -136,7 +127,7 @@ export const UserManagementPage: React.FC = () => {
     const styles = {
       Active: 'text-green-600 bg-green-50',
       Deactivated: 'text-red-600 bg-red-50',
-      Pending: 'text-yellow-600 bg-yellow-50',
+      Unassigned: 'text-yellow-600 bg-yellow-50',
     };
 
     return (
@@ -149,45 +140,65 @@ export const UserManagementPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background-light">
+      {/* Backdrop for mobile sidebar */}
+      {isMobile && mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+          onClick={closeMobileSidebar}
+        ></div>
+      )}
+
       <Sidebar
         isCollapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         isMobileOpen={mobileMenuOpen}
-        onMobileClose={() => setMobileMenuOpen(false)}
+        onMobileClose={closeMobileSidebar}
       />
 
-      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
+      <div className={`transition-all duration-300 ${isMobile ? 'ml-0' : sidebarCollapsed ? 'ml-20' : 'ml-64'}`}>
         <TopBar 
           pageTitle="User Management"
           userName="Peter Omogbolahan"
           userRole="Admin"
           notificationCount={4}
-          onMenuClick={() => setMobileMenuOpen(true)}
-          showMenuButton={true}
+          onMenuClick={handleMobileSidebarToggle}
+          showMenuButton={isMobile}
         />
 
         <main className="p-4 md:p-6 lg:p-8">
           {/* Header */}
-          <div className="flex items-center justify-between gap-3 mb-6" data-aos="fade-down">
+          <div className="flex items-center gap-3 mb-6" data-aos="fade-down">
             <div className="flex items-center gap-2">
               <h2 className="text-sm md:text-lg font-semibold text-gray-900">Management Overview</h2>
-              <button className="text-gray-400 hover:text-gray-600 transition-colors hidden sm:block">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </button>
+              <div 
+                className="relative"
+                onMouseEnter={() => setShowHeaderTooltip(true)}
+                onMouseLeave={() => setShowHeaderTooltip(false)}
+              >
+                <button 
+                  onClick={() => setShowHeaderTooltip(!showHeaderTooltip)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </button>
+                
+                {/* Tooltip */}
+                {showHeaderTooltip && (
+                  <div className={`absolute bottom-full ${isMobile ? 'left-0' : 'left-1/2 -translate-x-1/2'} mb-2 px-3 py-2 bg-gray-900/90 text-white text-xs rounded-lg whitespace-nowrap z-50 shadow-lg`}>
+                    Overview of all users and their roles
+                    {/* Arrow */}
+                    <div className={`absolute top-full ${isMobile ? 'left-3' : 'left-1/2 -translate-x-1/2'} border-4 border-transparent border-t-gray-900/90`}></div>
+                  </div>
+                )}
+              </div>
             </div>
-            <Button 
-              onClick={() => setShowCreateUserModal(true)}
-              className="bg-[#C24438] hover:bg-[#a03830] text-white px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 justify-center text-sm md:text-base whitespace-nowrap"
-            >
-              <span className="text-lg">+</span> Create User
-            </Button>
           </div>
 
           {/* Management Overview Section */}
@@ -324,9 +335,9 @@ export const UserManagementPage: React.FC = () => {
                                       className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-[#FFF9F5] flex items-center gap-3 transition-colors"
                                     >
                                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                       </svg>
-                                      Edit User
+                                      Assign Role
                                     </button>
                                     <button
                                       onClick={(e) => {
@@ -361,20 +372,6 @@ export const UserManagementPage: React.FC = () => {
         onClose={() => setSelectedUser(null)}
         user={selectedUser}
         onUpdateUserStatus={updateUserStatus}
-      />
-
-      {/* Create User Modal */}
-      <CreateUserModal
-        isOpen={showCreateUserModal}
-        onClose={() => setShowCreateUserModal(false)}
-        onCreateUser={createNewUser}
-      />
-
-      {/* Invitation Sent Modal */}
-      <InvitationSentModal
-        isOpen={showInvitationSentModal}
-        onClose={() => setShowInvitationSentModal(false)}
-        email={invitationEmail}
       />
     </div>
   );

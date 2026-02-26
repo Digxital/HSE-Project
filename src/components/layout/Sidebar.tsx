@@ -142,6 +142,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
+  <>
     <aside
       className={`fixed left-0 top-0 h-screen bg-white border-r border-gray-100 transition-all duration-300 z-30 overflow-y-auto scrollbar-hide ${
         isCollapsed ? 'w-20' : 'w-64'
@@ -243,15 +244,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       )}
 
-      {/* Feedback Modal */}
-      <FeedbackModal 
-        isOpen={showFeedbackModal} 
-        onClose={() => setShowFeedbackModal(false)} 
-      />
-
       {/* Logout Button */}
       <div className="px-4 py-4 border-t border-gray-100">
         <button
+          onClick={() => navigate('/login')}
           className={`w-full flex items-center ${
             isCollapsed ? 'justify-center px-3' : 'justify-start px-4'
           } py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all`}
@@ -268,5 +264,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
     </aside>
+
+    {/* Feedback Modal - Outside aside for proper centering */}
+    <FeedbackModal 
+      isOpen={showFeedbackModal} 
+      onClose={() => setShowFeedbackModal(false)} 
+    />
+  </>
   );
 };
