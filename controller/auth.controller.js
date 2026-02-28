@@ -23,6 +23,14 @@ exports.login = async (req, res) => {
         });
     }
 
+    if (!user.role) {
+        return res.status(403).json({
+            success: false,
+            message: "Account not fully configured. Contact admin.",
+            data: {}
+        });
+    }
+
     const isMatch = await bcrypt.compare(password, user.passwordHash);
 
     if (!isMatch) {
