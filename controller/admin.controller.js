@@ -30,7 +30,9 @@ exports.createUser = async (req, res) => {
     });
 
     res.status(201).json({
-        message: `${role} created successfully`
+        success: true,
+        message: `${role} created successfully`,
+        data: {}
     });
 };
 
@@ -80,13 +82,13 @@ exports.getUserById = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
     try {
-        const { name, email, role } = req.body;
+        const { firstName, lastName, email, role } = req.body;
 
         const user = await User.findByIdAndUpdate(
             req.params.id,
-            { name, email, role },
+            { firstName, lastName, email, role },
             { new: true, runValidators: true }
-        ).select("-password");
+        ).select("-passwordHash");
 
         if (!user) {
             return res.status(404).json({
@@ -148,7 +150,7 @@ exports.deactivateUser = async (req, res) => {
             });
         }
 
-        user.isActive = false;
+        user.status = "INACTIVE";
         await user.save();
 
         return res.json({
@@ -177,7 +179,7 @@ exports.activateUser = async (req, res) => {
             });
         }
 
-        user.isActive = true;
+        user.status = "ACTIVE";
         await user.save();
 
         return res.json({

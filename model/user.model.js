@@ -28,9 +28,10 @@ const userSchema = new mongoose.Schema(
       enum: ["ADMIN", "SUPERVISOR", "FIELD_USER"],
       required: true
     },
-    isActive: {
-      type: Boolean,
-      default: true
+    status: {
+      type: String,
+      enum: ["PENDING", "ACTIVE", "INACTIVE"],
+      default: "PENDING"
     }
   },
   { timestamps: true }

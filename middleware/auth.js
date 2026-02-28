@@ -6,7 +6,11 @@ module.exports = async (req, res, next) => {
   const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({ message: "No token provided" });
+    return res.status(401).json({
+      success: false,
+      message: "No token provided",
+      data: {}
+    });
   }
 
   try {
@@ -14,15 +18,21 @@ module.exports = async (req, res, next) => {
 
     const user = await User.findById(decoded.id);
 
-    if (!user || !user.isActive) {
+    if (!user || user.status !== "ACTIVE") {
       return res.status(401).json({
-        message: "Account is deactivated"
+        success: false,
+        message: "Account is not active. Contact admin.",
+        data: {}
       });
     }
 
     req.user = decoded;
     next();
   } catch {
-    return res.status(401).json({ message: "Invalid token" });
+    return res.status(401).json({
+      success: false,
+      message: "Invalid token",
+      data: {}
+    });
   }
 };

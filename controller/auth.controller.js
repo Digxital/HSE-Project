@@ -8,20 +8,29 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({
+            success: false,
+            message: "Invalid credentials",
+            data: {}
+        });
     }
 
-    // BLOCK DEACTIVATED USERS
-    if (!user.isActive) {
+    if (user.status !== "ACTIVE") {
         return res.status(403).json({
-            message: "Account is deactivated. Contact admin."
+            success: false,
+            message: `Account is ${user.status}. Contact admin.`,
+            data: {}
         });
     }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
 
     if (!isMatch) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({
+            success: false,
+            message: "Invalid credentials",
+            data: {}
+        });
     }
 
     const token = jwt.sign(
@@ -35,7 +44,11 @@ exports.login = async (req, res) => {
     );
 
     res.json({
-        token,
-        role: user.role
+        success: true,
+        message: "Login successful",
+        data: {
+            token,
+            role: user.role
+        }
     });
 };
