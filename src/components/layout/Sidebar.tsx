@@ -144,7 +144,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
   <>
     <aside
-      className={`fixed left-0 top-0 h-screen bg-white border-r border-gray-100 transition-all duration-300 z-30 overflow-y-auto scrollbar-hide ${
+      className={`fixed left-0 top-0 h-screen bg-white border-r border-gray-100 transition-all duration-300 z-30 flex flex-col ${
         isCollapsed ? 'w-20' : 'w-64'
       } ${
         isMobileOpen ? 'translate-x-0' : '-translate-x-full'
@@ -198,7 +198,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 px-4 py-6 space-y-1">
+      <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto scrollbar-hide">
         {menuItems.map((item, index) => {
           const isActive = location.pathname === item.path;
           return (
