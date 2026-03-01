@@ -1,17 +1,10 @@
 const bcrypt = require("bcryptjs");
 const User = require("../model/user.model");
 
-// ADMIN only Can create SUPERVISOR or FIELD_USER
+// ADMIN can create users with or without a role
 
 exports.createUser = async (req, res) => {
     const { firstName, lastName, email, password, role } = req.body;
-
-    // Admin can only create these roles
-    if (!["SUPERVISOR", "FIELD_USER"].includes(role)) {
-        return res.status(400).json({
-            message: "Admin can only create Supervisor or Field User"
-        });
-    }
 
     const exists = await User.findOne({ email });
     if (exists) {
@@ -20,19 +13,22 @@ exports.createUser = async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    await User.create({
+    const newUser = await User.create({
         tenantId: req.user.tenantId,
         firstName,
         lastName,
         email,
         passwordHash,
-        role
+        role: role || null,
+        status: "PENDING"
     });
 
     res.status(201).json({
         success: true,
-        message: `${role} created successfully`,
-        data: {}
+        message: role ? `${role} created successfully` : "User created successfully",
+        data: {
+            id: newUser._id
+        }
     });
 };
 
@@ -169,6 +165,17 @@ exports.deactivateUser = async (req, res) => {
 
 exports.activateUser = async (req, res) => {
     try {
+        const { role } = req.body;
+
+        // Validate role assignment
+        if (!role || !["SUPERVISOR", "FIELD_USER"].includes(role)) {
+            return res.status(400).json({
+                success: false,
+                message: "Role must be assigned before activation.",
+                data: {}
+            });
+        }
+
         const user = await User.findById(req.params.id);
 
         if (!user) {
@@ -179,6 +186,7 @@ exports.activateUser = async (req, res) => {
             });
         }
 
+        user.role = role;
         user.status = "ACTIVE";
         await user.save();
 
