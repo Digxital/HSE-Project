@@ -13,6 +13,7 @@ import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { authService } from '@/services/authService';
 import { getAuthToken } from '@/utils/authStorage';
+import { NotificationProvider } from '@/contexts/NotificationContext';
  
 import AOS from 'aos';
 
@@ -85,9 +86,11 @@ function App() {
 
   return (
     <ToastProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
+      <NotificationProvider>
+        <Router>
+          <AppRoutes />
+        </Router>
+      </NotificationProvider>
     </ToastProvider>
   );
 }

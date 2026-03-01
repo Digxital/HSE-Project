@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { authService } from '@/services/authService';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logoImage from '@/assets/images/aegix-logo.png';
-import { removeAuthToken, removeRefreshToken, removeUserData } from '@/utils/authStorage';
-import { useToast } from '@/hooks/useToast';
+import { FeedbackModal } from '@/components/common/FeedbackModal'; 
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -14,58 +12,13 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed,
-  onToggle, 
+  onToggle,
   isMobileOpen = false,
   onMobileClose,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { showToast } = useToast();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
-
-   const handleLogout = async () => {
-      try {
-        setIsLoggingOut(true);
-        
-        // Call logout API
-        await authService.logout();
-        
-        // Clear all stored tokens and user data
-        removeAuthToken();
-        removeRefreshToken();
-        removeUserData();
-        
-        // Show success message
-        showToast({
-          type: 'success',
-          message: 'Logged out successfully',
-        });
-        
-        
-        // Navigate to login page
-        navigate('/login', { replace: true });
-        
-      } catch (error) {
-        console.error('Logout error:', error);
-        
-        // Even if API fails, clear local storage and redirect
-        removeAuthToken();
-        removeRefreshToken();
-        removeUserData();
-        
-        showToast({
-          type: 'error',
-          message: 'Error during logout, but you have been signed out locally',
-        });
-        
-        navigate('/login', { replace: true });
-        
-      } finally {
-        setIsLoggingOut(false);
-        setShowUserMenu(false);
-      }
-    };
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   const menuItems = [
     {
@@ -137,7 +90,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ),
       label: 'Users',
       path: '/users',
-      hasDropdown: true,
     },
     {
       icon: (
@@ -190,6 +142,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
+  <>
     <aside
       className={`fixed left-0 top-0 h-screen bg-white border-r border-gray-100 transition-all duration-300 z-30 overflow-y-auto scrollbar-hide ${
         isCollapsed ? 'w-20' : 'w-64'
@@ -220,7 +173,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Desktop collapse button */}
         <button
-          onClick={onToggle} 
+          onClick={onToggle}
           className="hidden lg:block p-1.5 text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors"
         >
           <svg
@@ -262,19 +215,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <span className="flex-shrink-0">{item.icon}</span>
               {!isCollapsed && (
-                <>
-                  <span className="ml-3 font-medium">{item.label}</span>
-                  {item.hasDropdown && (
-                    <svg
-                      className="ml-auto w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  )}
-                </>
+                <span className="ml-3 font-medium">{item.label}</span>
               )}
             </button>
           );
@@ -284,16 +225,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Feedback Section */}
       {!isCollapsed && (
         <div className="px-4 py-4 border-t border-gray-100">
-          <div className="bg-yellow-50 rounded-lg p-4 mb-4">
+          <div 
+            className="bg-yellow-50 rounded-lg p-4 mb-4 cursor-pointer hover:bg-yellow-100 transition-colors"
+            onClick={() => setShowFeedbackModal(true)}
+          >
             <div className="flex items-start space-x-3">
               <span className="text-2xl">👍</span>
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900 mb-1">Tell us what's working and what's not</p>
                 <p className="text-xs text-gray-600 mb-3">We're building Aegix for you.</p>
-                <button className="text-xs font-medium text-primary-600 hover:text-primary-700 flex items-center space-x-1">
+                <div className="text-xs font-medium text-primary-600 hover:text-primary-700 flex items-center space-x-1">
                   <span>Give Feedback</span>
                   <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                </button>
+                </div>
               </div>
             </div>
           </div>
@@ -301,28 +245,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       {/* Logout Button */}
-       {showUserMenu && (
-        <div className="px-4 py-4 border-t border-gray-100">
-          <button
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            className={`w-full flex items-center ${
-              isCollapsed ? 'justify-center px-3' : 'justify-start px-4'
-            } py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all`}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-              />
-            </svg>
-            
-            {!isCollapsed && <span className="ml-3 font-medium"> {isLoggingOut ? 'Logging out...' : 'Logout'}</span>}
-          </button>
-        </div>
-      )}
-    </aside>
+      <div className="px-4 py-4 border-t border-gray-100">
+        <button
+          onClick={() => navigate('/login')}
+          className={`w-full flex items-center ${
+            isCollapsed ? 'justify-center px-3' : 'justify-start px-4'
+          } py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all`}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path 
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+            />
+          </svg>
+          {!isCollapsed && <span className="ml-3 font-medium">Log out</span>}
+        </button>
+      </div>
+    </aside> 
+
+    {/* Feedback Modal - Outside aside for proper centering */}
+    <FeedbackModal 
+      isOpen={showFeedbackModal} 
+      onClose={() => setShowFeedbackModal(false)} 
+    />
+  </>
   );
 };

@@ -9,7 +9,7 @@ interface CreateUserModal {
     email: string;
     role: string;
     jobPosition: string;
-    createMicrosoftAccount?: boolean;
+    createMicrosoftAccount: true;
   }) => void;
 }
  
@@ -23,7 +23,7 @@ export const CreateUserModal: React.FC<CreateUserModal> = ({
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
   const [jobPosition, setJobPosition] = useState('');
-  const [createMicrosoftAccount, setCreateMicrosoftAccount] = useState(true);
+  // const [createMicrosoftAccount, setCreateMicrosoftAccount] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   if (!isOpen) return null;
@@ -70,7 +70,7 @@ export const CreateUserModal: React.FC<CreateUserModal> = ({
       email,
       role,
       jobPosition,
-      createMicrosoftAccount,
+      createMicrosoftAccount: true,
     });
 
     // Reset form
@@ -79,7 +79,7 @@ export const CreateUserModal: React.FC<CreateUserModal> = ({
     setEmail('');
     setRole('');
     setJobPosition('');
-    setCreateMicrosoftAccount(false);
+    // setCreateMicrosoftAccount(false);
     setErrors({});
     onClose();
   };
@@ -90,7 +90,7 @@ export const CreateUserModal: React.FC<CreateUserModal> = ({
     setEmail('');
     setRole('');
     setJobPosition('');
-    setCreateMicrosoftAccount(false);
+    // setCreateMicrosoftAccount(false);
     setErrors({});
     onClose();
   };
@@ -251,7 +251,7 @@ export const CreateUserModal: React.FC<CreateUserModal> = ({
               </div>
 
               {/* Microsoft 365 Account Section */}
-              <div className="mt-6 pt-4 border-t border-gray-200">
+              {/* <div className="mt-6 pt-4 border-t border-gray-200">
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -268,8 +268,6 @@ export const CreateUserModal: React.FC<CreateUserModal> = ({
                 {createMicrosoftAccount && (
                   <div className="mt-3 ml-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <p className="text-sm text-blue-700">
-                      {/* <span className="font-semibold">📱 Mobile App Access</span>
-                      <br /> */}
                       <span className="text-xs">
                         A Microsoft account will be created. The user can use these credentials 
                         to log into your mobile app. A temporary password will be generated.
@@ -277,7 +275,7 @@ export const CreateUserModal: React.FC<CreateUserModal> = ({
                     </p>
                   </div>
                 )}
-              </div>
+              </div> */}
             </div>
 
             {/* Form Actions */}

@@ -5,14 +5,15 @@ import { Button } from '@/components/ui/Button';
 import { userService, type UserResponse } from '@/services/userService';
 import { useToast } from '@/hooks/useToast';
 import { useAuth } from '@/hooks/useAuth';
-
 import { CreateUserModal } from '@/components/users/CreateUserModal';
 import InvitationSentModal from '@/components/auth/InvitationSentModal';
 import { getUserData, type UserData } from '@/utils/authStorage';
 import { UserDetailsModal } from '@/components/users/UserDetailsModal';
+import { microsoft365Service, type MicrosoftGraphUser } from '@/services/microsoft365Service';
 
-type UserRole = 'All' | 'ADMIN' | 'SUPERVISOR' | 'FIELD_USER' | 'HSE_OFFICER';
+type UserRole = 'All' | 'PENDING' | 'ADMIN' | 'SUPERVISOR' | 'FIELD_USER' | 'HSE_OFFICER';
 type UserStatus = 'Active' | 'Deactivated' | 'Pending';
+type ActiveTab = 'platform' | 'microsoft';
 
 interface User {
   id: string;
@@ -27,6 +28,18 @@ interface User {
   tenantId?: string;
   createdAt?: string;
   updatedAt?: string;
+  microsoftUserId?: string;
+}
+
+interface MicrosoftUser {
+  id: string;
+  displayName: string;
+  email: string;
+  jobTitle: string;
+  department: string;
+  synced: boolean;
+  platformUserId?: string;
+  importedAt?: string | null;
 }
 
 // Pagination component
@@ -110,13 +123,14 @@ export const UserManagementPage: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>('All');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('platform');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
   const [showInvitationSentModal, setShowInvitationSentModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
+  const [microsoftUsers, setMicrosoftUsers] = useState<MicrosoftUser[]>([]);
   const [isMobile, setIsMobile] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -134,42 +148,54 @@ export const UserManagementPage: React.FC = () => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
     fetchUsers();
+    fetchMicrosoftUsers();
   }, []);
 
-  const fetchUsers = async () => {
+ const fetchUsers = async () => {
     setIsLoading(true);
     try { 
       const data = await userService.getUsers();
       console.log('📊 Raw user data:', data);
       
-      // Ensure we have an array
       const usersArray = Array.isArray(data) ? data : [];
       
-      // Transform API response with safe defaults
-      const transformedUsers: User[] = usersArray.map((user: UserResponse) => ({
-        id: user._id || user.id || '', 
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        email: user.email || '',
-        role: user.role || '',
-        jobTitle: user.jobPosition || 'Not specified',
-        status: 'Active' as UserStatus, 
-        lastLogin: 'Never',
-        tenantId: user.tenantId,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      }));
+      const transformedUsers: User[] = usersArray.map((user: UserResponse) => {
+        // Handle status - API returns "PENDING" (uppercase)
+        let status: UserStatus = 'Pending';
+        if (user.status) {
+          const upperStatus = user.status.toUpperCase();
+          if (upperStatus === 'ACTIVE') status = 'Active';
+          else if (upperStatus === 'PENDING') status = 'Pending';
+          else if (upperStatus === 'INACTIVE' || upperStatus === 'DEACTIVATED') status = 'Deactivated';
+        }
+        
+        // Handle role - API returns null for pending users
+        const role = user.role || '';
+        
+        return {
+          id: user._id || user.id || '', 
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          email: user.email || '',
+          role: role,
+          jobTitle: user.jobPosition || 'Not specified',
+          status: status,
+          lastLogin: 'Never',
+          tenantId: user.tenantId,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+          microsoftUserId: user.microsoftUserId,
+        };
+      });
 
-      // Sort users by createdAt in descending order (newest first)
       const sortedUsers = transformedUsers.sort((a, b) => {
         const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
         const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return dateB - dateA; // Descending order (newest first)
+        return dateB - dateA;
       });
       
-      console.log('✅ Transformed users:', transformedUsers);
       setUsers(sortedUsers);
-      setCurrentPage(1); // Reset to first page on new data
+      setCurrentPage(1);
     } catch (error) {
       console.error('❌ Error fetching users:', error);
       setUsers([]);
@@ -182,21 +208,221 @@ export const UserManagementPage: React.FC = () => {
     }
   };
 
+ const fetchMicrosoftUsers = async () => {
+    try {
+      const msUsers = await microsoft365Service.getUsers();
+      const platformUsers = await userService.getUsers();
+      const platformEmails = new Set(platformUsers.map(u => u.email));
+      
+      // Create a map of platform users by email for quick lookup
+      const platformUserMap = new Map(platformUsers.map(u => [u.email, u]));
+      
+      // Also get sync timestamps from platform users (when they were imported)
+      const userImportDates = new Map(
+        platformUsers.map(u => [u.email, new Date(u.createdAt || 0).getTime()])
+      );
+      
+      const transformed: MicrosoftUser[] = msUsers.map((mu: MicrosoftGraphUser) => {
+        const email = mu.mail || mu.userPrincipalName;
+        const platformUser = platformUserMap.get(email);
+        
+        return {
+          id: mu.id,
+          displayName: mu.displayName,
+          email: email,
+          jobTitle: mu.jobTitle || 'Not specified',
+          department: mu.department || 'Not specified',
+          synced: platformEmails.has(email),
+          platformUserId: platformUser?.id,
+          importedAt: platformUser?.createdAt || null, // Store import date
+        };
+      });
+      
+      // ✅ FIX: Sort by import date (most recent first) then synced status
+      const sorted = transformed.sort((a, b) => {
+        // If both are synced, sort by import date (newest first)
+        if (a.synced && b.synced) {
+          const dateA = a.importedAt ? new Date(a.importedAt).getTime() : 0;
+          const dateB = b.importedAt ? new Date(b.importedAt).getTime() : 0;
+          return dateB - dateA; // Descending (newest first)
+        }
+        
+        // Synced users come before non-synced
+        if (a.synced && !b.synced) return -1;
+        if (!a.synced && b.synced) return 1;
+        
+        // If neither is synced, sort alphabetically
+        return a.displayName.localeCompare(b.displayName);
+      });
+      
+      setMicrosoftUsers(sorted);
+    } catch (error) {
+      console.error('Error fetching Microsoft users:', error);
+    }
+  } 
+
+  const syncMicrosoftUsers = async () => {
+    try {
+      setIsLoading(true);
+      
+      console.log('🔑 Testing Microsoft token...');
+      let msUsers;
+      
+      try {
+        msUsers = await microsoft365Service.getUsers();
+        console.log('✅ Microsoft token works, found', msUsers.length, 'users');
+      } catch (tokenError) {
+        console.error('❌ Microsoft token error:', tokenError);
+        showToast({
+          type: 'error',
+          message: 'Microsoft authentication failed. Please logout and login again.'
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      const platformUsers = await userService.getUsers();
+      const platformEmails = new Set(platformUsers.map(u => u.email));
+      
+      const newUsers = msUsers.filter(
+        (mu: any) => !platformEmails.has(mu.mail || mu.userPrincipalName)
+      );
+      
+      if (newUsers.length === 0) {
+        showToast({
+          type: 'success',
+          message: 'No new users to sync'
+        });
+        await fetchMicrosoftUsers();
+        setIsLoading(false);
+        return;
+      }
+      
+      let imported = 0;
+      let failed = 0;
+      const newlyCreatedUsers: UserResponse[] = [];
+      
+      for (const mu of newUsers) {
+        try {
+          const firstName = mu.givenName || mu.displayName?.split(' ')[0] || 'Unknown';
+          const lastName = mu.surname || mu.displayName?.split(' ').slice(1).join(' ') || 'User';
+          const email = mu.mail || mu.userPrincipalName;
+          
+          
+          const newUser = await userService.createUser({
+            firstName,
+            lastName,
+            email,
+            role: 'FIELD_USER',
+            jobPosition: mu.jobTitle || 'Not specified',
+            createMicrosoftAccount: false,
+            status: 'pending'
+          });
+          
+          newlyCreatedUsers.push(newUser);
+          imported++;
+        } catch (err) {
+          console.error('Failed to import user:', mu.mail || mu.userPrincipalName, err);
+          failed++;
+        }
+      }
+      
+      // Transform new users to match User interface
+      const transformedNewUsers = newlyCreatedUsers.map(user => {
+        let status: UserStatus = 'Pending';
+        if (user.status) {
+          const upperStatus = user.status.toUpperCase();
+          if (upperStatus === 'ACTIVE') status = 'Active';
+          else if (upperStatus === 'PENDING') status = 'Pending';
+          else if (upperStatus === 'INACTIVE' || upperStatus === 'DEACTIVATED') status = 'Deactivated';
+        }
+        
+        return {
+          id: user._id || user.id || '',
+          _id: user._id,
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          email: user.email || '',
+          role: 'Pending', // This is for display in the UI
+          jobTitle: user.jobPosition || 'Not specified',
+          status: status,
+          lastLogin: 'Never',
+          tenantId: user.tenantId,
+          createdAt: user.createdAt || new Date().toISOString(),
+          updatedAt: user.updatedAt,
+          microsoftUserId: user.microsoftUserId,
+        };
+      });
+      
+      // ✅ FIX 1: Update platform users with new data (names will appear immediately)
+      setUsers(prevUsers => {
+        // Create a Set of existing emails to avoid duplicates
+        const existingEmails = new Set(prevUsers.map(u => u.email));
+        
+        // Filter out any duplicates
+        const uniqueNewUsers = transformedNewUsers.filter(
+          newUser => !existingEmails.has(newUser.email)
+        );
+        
+        // Put new users at the TOP of platform list
+        return [...uniqueNewUsers, ...prevUsers];
+      });
+      
+      // ✅ FIX 2: Update Microsoft users table with new users at the TOP
+      // First, get current Microsoft users
+      const currentMicrosoftUsers = [...microsoftUsers];
+      
+      // Create new Microsoft user entries for the imported users
+      const newMicrosoftEntries: MicrosoftUser[] = transformedNewUsers.map(user => ({
+        id: user.microsoftUserId || user.id,
+        displayName: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        jobTitle: user.jobTitle,
+        department: 'Not specified',
+        synced: true,
+        platformUserId: user.id,
+      }));
+      
+      // Filter out duplicates from existing Microsoft users
+      const existingMicrosoftIds = new Set(currentMicrosoftUsers.map(u => u.id));
+      const uniqueNewMicrosoftEntries = newMicrosoftEntries.filter(
+        entry => !existingMicrosoftIds.has(entry.id)
+      );
+       
+      // ✅ Put new Microsoft users at the TOP of the Microsoft tab
+      setMicrosoftUsers([...uniqueNewMicrosoftEntries, ...currentMicrosoftUsers]);
+      // ✅ FIX: Fetch fresh data from server instead of manual state updates
+      await fetchUsers(); // This will get all users with correct status, role, etc.
+      await fetchMicrosoftUsers(); // Refresh Microsoft users table
+      
+      showToast({
+        type: 'success',
+        message: `Imported ${imported} users`
+      });
+      
+    } catch (error: any) {
+      console.error('Sync failed:', error);
+      showToast({
+        type: 'error',
+        message: error.message || 'Failed to sync users'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const updateUserStatus = async (userId: string, newStatus: 'Active' | 'Deactivated' | 'Pending') => {
     try {
       setIsLoading(true);
       
-      // Call API to update user status
       await userService.updateUser(userId, { status: newStatus.toLowerCase() as any });
       
-      // Update local state
       setUsers(prevUsers =>
         prevUsers.map(user =>
           user.id === userId ? { ...user, status: newStatus } : user
         )
       );
       
-      // Update selected user if it's the same user
       if (selectedUser?.id === userId) {
         setSelectedUser(prev => prev ? { ...prev, status: newStatus } : null);
       }
@@ -216,98 +442,7 @@ export const UserManagementPage: React.FC = () => {
     }
   };
 
-  const handleUserCreated = async (userData: {
-    firstName: string;
-    surname: string;
-    email: string;
-    role: string;
-    jobPosition: string;
-    createMicrosoftAccount?: boolean;
-  }) => {
-    try {
-      setIsLoading(true);
-      // List of verified domains in your Microsoft 365 tenant
-      const verifiedDomains = ['croxxtalent.com']; 
-      const emailDomain = userData.email.split('@')[1];
-      // Check if domain is verified
-      if (userData.createMicrosoftAccount && !verifiedDomains.includes(emailDomain)) {
-        showToast({
-          type: 'error',
-          message: `Cannot create Microsoft account. Domain ${emailDomain} is not verified in Microsoft 365. Please use one of: ${verifiedDomains.join(', ')}`,
-        });
-        setIsLoading(false);
-        return;
-      }
-      
-      // Call API to create user (with Microsoft option)
-      const newUser = await userService.createUser({
-        firstName: userData.firstName, 
-        lastName: userData.surname,
-        email: userData.email,
-        role: userData.role,
-        jobPosition: userData.jobPosition,
-        createMicrosoftAccount: userData.createMicrosoftAccount || false,
-      });
-
-      console.log('✅ User created:', newUser);
-      await fetchUsers();
-
-      // Transform and add to local state
-      const transformedUser: User = {
-        id: newUser._id || newUser.id || '',
-        _id: newUser._id,
-        firstName: newUser.firstName || userData.firstName,
-        lastName: newUser.lastName || userData.surname,
-        email: newUser.email || userData.email,
-        role: newUser.role || userData.role,
-        jobTitle: newUser.jobPosition || userData.jobPosition,
-        status: 'Active' as UserStatus,
-        lastLogin: 'Never',
-        tenantId: newUser.tenantId,
-        createdAt: newUser.createdAt,
-      };
-
-      setUsers(prevUsers => [transformedUser, ...prevUsers]);
-      setShowCreateUserModal(false);
-      
-      // Show different success message based on Microsoft account creation
-      if (userData.createMicrosoftAccount) {
-        if (newUser.microsoftAccountStatus === 'created') {
-          
-          showToast({
-            type: 'success',
-            message: `Microsoft account created!\n\nEmail: ${userData.email}\nUser can now log into mobile app with these credentials.`,
-          }); 
-          //  \nTemporary Password: ${newUser.temporaryPassword}\n
-          
-          setShowInvitationSentModal(true);
-        } else if (newUser.microsoftAccountStatus === 'failed') {
-          showToast({
-            type: 'warning',
-            message: `User created locally but Microsoft account failed: ${newUser.microsoftWarning}`,
-          });
-        }
-      } else {
-        showToast({
-          type: 'success',
-          message: '✅ Local user created successfully!',
-        });
-        setShowInvitationSentModal(true);
-      }
-
-    } catch (error: any) {
-      console.error('❌ Error in handleUserCreated:', error);
-      showToast({
-        type: 'error',
-        message: error.message || 'Failed to create user',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleDeleteUser = async (userId: string) => {
-    // Show confirmation dialog
     if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
       return;
     }
@@ -315,19 +450,16 @@ export const UserManagementPage: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // Call API to delete user
       await userService.deleteUser(userId);
       
-      // Remove user from local state
       setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
-      
-      // Close dropdown if open
       setOpenMenuId(null);
       
-      // Close user details modal if it's the same user
       if (selectedUser?.id === userId) {
         setSelectedUser(null);
       }
+      
+      await fetchMicrosoftUsers();
       
       showToast({
         type: 'success',
@@ -344,23 +476,20 @@ export const UserManagementPage: React.FC = () => {
     }
   };
 
-   const handleToggleUserStatus = async (user: User) => {
+  const handleToggleUserStatus = async (user: User) => {
     try {
       setIsLoading(true);
       
       const newStatus = user.status === 'Active' ? 'Deactivated' : 'Active';
       
-      // Call API to update user status
       await userService.updateUser(user.id, { status: newStatus.toLowerCase() as any });
       
-      // Update local state
       setUsers(prevUsers =>
         prevUsers.map(u =>
           u.id === user.id ? { ...u, status: newStatus } : u
         )
       );
       
-      // Close dropdown
       setOpenMenuId(null); 
       
       showToast({
@@ -378,17 +507,17 @@ export const UserManagementPage: React.FC = () => {
     }
   };
 
-
-  // Role counts based on actual user roles
+  // Platform Users - Role counts
   const roles: { label: UserRole; count: number }[] = [
     { label: 'All', count: users.length },
+    { label: 'PENDING', count: users.filter((u) => !u.role || u.role === '').length },
     { label: 'ADMIN', count: users.filter((u) => u.role === 'ADMIN').length },
     { label: 'SUPERVISOR', count: users.filter((u) => u.role === 'SUPERVISOR').length },
     { label: 'FIELD_USER', count: users.filter((u) => u.role === 'FIELD_USER').length },
     { label: 'HSE_OFFICER', count: users.filter((u) => u.role === 'HSE_OFFICER').length },
   ];
 
-  // Safe filtering with null checks
+  // Filter platform users
   const filteredUsers = users.filter((user) => {
     if (!user) return false;
     
@@ -397,7 +526,9 @@ export const UserManagementPage: React.FC = () => {
     const email = user.email || '';
     const role = user.role || '';
     
-    const matchesRole = selectedRole === 'All' || role === selectedRole;
+    const matchesRole = selectedRole === 'All' || 
+      (selectedRole === 'PENDING' && !user.role) ||
+      role === selectedRole;
     
     if (searchQuery === '') return matchesRole;
     
@@ -411,11 +542,26 @@ export const UserManagementPage: React.FC = () => {
     return matchesRole && matchesSearch;
   });
 
+  // Filter Microsoft users
+  const filteredMicrosoftUsers = microsoftUsers.filter((user) => {
+    if (!user) return false;
+    
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      user.displayName.toLowerCase().includes(searchLower) ||
+      user.email.toLowerCase().includes(searchLower) ||
+      user.jobTitle.toLowerCase().includes(searchLower)
+    );
+  });
+
   // Pagination logic
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const totalPages = Math.ceil(
+    (activeTab === 'platform' ? filteredUsers.length : filteredMicrosoftUsers.length) / itemsPerPage
+  );
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentUsers = filteredUsers.slice(startIndex, endIndex);
+  const currentPlatformUsers = filteredUsers.slice(startIndex, endIndex);
+  const currentMicrosoftUsers = filteredMicrosoftUsers.slice(startIndex, endIndex);
 
   const getStatusBadge = (status: UserStatus) => {
     const styles = {
@@ -449,21 +595,40 @@ export const UserManagementPage: React.FC = () => {
     );
   };
 
+  const getSyncBadge = (synced: boolean) => {
+    return synced ? (
+      <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+        Synced
+      </span>
+    ) : (
+      <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+        Not Synced
+      </span>
+    );
+  };
+
   const handleMobileSidebarToggle = () => {
     setIsMobileSidebarOpen(!isMobileSidebarOpen);
   };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // Scroll to top of table
     document.querySelector('.user-table-container')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleTabChange = (tab: ActiveTab) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+    setSearchQuery('');
+    if (tab === 'microsoft') {
+      fetchMicrosoftUsers();
+    }
   };
 
   if (!user) {
     return <div>Loading...</div>;
   }
 
- 
   return (
     <div className="min-h-screen bg-background-light">
       <Sidebar
@@ -489,53 +654,84 @@ export const UserManagementPage: React.FC = () => {
           {/* Header */}
           <div className="flex items-center justify-between gap-3 mb-6" data-aos="fade-down">
             <div className="flex items-center gap-2">
-              <h2 className="text-sm md:text-lg font-semibold text-gray-900">User Management Overview</h2>
+              <h2 className="text-sm md:text-lg font-semibold text-gray-900">User Management</h2>
               <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                Total: {users.length}
+                {activeTab === 'platform' ? `Platform: ${users.length}` : `Microsoft: ${microsoftUsers.length}`}
               </span>
             </div>
-            <Button 
-              onClick={() => setShowCreateUserModal(true)}
-              disabled={isLoading}
-              className="bg-[#C24438] hover:bg-[#a03830] text-white px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 justify-center text-sm md:text-base whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+            <div className="flex gap-2">
+              <Button 
+                onClick={syncMicrosoftUsers}
+                disabled={isLoading}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg flex items-center gap-2 text-sm md:text-base whitespace-nowrap disabled:opacity-50"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Sync Microsoft
+              </Button>
+            </div>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="flex border-b border-gray-200 mb-4">
+            <button
+              onClick={() => handleTabChange('platform')}
+              className={`px-4 py-2 text-sm font-medium transition-colors relative ${
+                activeTab === 'platform'
+                  ? 'text-[#C24438] border-b-2 border-[#C24438]'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
             >
-              <span className="text-lg">+</span> Create User
-            </Button>
+              Platform Users
+            </button>
+            <button
+              onClick={() => handleTabChange('microsoft')}
+              className={`px-4 py-2 text-sm font-medium transition-colors relative ${
+                activeTab === 'microsoft'
+                  ? 'text-[#C24438] border-b-2 border-[#C24438]'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Microsoft 365 Users
+            </button>
           </div>
 
           {/* Management Overview Section */}
           <div className="bg-[#FFFAF5] rounded-xl shadow-sm border border-gray-100 overflow-hidden" data-aos="fade-up">
             <div className="p-3 md:p-6">
-              {/* Role Filter Tabs */}
-              <div className="mb-4" data-aos="fade-up" data-aos-delay="50">
-                <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-3 px-3 md:mx-0 md:px-0 lg:pb-0">
-                  {roles.map((role) => (
-                    <button
-                      key={role.label}
-                      onClick={() => {
-                        setSelectedRole(role.label);
-                        setCurrentPage(1); // Reset to first page on filter change
-                      }}
-                      className={`px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
-                        selectedRole === role.label
-                          ? 'bg-orange-50 text-[#C24438] border border-[#C24438]'
-                          : 'bg-[#FFF9F5] text-gray-600 hover:bg-[#FFFEFB]'
-                      }`}
-                    >
-                      {role.label.replace('_', ' ')}{' '}
-                      <span
-                        className={`ml-1 px-1.5 md:px-2 py-0.5 rounded-full text-xs ${
-                          selectedRole === role.label ? 'bg-[#C24438] text-white' : 'bg-gray-200 text-gray-600'
+              {/* Role Filter Tabs - Only show for Platform tab */}
+              {activeTab === 'platform' && (
+                <div className="mb-4" data-aos="fade-up" data-aos-delay="50">
+                  <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-3 px-3 md:mx-0 md:px-0 lg:pb-0">
+                    {roles.map((role) => (
+                      <button
+                        key={role.label}
+                        onClick={() => {
+                          setSelectedRole(role.label);
+                          setCurrentPage(1);
+                        }}
+                        className={`px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                          selectedRole === role.label
+                            ? 'bg-orange-50 text-[#C24438] border border-[#C24438]'
+                            : 'bg-[#FFF9F5] text-gray-600 hover:bg-[#FFFEFB]'
                         }`}
                       >
-                        {role.count}
-                      </span>
-                    </button>
-                  ))}
+                        {role.label === 'PENDING' ? 'Pending' : role.label.replace('_', ' ')}{' '}
+                        <span
+                          className={`ml-1 px-1.5 md:px-2 py-0.5 rounded-full text-xs ${
+                            selectedRole === role.label ? 'bg-[#C24438] text-white' : 'bg-gray-200 text-gray-600'
+                          }`}
+                        >
+                          {role.count}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* Search and Filter */}
+              {/* Search */}
               <div className="flex flex-row gap-3 mb-6" data-aos="fade-up" data-aos-delay="100">
                 <div className="flex-1 relative">
                   <svg
@@ -553,26 +749,17 @@ export const UserManagementPage: React.FC = () => {
                   </svg>
                   <input
                     type="text"
-                    placeholder="Search by name, email, or role..."
+                    placeholder={activeTab === 'platform' 
+                      ? "Search by name, email, or role..." 
+                      : "Search Microsoft users by name, email, or job title..."}
                     value={searchQuery}
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
-                      setCurrentPage(1); // Reset to first page on search
+                      setCurrentPage(1);
                     }}
                     className="w-full pl-10 pr-4 py-2.5 bg-[#FFF9F5] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-sm"
                   />
                 </div>
-                <button className="px-4 py-2.5 bg-[#FFF9F5] border border-gray-200 rounded-lg hover:bg-[#FFFEFB] transition-colors flex items-center gap-2 text-sm font-medium text-gray-700 justify-center whitespace-nowrap">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                    />
-                  </svg>
-                  <span>Filter</span>
-                </button>
               </div>
 
               {/* Loading State */}
@@ -583,33 +770,31 @@ export const UserManagementPage: React.FC = () => {
                 </div>
               )}
 
-              {/* User Table */}
-              {!isLoading && (
+              {/* Platform Users Table */}
+              {!isLoading && activeTab === 'platform' && (
                 <div className="user-table-container">
                   <div className="overflow-x-auto -mx-3 md:mx-0" data-aos="fade-up" data-aos-delay="150">
                     <table className="min-w-full">
                       <thead>
                         <tr className="bg-[#FFF9F5] border-b border-gray-200">
                           <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">#</th>
-                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">ID</th>
                           <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Name</th>
                           <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Email</th>
                           <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Role</th>
-                          {/* <th className="hidden md:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500">Job Title</th> */}
                           <th className="hidden lg:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500">Status</th>
                           <th className="hidden lg:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500">Created</th>
-                          <th className="hidden lg:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500">Actions</th>
+                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {currentUsers.length === 0 ? (
+                        {currentPlatformUsers.length === 0 ? (
                           <tr>
-                            <td colSpan={9} className="text-center py-8 text-gray-500">
+                            <td colSpan={7} className="text-center py-8 text-gray-500">
                               No users found
                             </td>
                           </tr>
                         ) : (
-                          currentUsers.map((user, index) => (
+                          currentPlatformUsers.map((user, index) => (
                             <tr 
                               key={user.id} 
                               onClick={() => setSelectedUser(user)}
@@ -621,11 +806,6 @@ export const UserManagementPage: React.FC = () => {
                                 </div>
                               </td>
                               <td className="py-3 md:py-4 px-3 md:px-4">
-                                <div className="text-gray-500 text-xs font-mono">
-                                  {user.id.substring(0, 8)}...
-                                </div>
-                              </td>
-                              <td className="py-3 md:py-4 px-3 md:px-4">
                                 <div className="font-medium text-gray-900 text-xs md:text-sm">
                                   {user.firstName} {user.lastName}
                                 </div>
@@ -634,11 +814,12 @@ export const UserManagementPage: React.FC = () => {
                                 <div className="text-gray-600 text-xs md:text-sm">{user.email}</div>
                               </td>
                               <td className="py-3 md:py-4 px-3 md:px-4">
-                                {getRoleBadge(user.role)}
+                                {user.role ? getRoleBadge(user.role) : (
+                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    Pending
+                                  </span>
+                                )}
                               </td>
-                              {/* <td className="hidden md:table-cell py-4 px-4">
-                                <div className="text-gray-600 text-sm">{user.jobTitle}</div>
-                              </td> */}
                               <td className="hidden lg:table-cell py-4 px-4">
                                 {getStatusBadge(user.status)}
                               </td>
@@ -647,7 +828,7 @@ export const UserManagementPage: React.FC = () => {
                                   {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                                 </div>
                               </td>
-                              <td className="hidden lg:table-cell py-4 px-4 relative">
+                              <td className="py-3 md:py-4 px-3 md:px-4 relative">
                                 <button 
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -665,14 +846,12 @@ export const UserManagementPage: React.FC = () => {
                                 {/* Dropdown Menu */}
                                 {openMenuId === user.id && (
                                   <>
-                                    {/* Backdrop to close dropdown when clicking outside */}
                                     <div 
                                       className="fixed inset-0 z-40"
                                       onClick={() => setOpenMenuId(null)}
                                     />
                                     
-                                    {/* Dropdown */}
-                                    <div className="absolute right-0 mt-2 w-56 bg-[#FFFEFB] rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                                    <div className="absolute right-0 mt-2 w-56 bg-[#FFFEFB] rounded-lg shadow-lg border border-gray-200 py-2 z-40">
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation();
@@ -701,7 +880,7 @@ export const UserManagementPage: React.FC = () => {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                           )}
                                         </svg>
-                                        {user.status === 'Active' ? 'Deactivate User' : 'Activate User'}
+                                        {user.status === 'Active' ? 'Deactivate' : 'Activate'}
                                       </button>
                                       
                                       <div className="border-t border-gray-200 my-2"></div>
@@ -716,7 +895,7 @@ export const UserManagementPage: React.FC = () => {
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
-                                        Delete User
+                                        Delete
                                       </button>
                                     </div>
                                   </>
@@ -737,11 +916,74 @@ export const UserManagementPage: React.FC = () => {
                       onPageChange={handlePageChange}
                     />
                   )}
-                  
-                  {/* Results summary */}
-                  <div className="mt-2 text-xs text-gray-500 text-right">
-                    Showing {startIndex + 1} to {Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length} users
+                </div>
+              )}
+
+              {/* Microsoft Users Table */}
+              {!isLoading && activeTab === 'microsoft' && (
+                <div className="user-table-container">
+                  <div className="overflow-x-auto -mx-3 md:mx-0" data-aos="fade-up" data-aos-delay="150">
+                    <table className="min-w-full">
+                      <thead>
+                        <tr className="bg-[#FFF9F5] border-b border-gray-200">
+                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">#</th>
+                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Name</th>
+                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Email</th>
+                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Job Title</th>
+                          <th className="hidden lg:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500">Department</th>
+                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {currentMicrosoftUsers.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="text-center py-8 text-gray-500">
+                              No Microsoft users found
+                            </td>
+                          </tr>
+                        ) : (
+                          currentMicrosoftUsers.map((user, index) => (
+                            <tr 
+                              key={user.id} 
+                              className="bg-[#FFFAF5] hover:bg-[#FFFEFB] transition-colors border-l-4 border-l-blue-500 border-b border-b-gray-200"
+                            >
+                              <td className="py-3 md:py-4 px-3 md:px-4">
+                                <div className="text-gray-500 text-xs md:text-sm">
+                                  {startIndex + index + 1}
+                                </div>
+                              </td>
+                              <td className="py-3 md:py-4 px-3 md:px-4">
+                                <div className="font-medium text-gray-900 text-xs md:text-sm">
+                                  {user.displayName}
+                                </div>
+                              </td>
+                              <td className="py-3 md:py-4 px-3 md:px-4">
+                                <div className="text-gray-600 text-xs md:text-sm">{user.email}</div>
+                              </td>
+                              <td className="py-3 md:py-4 px-3 md:px-4">
+                                <div className="text-gray-600 text-xs md:text-sm">{user.jobTitle}</div>
+                              </td>
+                              <td className="hidden lg:table-cell py-4 px-4">
+                                <div className="text-gray-600 text-sm">{user.department}</div>
+                              </td>
+                              <td className="py-3 md:py-4 px-3 md:px-4">
+                                {getSyncBadge(user.synced)}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
                   </div>
+                  
+                  {/* Pagination */}
+                  {filteredMicrosoftUsers.length > 0 && (
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={handlePageChange}
+                    />
+                  )}
                 </div>
               )}
             </div>
@@ -765,7 +1007,7 @@ export const UserManagementPage: React.FC = () => {
           lastLogin: selectedUser.lastLogin,
           dateAdded: selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString() : undefined,
           stats: {
-            reportsSubmitted: 15, // These would come from your API
+            reportsSubmitted: 15,
             actionsAssigned: 0,
             validCertifications: 4,
             expiredCertifications: selectedUser.status === 'Deactivated' ? 1 : 0,
@@ -774,12 +1016,7 @@ export const UserManagementPage: React.FC = () => {
         onUpdateUserStatus={updateUserStatus}
       />
 
-      {/* Create User Modal */}
-      <CreateUserModal
-        isOpen={showCreateUserModal}
-        onClose={() => setShowCreateUserModal(false)}
-        onUserCreated={handleUserCreated}
-      />
+      
 
       {/* Invitation Sent Modal */}
       <InvitationSentModal

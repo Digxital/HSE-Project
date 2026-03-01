@@ -4,7 +4,7 @@ import { getAuthToken } from '@/utils/authStorage';
 export interface MicrosoftUserData {
   firstName: string;
   lastName: string; 
-  email: string;
+  email: string; 
   jobTitle: string;
   department?: string;
   usageLocation?: string;
@@ -19,6 +19,18 @@ export interface MicrosoftSku {
     suspended: number;
     warning: number;
   };
+}
+
+// Interface for the response when fetching Microsoft users
+export interface MicrosoftGraphUser {
+  id: string;
+  displayName: string;
+  givenName?: string;
+  surname?: string;
+  mail?: string;
+  userPrincipalName: string;
+  jobTitle?: string;
+  department?: string;
 }
 
 class Microsoft365Service {
@@ -47,14 +59,22 @@ class Microsoft365Service {
 
   private async getMicrosoftToken(): Promise<string | null> {
     try {
-      const token = getAuthToken();
-      if (!token) return null;
+      const token = getAuthToken(); 
+      if (!token) {
+        console.error('No auth token found');
+        return null;
+      }
 
       const response = await fetch('/api/microsoft/token', {
         headers: {
           'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
+        cache: 'no-cache' // Prevent caching
       });
+      if (!response.ok) {
+        throw new Error(`Failed to get Microsoft token: ${response.status}`);
+      }
       
       const data = await response.json();
       return data.accessToken;
@@ -64,7 +84,7 @@ class Microsoft365Service {
     }
   }
 
-  // ✅ ADD THIS METHOD - Get available SKUs/licenses
+  // Get available SKUs/licenses
   async getAvailableSkus(): Promise<MicrosoftSku[]> {
     try {
       if (!this.graphClient) {
@@ -185,6 +205,54 @@ class Microsoft365Service {
       console.error('Error sending welcome email:', error);
     }
   }
+
+  // Get all users from Microsoft 365
+  
+  async getUsers(): Promise<MicrosoftGraphUser[]> {
+  try {
+    // Always get a fresh token and reinitialize client
+    await this.initializeClient();
+
+    if (!this.graphClient) {
+      throw new Error('Microsoft Graph client not initialized');
+    }
+
+    const response = await this.graphClient
+      .api('/users')
+      .select('id,displayName,givenName,surname,mail,userPrincipalName,jobTitle,department')
+      .get();
+    
+    console.log('📊 Microsoft users fetched:', response.value.length);
+    return response.value;
+  } catch (error: any) { // 👈 Fix 1: Add type 'any' to error
+    console.error('Error fetching Microsoft users:', error);
+    
+    // Fix 2: Check if error has message property
+    const errorMessage = error?.message || '';
+    
+    // If token expired, try one more time with fresh initialization
+    if (errorMessage.includes('token is expired') || errorMessage.includes('expired')) {
+      console.log('🔄 Token expired, reinitializing and retrying...');
+      this.graphClient = null;
+      this.accessToken = null;
+      await this.initializeClient();
+      
+      // Fix 3: Check if graphClient exists before using it
+      if (this.graphClient) {
+        const client = this.graphClient as any; // Temporary type assertion
+        const response = await client
+          .api('/users')
+          .select('id,displayName,givenName,surname,mail,userPrincipalName,jobTitle,department')
+          .get();
+        return response.value;
+      } else {
+        throw new Error('Failed to reinitialize Microsoft Graph client');
+      }
+    }
+    
+    throw error;
+  }
+}
 
   private generateRandomPassword(): string {
     const length = 12;

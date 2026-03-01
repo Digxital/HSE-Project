@@ -60,7 +60,7 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onCl
   const handleEdit = () => {
     // Handle edit logic
     console.log('Edit user:', user.id);
-  };
+  }; 
 
   const getRoleBadge = (role: string) => {
     const styles: Record<string, string> = {

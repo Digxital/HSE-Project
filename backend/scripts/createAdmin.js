@@ -29,6 +29,7 @@ const User = require("../model/user.model");
             email,
             passwordHash,
             role: "ADMIN",
+            status: "ACTIVE"
         });
 
         console.log("ADMIN CREATED SUCCESSFULLY");

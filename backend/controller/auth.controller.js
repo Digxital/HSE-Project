@@ -6,14 +6,40 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
+
     if (!user) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({
+            success: false,
+            message: "Invalid credentials",
+            data: {} 
+        });
+    }
+
+    if (user.status !== "ACTIVE") {
+        return res.status(403).json({
+            success: false,
+            message: `Account is ${user.status}. Contact admin.`,
+            data: {}
+        });
+    }
+
+    if (!user.role) {
+        return res.status(403).json({
+            success: false,
+            message: "Account not fully configured. Contact admin.",
+            data: {}
+        });
     }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
+
     if (!isMatch) {
-        return res.status(401).json({ message: "Invalid credentials" });
-    }
+        return res.status(401).json({
+            success: false,
+            message: "Invalid credentials",
+            data: {}
+        });
+    } 
 
     const token = jwt.sign(
         {
@@ -26,7 +52,11 @@ exports.login = async (req, res) => {
     );
 
     res.json({
-        token,
-        role: user.role
+        success: true,
+        message: "Login successful",
+        data: {
+            token,
+            role: user.role
+        }
     });
 };

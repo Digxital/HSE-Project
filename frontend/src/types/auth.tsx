@@ -8,3 +8,18 @@ export interface LoginResponse {
     role: string;
   };
 }
+
+
+export interface User {
+  id: string;
+  microsoftId?: string; // Microsoft's user ID
+  email: string;
+  firstName: string;
+  lastName: string;
+  role?: string; // Assigned in your platform
+  jobPosition?: string;
+  status: 'pending' | 'active' | 'inactive'; // pending = needs role assignment
+  source: 'microsoft-365' | 'manual'; // Where user came from
+  createdAt: string;
+  syncedAt?: string; // Last sync with Microsoft
+}

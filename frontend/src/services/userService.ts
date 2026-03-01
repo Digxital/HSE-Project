@@ -9,6 +9,7 @@ export interface CreateUserData {
   jobPosition: string;
   createMicrosoftAccount?: boolean;
   password?: string;
+  status?: 'active' | 'pending' | 'inactive'; // Add this
 }
 
 export interface UserResponse {
@@ -43,15 +44,14 @@ export const userService = {
       // Generate a random password if not provided
       // const password = userData.password || generateRandomPassword();
        
+     
       const payload = {
         firstName: userData.firstName,
         lastName: userData.lastName,
         email: userData.email,
         jobTitle: userData.jobPosition,
-        // password: password,
-        password: "Password123",
-        status: 'active',
-        role: userData.role.toUpperCase(),
+        password: "Password123", 
+        status: userData.status || 'Pending', 
       };
       console.log('📝 Creating local user.:', payload);
 

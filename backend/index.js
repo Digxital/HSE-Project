@@ -67,6 +67,7 @@ app.get('/test-cors', (req, res) => {
 // ========== MICROSOFT ROUTES ==========
 // Combined Microsoft routes (SKUs, token, and user management)
 app.use('/api/microsoft', require('./routes/microsoft'));
+app.use("/uploads", express.static("uploads"));
 
 // ========== BASIC ROUTES ==========
 app.get("/", (req, res) => {
@@ -125,6 +126,23 @@ app.get('/api/debug/microsoft-config', (req, res) => {
   });
 });
 
+// Add this temporary route to your backend (index.js or routes)
+app.get('/api/test/sync-microsoft', async (req, res) => {
+  try {
+    const result = await syncMicrosoftUsers();
+    res.json({ 
+      success: true, 
+      message: `Sync completed. Added ${result} new users.`,
+      count: result 
+    });
+  } catch (error) { 
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 // ========== DATABASE CONNECTION ==========
 const connectDB = async () => {
   try {
@@ -156,7 +174,11 @@ const loadRoutes = () => {
  
     { name: "client", path: "./routes/client", routePath: "/api/client" },
     { name: "location", path: "./routes/location", routePath: "/api/location" },
-    { name: "report", path: "./routes/report", routePath: "/api/report" }
+    { name: "report", path: "./routes/report", routePath: "/api/report" },
+
+    { name: "feedback", path: "./routes/feedback.routes", routePath: "/api/feedback" },
+    { name: "config", path: "./routes/config", routePath: "/api/config" },
+    { name: "inspections", path: "./routes/inspection", routePath: "/api/inspections" }
   ];
  
   routes.forEach(({ name, path, routePath }) => {
