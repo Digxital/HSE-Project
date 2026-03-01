@@ -24,14 +24,14 @@ router.get("/", getIncidents);
 // SUPERVISOR + ADMIN
 router.patch(
     "/:id/assign",
-    authorize(["SUPERVISOR", "ADMIN"]),
+    authorize(["SUPERVISOR", "ADMIN", "HSE_OFFICER"]),
     validateObjectId,
     assignIncident
 );
 
 router.patch(
     "/:id/status",
-    authorize(["SUPERVISOR", "ADMIN"]),
+    authorize(["SUPERVISOR", "ADMIN", "HSE_OFFICER"]),
     validateObjectId,
     updateStatus
 );
@@ -39,7 +39,7 @@ router.patch(
 // All roles
 router.post(
     "/:id/attachments",
-    authorize(["FIELD_USER", "SUPERVISOR", "ADMIN"]),
+    authorize(["FIELD_USER", "SUPERVISOR", "ADMIN", "HSE_OFFICER"]),
     validateObjectId,
     upload.single("file"),
     uploadAttachment

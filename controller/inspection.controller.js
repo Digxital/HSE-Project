@@ -33,7 +33,7 @@ exports.assignInspector = async (req, res) => {
         const { assignedTo } = req.body;
 
         const user = await User.findById(assignedTo);
-        if (!user || !["SUPERVISOR", "FIELD_USER"].includes(user.role)) {
+        if (!user || !["SUPERVISOR", "FIELD_USER", "HSE_OFFICER"].includes(user.role)) {
             return res.status(400).json({
                 success: false,
                 message: "Invalid inspector role",

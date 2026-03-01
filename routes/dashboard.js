@@ -9,7 +9,7 @@ const authorize = require("../middleware/authorize");
 router.get(
     "/dashboard",
     auth,
-    authorize(["ADMIN", "SUPERVISOR"], ["web"]),
+    authorize(["ADMIN", "SUPERVISOR", "HSE_OFFICER"], ["web"]),
     (req, res) => {
         res.json({
             message: "Dashboard access granted",

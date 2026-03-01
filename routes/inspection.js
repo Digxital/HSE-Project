@@ -15,7 +15,7 @@ const {
 router.post(
   "/",
   auth,
-  authorize(["SUPERVISOR", "ADMIN"], ["web"]),
+  authorize(["SUPERVISOR", "ADMIN", "HSE_OFFICER"], ["web"]),
   createInspection
 );
 
@@ -23,7 +23,7 @@ router.post(
 router.patch(
   "/:id/assign",
   auth,
-  authorize(["SUPERVISOR", "ADMIN"], ["web"]),
+  authorize(["SUPERVISOR", "ADMIN", "HSE_OFFICER"], ["web"]),
   assignInspector
 );
 
@@ -31,7 +31,7 @@ router.patch(
 router.patch(
   "/:id/submit",
   auth,
-  authorize(["SUPERVISOR", "FIELD_USER"], ["mobile"]),
+  authorize(["SUPERVISOR", "FIELD_USER", "HSE_OFFICER"], ["mobile"]),
   submitInspection
 );
 
@@ -39,7 +39,7 @@ router.patch(
 router.get(
   "/",
   auth,
-  authorize(["SUPERVISOR", "FIELD_USER", "ADMIN"], ["web", "mobile"]),
+  authorize(["SUPERVISOR", "FIELD_USER", "ADMIN", "HSE_OFFICER"], ["web", "mobile"]),
   getInspections
 );
 

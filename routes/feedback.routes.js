@@ -9,7 +9,7 @@ const feedbackController = require("../controller/webFeedback.controller");
 router.post(
     "/",
     auth,
-    authorize(["ADMIN", "SUPERVISOR"], ["web"]),
+    authorize(["ADMIN", "SUPERVISOR", "HSE_OFFICER"], ["web"]),
     feedbackController.submitFeedback
 );
 router.get(

@@ -78,7 +78,7 @@ const reportSchema = new mongoose.Schema(
             },
             role: {
                 type: String,
-                enum: ["FIELD_USER", "SUPERVISOR"],
+                enum: ["FIELD_USER", "SUPERVISOR", "HSE_OFFICER"],
                 required: true
             }
         },

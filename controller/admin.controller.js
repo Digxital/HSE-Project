@@ -168,7 +168,7 @@ exports.activateUser = async (req, res) => {
         const { role } = req.body;
 
         // Validate role assignment
-        if (!role || !["SUPERVISOR", "FIELD_USER"].includes(role)) {
+        if (!role || !["SUPERVISOR", "FIELD_USER", "HSE_OFFICER"].includes(role)) {
             return res.status(400).json({
                 success: false,
                 message: "Role must be assigned before activation.",

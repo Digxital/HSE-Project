@@ -9,7 +9,7 @@ const { createReport } = require("../controller/report.controller");
 router.post(
     "/reports",
     auth,
-    authorize(["FIELD_USER", "SUPERVISOR"], ["mobile", "web"]),
+    authorize(["FIELD_USER", "SUPERVISOR", "HSE_OFFICER"], ["mobile", "web"]),
     createReport
 );
 

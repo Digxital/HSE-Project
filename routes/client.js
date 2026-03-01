@@ -20,7 +20,7 @@ router.post(
 router.get(
     "/clients",
     auth,
-    authorize(["ADMIN", "SUPERVISOR"], ["web"]),
+    authorize(["ADMIN", "SUPERVISOR", "HSE_OFFICER"], ["web"]),
     getClients
 );
 
