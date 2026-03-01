@@ -12,6 +12,7 @@ const reportRoutes = require("./routes/report");
 const configRoutes = require("./routes/config");
 const incidentRoutes = require("./routes/incident")
 const inspectionRoutes = require("./routes/inspection");
+const notificationRoutes = require("./routes/notification.routes");
 
 
 
@@ -36,7 +37,7 @@ app.use("/api/incidents", incidentRoutes);
 app.use("/uploads", express.static("uploads"));
 app.use("/api/inspections", inspectionRoutes);
 app.use("/api/feedback", require("./routes/feedback.routes"));
-
+app.use("/api/notifications", notificationRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
