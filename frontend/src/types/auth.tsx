@@ -9,17 +9,19 @@ export interface LoginResponse {
   };
 }
 
-
+type UserStatus = 'Active' | 'Deactivated' | 'Pending';
 export interface User {
   id: string;
-  microsoftId?: string; // Microsoft's user ID
-  email: string;
+  _id?: string; 
   firstName: string;
   lastName: string;
-  role?: string; // Assigned in your platform
-  jobPosition?: string;
-  status: 'pending' | 'active' | 'inactive'; // pending = needs role assignment
-  source: 'microsoft-365' | 'manual'; // Where user came from
-  createdAt: string;
-  syncedAt?: string; // Last sync with Microsoft
+  email: string;
+  role: string;
+  jobTitle: string;
+  status: UserStatus;
+  lastLogin: string;
+  tenantId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  microsoftUserId?: string;
 }

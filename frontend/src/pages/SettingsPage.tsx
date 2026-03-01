@@ -107,7 +107,7 @@ export const SettingsPage: React.FC = () => {
           userName="Peter Omogbolahan"
           userRole="Admin"
           notificationCount={4}
-        />
+        /> 
 
         {/* Main Content Area */}
         <main className="p-4 md:p-6 lg:p-8">

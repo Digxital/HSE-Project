@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import johnMatthewImg from '@/assets/images/avatar-profile-user.svg';
 import { DeactivateUserModal } from './DeactivateUserModal';
+import { userService } from '@/services/userService';
+import { useToast } from '@/hooks/useToast';
 
 interface UserDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUpdateUserStatus: (userId: string, newStatus: 'Active' | 'Deactivated' | 'Pending') => void;
+  onUserUpdated?: () => void;
   user: {
     id: string;
     name: string;
@@ -26,8 +29,18 @@ interface UserDetailsModalProps {
   } | null;
 }
 
-export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onClose, user, onUpdateUserStatus }) => {
+export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  user, 
+  onUpdateUserStatus,
+  onUserUpdated 
+}) => {
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedUser, setEditedUser] = useState<Partial<any>>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const { showToast } = useToast();
   
   if (!user) return null;
 
@@ -58,9 +71,122 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onCl
   };
 
   const handleEdit = () => {
-    // Handle edit logic
-    console.log('Edit user:', user.id);
-  }; 
+    setIsEditing(true);
+    setEditedUser({
+      firstName: firstName,
+      lastName: surname,
+      email: user.email,
+      role: user.role,
+      location: user.location,
+      status: user.status,
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditedUser({});
+  };
+
+  const handleSaveEdit = async () => {
+  if (!user) {
+    console.log('❌ No user data available');
+    return;
+  }
+  
+  console.log('📝 Starting save for user:', user.id);
+  console.log('📝 Edited user data:', editedUser);
+  console.log('📝 Original first name:', firstName);
+  console.log('📝 Original surname:', surname);
+  
+  setIsSaving(true);
+  try {
+    // Prepare the data to update
+    const updateData: any = {};
+    
+    // Check each field for changes
+    if (editedUser.firstName !== undefined && editedUser.firstName !== firstName) {
+      updateData.firstName = editedUser.firstName;
+      console.log('📝 First name changed:', firstName, '->', editedUser.firstName);
+    }
+    if (editedUser.lastName !== undefined && editedUser.lastName !== surname) {
+      updateData.lastName = editedUser.lastName;
+      console.log('📝 Last name changed:', surname, '->', editedUser.lastName);
+    }
+    if (editedUser.email !== undefined && editedUser.email !== user.email) {
+      updateData.email = editedUser.email;
+      console.log('📝 Email changed:', user.email, '->', editedUser.email);
+    }
+    if (editedUser.role !== undefined && editedUser.role !== user.role) {
+      updateData.role = editedUser.role;
+      console.log('📝 Role changed:', user.role, '->', editedUser.role);
+    }
+    if (editedUser.location !== undefined && editedUser.location !== user.location) {
+      updateData.location = editedUser.location;
+      console.log('📝 Location changed:', user.location, '->', editedUser.location);
+    }
+    if (editedUser.status !== undefined && editedUser.status !== user.status) {
+      // Convert status to lowercase for API
+      updateData.status = editedUser.status.toLowerCase() as 'active' | 'pending' | 'inactive';
+      console.log('📝 Status changed:', user.status, '->', editedUser.status, '(API:', updateData.status, ')');
+    }
+    
+    console.log('📝 Update data to send:', updateData);
+    
+    // Only call API if there are changes
+    if (Object.keys(updateData).length === 0) {
+      console.log('📝 No changes to save');
+      showToast({
+        type: 'error',
+        message: 'No changes to save'
+      });
+      setIsEditing(false);
+      setEditedUser({});
+      setIsSaving(false);
+      return;
+    }
+    
+    // Call the API
+    console.log('📝 Calling userService.updateUser with:', user.id, updateData);
+    const result = await userService.updateUser(user.id, updateData);
+    console.log('✅ Update successful:', result);
+    
+    showToast({
+      type: 'success',
+      message: 'User updated successfully'
+    });
+    
+    // Call the callback to refresh user list
+    if (onUserUpdated) {
+      console.log('📝 Calling onUserUpdated callback');
+      await onUserUpdated();
+    }
+    
+    // Also update the local status through the existing function if status changed
+    if (updateData.status) {
+      const newStatus = updateData.status === 'active' ? 'Active' : 
+                       updateData.status === 'pending' ? 'Pending' : 'Deactivated';
+      console.log('📝 Updating status to:', newStatus);
+      onUpdateUserStatus(user.id, newStatus);
+    }
+    
+    setIsEditing(false);
+    setEditedUser({});
+    
+  } catch (error: any) {
+    console.error('❌ Failed to update user:', error);
+    console.error('❌ Error response:', error.response?.data);
+    showToast({
+      type: 'error',
+      message: error.response?.data?.message || error.message || 'Failed to update user'
+    });
+  } finally {
+    setIsSaving(false);
+  }
+};
+
+  const handleInputChange = (field: string, value: string) => {
+    setEditedUser(prev => ({ ...prev, [field]: value }));
+  };
 
   const getRoleBadge = (role: string) => {
     const styles: Record<string, string> = {
@@ -111,7 +237,7 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onCl
           {/* User Profile */}
           <div className="flex items-start gap-4 mb-6">
             <img
-              src={user.name  ? johnMatthewImg : johnMatthewImg}
+              src={user.name ? johnMatthewImg : johnMatthewImg}
               alt={user.name}
               className="w-20 h-20 rounded-full object-cover bg-gradient-to-br from-[#C24438] to-[#a03830]"
               onError={(e) => {
@@ -186,25 +312,58 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onCl
             </button>
           )}
 
-          {/* Edit Button */}
-          <div className="flex justify-end mb-6">
-            <button
-              onClick={handleEdit}
-              className="px-4 py-2 bg-[#C24438] hover:bg-[#a03830] text-white rounded-lg flex items-center gap-2 text-sm"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                />
-              </svg>
-              Edit
-            </button>
+          {/* Edit/Save/Cancel Buttons */}
+          <div className="flex justify-end gap-2 mb-6">
+            {isEditing ? (
+              <>
+                <button
+                  onClick={handleCancelEdit}
+                  disabled={isSaving}
+                  className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg flex items-center gap-2 text-sm disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={isSaving}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 text-sm disabled:opacity-50"
+                >
+                  {isSaving ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Save
+                    </>
+                  )}
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleEdit}
+                className="px-4 py-2 bg-[#C24438] hover:bg-[#a03830] text-white rounded-lg flex items-center gap-2 text-sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+                Edit
+              </button>
+            )}
           </div>
 
-          {/* User Details Form */}
+          {/* User Details Form - All fields inactive until edit mode */}
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               {/* First Name */}
@@ -212,9 +371,14 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onCl
                 <label className="block text-sm text-gray-600 mb-2">First Name</label>
                 <input
                   type="text"
-                  value={firstName}
-                  readOnly
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-900 text-sm"
+                  value={isEditing ? editedUser.firstName || firstName : firstName}
+                  onChange={(e) => handleInputChange('firstName', e.target.value)}
+                  readOnly={!isEditing}
+                  className={`w-full px-3 py-2 border rounded-lg text-gray-900 text-sm ${
+                    isEditing 
+                      ? 'bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent' 
+                      : 'bg-gray-50 border-gray-200 cursor-not-allowed'
+                  }`}
                 />
               </div>
 
@@ -223,9 +387,14 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onCl
                 <label className="block text-sm text-gray-600 mb-2">Surname</label>
                 <input
                   type="text"
-                  value={surname || ''}
-                  readOnly
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-900 text-sm"
+                  value={isEditing ? editedUser.lastName || surname : surname || ''}
+                  onChange={(e) => handleInputChange('lastName', e.target.value)}
+                  readOnly={!isEditing}
+                  className={`w-full px-3 py-2 border rounded-lg text-gray-900 text-sm ${
+                    isEditing 
+                      ? 'bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent' 
+                      : 'bg-gray-50 border-gray-200 cursor-not-allowed'
+                  }`}
                 />
               </div>
             </div>
@@ -236,21 +405,39 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onCl
                 <label className="block text-sm text-gray-600 mb-2">Email</label>
                 <input
                   type="email"
-                  value={user.email}
-                  readOnly
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-900 text-sm"
+                  value={isEditing ? editedUser.email || user.email : user.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  readOnly={!isEditing}
+                  className={`w-full px-3 py-2 border rounded-lg text-gray-900 text-sm ${
+                    isEditing 
+                      ? 'bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent' 
+                      : 'bg-gray-50 border-gray-200 cursor-not-allowed'
+                  }`}
                 />
               </div>
 
-              {/* Role */}
+              {/* Role - Could be a dropdown when editing */}
               <div>
                 <label className="block text-sm text-gray-600 mb-2">Role</label>
-                <input
-                  type="text"
-                  value={user.role}
-                  readOnly
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-900 text-sm"
-                />
+                {isEditing ? (
+                  <select
+                    value={editedUser.role || user.role}
+                    onChange={(e) => handleInputChange('role', e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent"
+                  >
+                    <option value="ADMIN">Admin</option>
+                    <option value="SUPERVISOR">Supervisor</option>
+                    <option value="FIELD_USER">Field User</option>
+                    <option value="HSE_OFFICER">HSE Officer</option>
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={user.role}
+                    readOnly
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm cursor-not-allowed"
+                  />
+                )}
               </div>
             </div>
 
@@ -260,21 +447,38 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onCl
                 <label className="block text-sm text-gray-600 mb-2">Location</label>
                 <input
                   type="text"
-                  value={user.location}
-                  readOnly
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-900 text-sm"
+                  value={isEditing ? editedUser.location || user.location : user.location}
+                  onChange={(e) => handleInputChange('location', e.target.value)}
+                  readOnly={!isEditing}
+                  className={`w-full px-3 py-2 border rounded-lg text-gray-900 text-sm ${
+                    isEditing 
+                      ? 'bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent' 
+                      : 'bg-gray-50 border-gray-200 cursor-not-allowed'
+                  }`}
                 />
               </div>
 
-              {/* Status */}
+              {/* Status - Dropdown with Pending, Active, Inactive */}
               <div>
                 <label className="block text-sm text-gray-600 mb-2">Status</label>
-                <input
-                  type="text"
-                  value={user.status}
-                  readOnly
-                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-900 text-sm"
-                />
+                {isEditing ? (
+                  <select
+                    value={editedUser.status || user.status}
+                    onChange={(e) => handleInputChange('status', e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Deactivated">Inactive</option>
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={user.status}
+                    readOnly
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm cursor-not-allowed"
+                  />
+                )}
               </div>
             </div>
 
@@ -285,7 +489,7 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ isOpen, onCl
                 type="text"
                 value={user.dateAdded || '02-12-2014'}
                 readOnly
-                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-900 text-sm"
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm cursor-not-allowed"
               />
             </div>
           </div>

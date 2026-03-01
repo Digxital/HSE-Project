@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { userService, type UserResponse } from '@/services/userService';
 import { useToast } from '@/hooks/useToast';
 import { useAuth } from '@/hooks/useAuth';
-import { CreateUserModal } from '@/components/users/CreateUserModal';
+import { useNotifications } from '@/contexts/NotificationContext';
 import InvitationSentModal from '@/components/auth/InvitationSentModal';
 import { getUserData, type UserData } from '@/utils/authStorage';
 import { UserDetailsModal } from '@/components/users/UserDetailsModal';
@@ -134,7 +134,8 @@ export const UserManagementPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  
+  const { addNotification } = useNotifications();
+   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -318,7 +319,20 @@ export const UserManagementPage: React.FC = () => {
             createMicrosoftAccount: false,
             status: 'pending'
           });
-          
+          // ✅ Add notification for each successfully imported user
+          addNotification({
+            type: 'user_added',
+            title: 'New User Added',
+            description: `${firstName} ${lastName} (${email}) has been added to the platform.`,
+            timestamp: new Date().toISOString(),
+          });
+          // addNotification({
+          //   type: 'user_added',
+          //   title: 'New User Created',
+          //   description: `${userData.firstName} ${userData.lastName} (${userData.email}) has been created.`,
+          //   timestamp: new Date().toISOString(),
+          // });
+           
           newlyCreatedUsers.push(newUser);
           imported++;
         } catch (err) {
@@ -608,7 +622,7 @@ export const UserManagementPage: React.FC = () => {
   };
 
   const handleMobileSidebarToggle = () => {
-    setIsMobileSidebarOpen(!isMobileSidebarOpen);
+    setMobileMenuOpen(!mobileMenuOpen);
   };
 
   const handlePageChange = (page: number) => {
@@ -996,7 +1010,7 @@ export const UserManagementPage: React.FC = () => {
         isOpen={!!selectedUser}
         onClose={() => setSelectedUser(null)}
         user={selectedUser ? {
-          id: selectedUser.id,
+          id: selectedUser.id, // This should be the correct ID
           name: `${selectedUser.firstName} ${selectedUser.lastName}`,
           firstName: selectedUser.firstName,
           surname: selectedUser.lastName,
@@ -1014,6 +1028,7 @@ export const UserManagementPage: React.FC = () => {
           }
         } : null}
         onUpdateUserStatus={updateUserStatus}
+        onUserUpdated={fetchUsers} // Add this line
       />
 
       

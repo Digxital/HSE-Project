@@ -9,17 +9,27 @@ const User = require("../model/user.model");
         await mongoose.connect(process.env.MONGO_URI);
 
         const email = "admin@aegix.com";
+        const password = "Admin123";
 
         console.log("Checking if admin exists...");
         const existingAdmin = await User.findOne({ email });
 
+        console.log("Hashing password...");
+        const passwordHash = await bcrypt.hash(password, 10);
+
         if (existingAdmin) {
-            console.log("User already exists. Skipping creation.");
+            console.log("Admin exists. Updating credentials...");
+            existingAdmin.passwordHash = passwordHash;
+            existingAdmin.role = "ADMIN";
+            existingAdmin.status = "ACTIVE";
+            existingAdmin.firstName = "Admin";
+            existingAdmin.lastName = "User";
+            await existingAdmin.save();
+            console.log("ADMIN UPDATED SUCCESSFULLY");
+            console.log(`Email: ${email}`);
+            console.log(`Password: ${password}`);
             process.exit(0);
         }
-
-        console.log("Hashing password...");
-        const passwordHash = await bcrypt.hash("Admin123", 10);
 
         console.log("Creating admin...");
         await User.create({
@@ -33,6 +43,8 @@ const User = require("../model/user.model");
         });
 
         console.log("ADMIN CREATED SUCCESSFULLY");
+        console.log(`Email: ${email}`);
+        console.log(`Password: ${password}`);
         process.exit(0);
 
     } catch (error) {
@@ -40,3 +52,4 @@ const User = require("../model/user.model");
         process.exit(1);
     }
 })();
+  

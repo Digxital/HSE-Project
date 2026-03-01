@@ -65,7 +65,7 @@ export const userService = {
       // Extract user ID from response (adjust based on your API response structure)
       const localUser = response.data.user || response.data;
       const userId = localUser.id || localUser._id;
-
+      
       // STEP 2: Create Microsoft account if requested
       let microsoftResult = null;
       if (userData.createMicrosoftAccount) {
@@ -200,27 +200,27 @@ export const userService = {
     }
   },
 
-  async updateUser(userId: string, userData: Partial<CreateUserData & { status?: string }>): Promise<UserResponse> {
-    try {
-      const token = getAuthToken();
-      
-      if (!token) {
-        throw new Error('No authentication token found. Please login again.');
-      }
-
-      const response = await api.patch(`/api/admin/users/${userId}`, userData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      return response.data.data || response.data;
-    } catch (error: any) {
-      console.error('Error updating user:', error);
-      throw error;
+async updateUser(userId: string, userData: Partial<CreateUserData & { status?: string }>): Promise<UserResponse> {
+  try {
+    const token = getAuthToken();
+     
+    if (!token) {
+      throw new Error('No authentication token found. Please login again.');
     }
-  },
+
+    console.log('📤 Updating user:', userId, userData);
+
+    const response = await api.put(`/api/admin/users/${userId}`, userData);
+    
+    console.log('✅ Update response:', response.data);
+    return response.data.data || response.data;
+  } catch (error: any) {
+    console.error('❌ Error updating user:', error);
+    console.error('Error response:', error.response?.data);
+    throw error;
+  }
+}
+// Remove the extra closing brace here - there should only be one after this catch block
 
  
 };

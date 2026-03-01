@@ -1,6 +1,6 @@
 // contexts/NotificationContext.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { notificationService, Notification } from '@/services/notificationService';
+import { notificationService, type Notification } from '@/services/notificationService';
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -9,10 +9,10 @@ interface NotificationContextType {
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   clearAll: () => void;
-}
+} 
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
-
+ 
 export const useNotifications = () => {
   const context = useContext(NotificationContext);
   if (!context) {

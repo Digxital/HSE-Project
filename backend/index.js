@@ -178,9 +178,9 @@ const loadRoutes = () => {
 
     { name: "feedback", path: "./routes/feedback.routes", routePath: "/api/feedback" },
     { name: "config", path: "./routes/config", routePath: "/api/config" },
-    { name: "inspections", path: "./routes/inspection", routePath: "/api/inspections" }
+    { name: "inspections", path: "./routes/inspection", routePath: "/api/inspections" },
+    { name: "notification", path: "./routes/notification.routes", routePath: "/api/notifications" }
   ];
- 
   routes.forEach(({ name, path, routePath }) => {
     try {
       const router = require(path);
