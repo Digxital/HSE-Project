@@ -15,7 +15,7 @@ export const syncMicrosoftUsers = async () => {
     
     // 3. Find users in Microsoft that aren't in your platform
     const newMicrosoftUsers = microsoftUsers.filter(
-      mu => !platformEmails.has(mu.email || mu.userPrincipalName)
+      mu => !platformEmails.has(mu.emailAddress || mu.userPrincipalName)
     );
     
     // 4. Create pending users using createUser with status:'pending'
@@ -23,7 +23,7 @@ export const syncMicrosoftUsers = async () => {
       // Prepare user data for creation
       const firstName = mu.givenName || mu.displayName?.split(' ')[0] || '';
       const lastName = mu.surname || mu.displayName?.split(' ').slice(1).join(' ') || '';
-      const email = mu.email || mu.userPrincipalName;
+      const email = mu.emailAddress || mu.userPrincipalName;
       
       // Create user with pending status
       await userService.createUser({

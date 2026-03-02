@@ -1,7 +1,6 @@
 // components/MicrosoftUserImport.tsx
 import React, { useState } from 'react';
-import { microsoft365Service } from '@/services/microsoft365Service'; // ✅ Fix: use correct import name
-import { userService } from '@/services/userService';
+import { microsoft365Service } from '@/services/microsoft365Service';
 
 interface MicrosoftUser {
   id: string;

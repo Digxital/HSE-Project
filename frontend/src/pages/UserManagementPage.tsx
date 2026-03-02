@@ -132,7 +132,6 @@ export const UserManagementPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [microsoftUsers, setMicrosoftUsers] = useState<MicrosoftUser[]>([]);
   const [isMobile, setIsMobile] = useState(false);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const { addNotification } = useNotifications();
    
@@ -219,12 +218,12 @@ export const UserManagementPage: React.FC = () => {
       const platformUserMap = new Map(platformUsers.map(u => [u.email, u]));
       
       // Also get sync timestamps from platform users (when they were imported)
-      const userImportDates = new Map(
-        platformUsers.map(u => [u.email, new Date(u.createdAt || 0).getTime()])
-      );
+      // const userImportDates = new Map(
+      //   platformUsers.map(u => [u.email, new Date(u.createdAt || 0).getTime()])
+      // );
       
       const transformed: MicrosoftUser[] = msUsers.map((mu: MicrosoftGraphUser) => {
-        const email = mu.mail || mu.userPrincipalName;
+        const email = mu.emailAddress || mu.userPrincipalName;
         const platformUser = platformUserMap.get(email);
         
         return {
@@ -307,7 +306,7 @@ export const UserManagementPage: React.FC = () => {
         try {
           const firstName = mu.givenName || mu.displayName?.split(' ')[0] || 'Unknown';
           const lastName = mu.surname || mu.displayName?.split(' ').slice(1).join(' ') || 'User';
-          const email = mu.mail || mu.userPrincipalName;
+          const email = mu.emailAddress || mu.userPrincipalName;
           
           
           const newUser = await userService.createUser({
@@ -336,7 +335,7 @@ export const UserManagementPage: React.FC = () => {
           newlyCreatedUsers.push(newUser);
           imported++;
         } catch (err) {
-          console.error('Failed to import user:', mu.mail || mu.userPrincipalName, err);
+          console.error('Failed to import user:', mu.emailAddress || mu.userPrincipalName, err);
           failed++;
         }
       }
@@ -618,7 +617,7 @@ export const UserManagementPage: React.FC = () => {
       <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
         Not Synced
       </span>
-    );
+    ); 
   };
 
   const handleMobileSidebarToggle = () => {

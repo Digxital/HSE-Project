@@ -27,7 +27,7 @@ export interface MicrosoftGraphUser {
   displayName: string;
   givenName?: string;
   surname?: string;
-  mail?: string;
+  emailAddress?: string;
   userPrincipalName: string;
   jobTitle?: string;
   department?: string;

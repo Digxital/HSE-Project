@@ -21,7 +21,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   userName, 
   userRole,
   syncStatus = 'synced',
-  notificationCount: propNotificationCount,
+  // notificationCount: propNotificationCount,
   onMenuClick,
   showMenuButton = false,
   onLogout
