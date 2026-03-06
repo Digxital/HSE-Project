@@ -49,3 +49,55 @@ exports.createReport = async (req, res) => {
         reportId: report._id
     });
 };
+
+// Get all reports
+exports.getReports = async (req, res) => {
+    try {
+        const reports = await Report.find()
+            .populate('reportedBy.userId', 'name email')
+            .populate('location.clientId', 'name')
+            .populate('location.siteId', 'name')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            data: reports
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error fetching reports",
+            error: error.message
+        });
+    }
+};
+
+// Get single report by ID
+exports.getReportById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const report = await Report.findById(id)
+            .populate('reportedBy.userId', 'name email')
+            .populate('location.clientId', 'name')
+            .populate('location.siteId', 'name');
+
+        if (!report) {
+            return res.status(404).json({
+                success: false,
+                message: "Report not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: report
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error fetching report",
+            error: error.message
+        });
+    }
+};
