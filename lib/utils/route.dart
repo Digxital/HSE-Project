@@ -18,6 +18,8 @@ class AppRoutes {
 
   // ================= Report Route paths =================
   static const String createReport = '/create-report';
+  static const String reportAgent = '/report-agent';
+  static const String newReportScreen = '/new-report-screen';
   static const String successScreen = '/success-screen';
 
   // ================= Notifications Route paths =================
@@ -37,6 +39,8 @@ class AppRoutes {
   static const String reviewName = 'review';
   static const String profileName = 'profile';
   static const String createReportName = 'create-report';
+  static const String reportAgentName = '/report-agent';
+  static const String newReportScreenName = '/new-report-screen';
   static const String successScreenName = 'success-screen';
 
   // Helper methods for building routes with parameters

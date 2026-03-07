@@ -175,100 +175,84 @@ class _BottomNavState extends State<BottomNav> {
       context: context,
       backgroundColor: Colors.white,
       builder: (BuildContext context) {
-        return SizedBox(
-          height: 300,
-          width: double.infinity,
-          child: Column(
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(top: 30, left: 30, right: 30),
-                child: Divider(
-                  height: 45,
-                  thickness: 0.2,
-                  color: AppColors.lightGrey4,
-                ),
-              ),
-              DataOption(
-                onTap: () {
-                  context.push(AppRoutes.createReport);
-                },
-                title: "Incident",
-                description:
-                    "An unsafe event that happened but did not\ncause serious injury",
-              ),
-              DataOption(
-                onTap: () {
-                  context.push(AppRoutes.createReport);
-                },
-                title: "Hazard",
-                description:
-                    "An event that caused injury, harm, or serious\ndamage.",
-              ),
-            ],
-          ),
-        );
+        return const ReportAgentWidget();
       },
     );
   }
 }
 
-class DataOption extends StatelessWidget {
-  final String title;
-  final String description;
-  final VoidCallback? onTap;
-  const DataOption({
+class ReportAgentWidget extends StatelessWidget {
+  const ReportAgentWidget({
     super.key,
-    required this.title,
-    required this.description,
-    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 30),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          InkWell(
-            onTap: onTap,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                CommonImageView(
-                  imagePath: AppFilePaths.warning,
-                  height: 24,
-                  width: 24,
-                  fit: BoxFit.scaleDown,
-                ),
-                addHorizontalSpace(5),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    getText(
-                        context: context,
-                        title: title,
-                        fontSize: 14,
-                        weight: FontWeight.w500,
-                        color: AppColors.black3),
-                    addVerticalSpace(5),
-                    getText(
-                        context: context,
-                        title: description,
-                        fontSize: 12,
-                        weight: FontWeight.w400,
-                        color: AppColors.black3),
-                  ],
-                )
-              ],
+    return SizedBox(
+      height: 561,
+      width: double.infinity,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 20, left: 25, right: 30),
+        child: Column(
+          children: [
+            Align(
+                alignment: Alignment.topLeft,
+                child: InkWell(
+                    onTap: () => context.pop(),
+                    child: const Icon(Icons.close))),
+            addVerticalSpace(30),
+            CommonImageView(
+              imagePath: AppFilePaths.bot,
+              height: 172,
+              width: 172,
             ),
-          ),
-          const Divider(
-            height: 50,
-            thickness: 0.2,
-            color: AppColors.lightGrey4,
-          ),
-        ],
+            getText(
+                context: context,
+                title: "Hi, I’m Aegix Assistant.",
+                fontSize: 18,
+                weight: FontWeight.w500),
+            addVerticalSpace(5),
+            getText(
+                context: context,
+                textAlign: TextAlign.center,
+                title:
+                    "I’ll guide you step by step to submit\na report quickly and easily..",
+                fontSize: 14,
+                weight: FontWeight.w400),
+            addVerticalSpace(50),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: Container(
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    gradient: const LinearGradient(
+                      colors: [
+                        AppColors.secondaryColor,
+                        AppColors.primaryColor
+                      ],
+                    )),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      context.push(AppRoutes.reportAgent);
+                    },
+                    child: const Center(
+                      child: Text(
+                        "Start Report",
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -4,9 +4,11 @@ import 'package:invera_hse/bottom_nav.dart';
 import 'package:invera_hse/create_report_screen.dart';
 import 'package:invera_hse/home_screen.dart';
 import 'package:invera_hse/login.dart';
+import 'package:invera_hse/new_report_screen.dart';
 import 'package:invera_hse/notification_screen.dart';
 import 'package:invera_hse/onboarding_screen.dart';
 import 'package:invera_hse/profile_screen.dart';
+import 'package:invera_hse/report_agent.dart';
 import 'package:invera_hse/report_screen.dart';
 import 'package:invera_hse/review_screen.dart';
 import 'package:invera_hse/success_screen.dart';
@@ -124,6 +126,25 @@ class AppRouter {
             name: AppRoutes.createReportName,
             builder: (BuildContext context, GoRouterState state) {
               return const CreateReportScreen();
+            },
+          ),
+
+          // Report Agent route
+          GoRoute(
+            path: AppRoutes.reportAgent,
+            name: AppRoutes.reportAgentName,
+            builder: (BuildContext context, GoRouterState state) {
+              return const ReportAgent();
+            },
+          ),
+
+          // New Report route
+          GoRoute(
+            path: AppRoutes.newReportScreen,
+            name: AppRoutes.newReportScreenName,
+            builder: (BuildContext context, GoRouterState state) {
+              final reportType = state.extra as String? ?? "Hazard";
+              return NewReportScreen(reportType: reportType);
             },
           ),
 

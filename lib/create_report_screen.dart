@@ -420,8 +420,8 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                                 gridDelegate:
                                     const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 5,
-                                  crossAxisSpacing: 8,
-                                  mainAxisSpacing: 8,
+                                  crossAxisSpacing: 15,
+                                  mainAxisSpacing: 0,
                                   childAspectRatio: 1.0,
                                 ),
                                 itemCount: 25,
@@ -497,8 +497,8 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                                 gridDelegate:
                                     const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 5,
-                                  crossAxisSpacing: 8,
-                                  mainAxisSpacing: 8,
+                                  crossAxisSpacing: 15,
+                                  mainAxisSpacing: 0,
                                   childAspectRatio: 1.0,
                                 ),
                                 itemCount: 25,
@@ -557,9 +557,9 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                               )
                             ],
                           ),
-                          addVerticalSpace(40),
+                          addVerticalSpace(30),
                           const RiskLevelColorGuide(),
-                          addVerticalSpace(40),
+                          addVerticalSpace(30),
                           const RiskCategory(),
                           addVerticalSpace(20)
                         ],
