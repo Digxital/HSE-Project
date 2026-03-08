@@ -78,11 +78,11 @@ exports.getUserById = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
     try {
-        const { firstName, lastName, email, role } = req.body;
+        const { firstName, lastName, role } = req.body;
 
         const user = await User.findByIdAndUpdate(
             req.params.id,
-            { firstName, lastName, email, role },
+            { firstName, lastName, role },
             { new: true, runValidators: true }
         ).select("-passwordHash");
 
