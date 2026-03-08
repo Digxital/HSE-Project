@@ -1,9 +1,6 @@
-import 'package:aegix/core/constants/shared_preferences_keys.dart';
 import 'package:aegix/features/auth/controllers/auth_controller.dart';
 import 'package:aegix/features/auth/controllers/auth_state.dart';
 import 'package:aegix/shared/providers/provider_setup.dart';
-import 'package:aegix/shared/providers/shared_preferences_provider.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // MARK: - Splash State
@@ -104,13 +101,18 @@ class SplashController extends StateNotifier<SplashState> {
     state = state.copyWith(status: SplashStatus.checkingAuth);
     
     try {
-      // Listen to auth controller
-      final authState = ref.read(authControllerProvider);
+      // FIXED: Use when/map pattern instead of 'is' check
+      final authState = await ref.read(authControllerProvider.future);
       
-      final isAuthenticated = authState.when(
-        data: (state) => state is AuthStateAuthenticated,
-        error: (_, __) => false,
-        loading: () => false,
+      bool isAuthenticated = false;
+      
+      // Use when pattern to check if authenticated
+      authState.when(
+        initial: () => isAuthenticated = false,
+        loading: () => isAuthenticated = false,
+        authenticated: (user) => isAuthenticated = true,
+        unauthenticated: () => isAuthenticated = false,
+        error: (message) => isAuthenticated = false,
       );
       
       state = state.copyWith(
@@ -153,7 +155,7 @@ final splashNavigationDestinationProvider = Provider<String?>((ref) {
   }
   
   if (!state.isAuthenticated) {
-    return '/onboarding'; // Go to login
+    return '/login'; // FIXED: Changed from '/onboarding' to '/login'
   }
   
   return '/home'; // Go to home
@@ -173,12 +175,16 @@ final splashFutureProvider = FutureProvider.autoDispose<bool>((ref) async {
     return false; // Go to onboarding
   }
   
-  // Check if user is authenticated
-  final authState = ref.watch(authControllerProvider);
-  final isAuthenticated = authState.when(
-    data: (state) => state is AuthStateAuthenticated,
-    error: (_, __) => false,
-    loading: () => false,
+  // FIXED: Use when pattern instead of 'is' check
+  final authState = await ref.watch(authControllerProvider.future);
+  
+  bool isAuthenticated = false;
+  authState.when(
+    initial: () => isAuthenticated = false,
+    loading: () => isAuthenticated = false,
+    authenticated: (user) => isAuthenticated = true,
+    unauthenticated: () => isAuthenticated = false,
+    error: (message) => isAuthenticated = false,
   );
   
   return isAuthenticated; // true = go to home, false = go to login

@@ -14,7 +14,7 @@ class OnboardingController {
   OnboardingController(this.ref);
 
   Future<void> completeOnboarding(BuildContext context) async {
-    try {
+    try { 
       final prefs = await ref.read(sharedPreferencesProvider.future);
       await prefs.setBool('onboarding_completed', true);
       

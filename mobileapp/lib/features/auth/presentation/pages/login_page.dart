@@ -1,12 +1,16 @@
 import 'package:aegix/core/routes/app_routes.dart';
+import 'package:aegix/core/themes/app_colors.dart';
 import 'package:aegix/core/themes/app_theme.dart';
 import 'package:aegix/core/utils/validators.dart';
 import 'package:aegix/features/auth/controllers/auth_controller.dart';
 import 'package:aegix/features/auth/controllers/auth_state.dart';
-import 'package:aegix/features/auth/models/login_request_model.dart';
+import 'package:aegix/features/auth/models/login/login_request_model.dart';
 import 'package:aegix/features/auth/presentation/widgets/auth_button.dart';
 import 'package:aegix/features/auth/presentation/widgets/auth_text_field.dart';
 import 'package:aegix/features/auth/presentation/widgets/password_field.dart';
+import 'package:aegix/features/auth/presentation/widgets/custom_text.dart';
+import 'package:aegix/features/auth/presentation/widgets/login_button.dart';
+import 'package:aegix/features/auth/presentation/widgets/login_form.dart';
 import 'package:aegix/shared/widgets/custom_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -23,38 +27,51 @@ class LoginPage extends HookConsumerWidget {
     final passwordController = useTextEditingController();
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final obscurePassword = useState(true);
-    final isLoggingIn = useState(false); // 👈 Add local loading state
+    final isLoggingIn = useState(false);
     
     void handleLogin() async {
       if (formKey.currentState?.validate() ?? false) {
-        // 👇 Set loading to true
         isLoggingIn.value = true;
         
         try {
-          final request = LoginRequest(
+          final request = LoginRequestModel(
             email: emailController.text.trim(),
             password: passwordController.text,
+            rememberMe: false,
           );
-          
+           
           await ref.read(authControllerProvider.notifier).login(request);
         } catch (e) {
-          // Error is hand led by listener
+          // Error is handled by listener
         } finally {
-          // 👇 Set loading to false after completion (success or error)
           isLoggingIn.value = false;
         }
       }
     }
     
+    // FIXED: Properly handle Freezed union types
     ref.listen(authControllerProvider, (previous, next) {
       next.when(
         data: (state) {
-          if (state is AuthStateAuthenticated) {
-            context.go(AppRoutes.home);
-          }
+          // Use map/when pattern for Freezed union
+          state.when(
+            initial: () {},
+            loading: () {},
+            authenticated: (user) {
+              context.go(AppRoutes.dashboard);
+            },
+            unauthenticated: () {},
+            error: (message) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(message),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            },
+          );
         },
         error: (error, _) {
-          // Show error message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(error.toString()),
@@ -63,15 +80,13 @@ class LoginPage extends HookConsumerWidget {
           );
         },
         loading: () {
-          // This will be called when auth controller is in loading state
+          // Optional: Show loading indicator
         },
       );
     });
     
     return Scaffold(
-      // backgroundColor: Colors.white,
       appBar: AppBar(
-        // backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, size: 16.sp, color: Colors.black),
@@ -87,102 +102,36 @@ class LoginPage extends HookConsumerWidget {
             child: Form(
               key: formKey,
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: 10.h),
-                  
-                  Text(
-                    'Welcome Back!',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 28.sp,
-                      // color: Colors.black,
-                    ),
+                  // Welcome Text
+                  CustomText(
+                    text: "Welcome to Aegix",
+                    fontSize: 24.sp,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.blackColor,
                   ),
-                  SizedBox(height: 8.h),
-                  
-                  RichText(
-                    text: TextSpan(
-                      text: 'Put in your account details to ',
-                      style: TextStyle(fontSize: 14.sp, color: AppTheme.grayColor),
-                      children: [
-                        TextSpan(
-                          text: 'get started',
-                          // style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ),
+                  CustomText(
+                    text: "Report hazards and incidents safely.",
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.blackColor,
                   ),
-                  SizedBox(height: 30.h),
+                  SizedBox(height: 25.h),
+
+                   LoginForm(),
                   
-                  AuthTextField(
-                    controller: emailController,
-                    label: 'Email',
-                    keyboardType: TextInputType.emailAddress,
-                    validator: Validators.email,
-                  ),
-                  SizedBox(height: 16.h),
+                  SizedBox(height: 15.h),
                   
-                  PasswordField(
-                    controller: passwordController,
-                    label: 'Password',
-                    obscureText: obscurePassword.value,
-                    onToggleObscure: () => obscurePassword.value = !obscurePassword.value,
-                    validator: Validators.password,
+                  // Login Button
+                  LoginButton(
+                    onPressed: handleLogin,
+                    isLoading: isLoggingIn.value,
                   ),
+                  
                   SizedBox(height: 10.h),
-                  
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: TextButton(
-                      onPressed: () {
-                        // Navigate to forgot password
-                      },
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: Text(
-                        'Forgot your password?',
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 24.h),
-                  
-                  // 👇 Use local loading state for button
-                  isLoggingIn.value
-                      ? const CustomLoader()
-                      : AuthButton(
-                          onPressed: handleLogin,
-                          text: 'Continue',
-                        ),
-                  
-                  SizedBox(height: 250.h),
-                  
-                  // Register row at the bottom
-                  Padding(
-                    padding: EdgeInsets.only(bottom: 20.h),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "New to aegix? ",
-                        ),
-                        TextButton(
-                          onPressed: () => context.push(AppRoutes.register),
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: Text(
-                            'Create an account',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ),

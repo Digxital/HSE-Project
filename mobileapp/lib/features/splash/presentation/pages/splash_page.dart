@@ -1,3 +1,4 @@
+import 'package:aegix/core/themes/app_colors.dart';
 import 'package:aegix/core/themes/app_theme.dart';
 import 'package:aegix/features/splash/splash_provider.dart';
 import 'package:flutter/material.dart';
@@ -100,20 +101,20 @@ class SplashPage extends HookConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Logo with fade-in animation
-              _buildImageLogo(),
+              Image.asset('assets/icon/icon.png'),
               
-              const SizedBox(height: 24),
+              // const SizedBox(height: 24.h),
               
               // Animated tagline - Option 6 integrated
-              AnimatedTagline(
-                text: 'Digitalize your assets',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.primaryColor,
-                  letterSpacing: 0.5,
-                ),
-              ),
+              // AnimatedTagline(
+              //   text: 'Digitalize your assets',
+              //   style: TextStyle(
+              //     fontSize: 16.sp,
+              //     fontWeight: FontWeight.w500,
+              //     color: AppTheme.primaryColor,
+              //     letterSpacing: 0.5,
+              //   ),
+              // ),
               
               const SizedBox(height: 48),
               
@@ -141,7 +142,7 @@ class SplashPage extends HookConsumerWidget {
                       ElevatedButton(
                         onPressed: () => ref.read(splashProvider.notifier).retry(),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryColor,
+                          backgroundColor: AppColors.primaryColor,
                           foregroundColor: Colors.white,
                         ),
                         child: const Text('Retry'),
@@ -156,27 +157,7 @@ class SplashPage extends HookConsumerWidget {
     );
   }
 
-  Widget _buildImageLogo() {
-    return Container(
-      width: 120.w,
-      height: 120.h,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-        image: const DecorationImage(
-          image: AssetImage('assets/logo.png'),
-          fit: BoxFit.cover,
-        ),
-      ),
-    );
-  }
+ 
 
   Widget _buildLoadingIndicator(BuildContext context, SplashState state) {
     switch (state.status) {
@@ -186,7 +167,7 @@ class SplashPage extends HookConsumerWidget {
         return Column(
           children: [
             const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
             ),
             const SizedBox(height: 16),
             Text(

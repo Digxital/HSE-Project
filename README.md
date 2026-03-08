@@ -265,7 +265,8 @@ The MVP is accepted when:
 This project contains confidential information and is governed by client confidentiality agreements.
 
 //Api base_url 
-https://hse-backend-production.up.railway.app
+https://hse-backend-production-8ee9.up.railway.app
+
 railway up
 
 Vercel CLI 50.13.2
@@ -277,6 +278,14 @@ vercel --prod --yes
 
 admin@aegix.com
 Admin123
+Railway account 
+dihokow823@kaoing.com
+
 
 https://documenter.getpostman.com/view/51894802/2sBXcAHNNF
 
+mobolaji.olajide@morgansconsortium.com
+Spectacular@7?
+https://www.oysterchecks.com/login
+
+flutter pub run build_runner build --delete-conflicting-outputs

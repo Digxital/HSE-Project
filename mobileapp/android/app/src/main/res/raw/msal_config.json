@@ -1,0 +1,16 @@
+{
+  "client_id": "da372529-e417-4944-9145-515aa8187388",
+  "authorization_user_agent": "WEBVIEW",
+  "redirect_uri": "msauth://com.aegix.app/omuJqnPpJrvSf0PhDHhQWvUK+i0=",
+  "account_mode": "SINGLE",
+  "broker_redirect_uri_registered": false,
+  "authorities": [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADandPersonalMicrosoftAccount",
+        "tenant_id": "f50045de-252f-4788-af9b-d2a2e2e3eda1"
+      }
+    }
+  ]
+}

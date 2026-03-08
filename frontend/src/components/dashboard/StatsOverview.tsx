@@ -1,13 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StatsCard } from './StatsCard';
-
+ 
 interface StatsOverviewProps {
   hasData?: boolean;
-}
+} 
 
 export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) => {
   const navigate = useNavigate();
+  const [showHeaderTooltip, setShowHeaderTooltip] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+ 
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Mock data - will be replaced with API data later
   const stats = hasData
     ? {
@@ -34,11 +48,29 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) 
       {/* Section Header */}
       <div className="flex items-center space-x-2 mb-6">
         <h2 className="text-lg font-semibold text-gray-900">HSE Management Overview</h2>
-        <button className="p-1 text-gray-400 hover:text-gray-600 transition-colors">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </button>
+        <div  
+          className="relative"
+          onMouseEnter={() => setShowHeaderTooltip(true)}
+          onMouseLeave={() => setShowHeaderTooltip(false)}
+        >
+          <button 
+            onClick={() => setShowHeaderTooltip(!showHeaderTooltip)}
+            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button> 
+          
+          {/* Tooltip */}
+          {showHeaderTooltip && (
+            <div className={`absolute bottom-full ${isMobile ? 'left-0' : 'left-1/2 -translate-x-1/2'} mb-2 px-3 py-2 bg-gray-900/90 text-white text-xs rounded-lg whitespace-nowrap z-50 shadow-lg`}>
+              Overview of all HSE reports, risks, and actions
+              {/* Arrow */}
+              <div className={`absolute top-full ${isMobile ? 'left-3' : 'left-1/2 -translate-x-1/2'} border-4 border-transparent border-t-gray-900/90`}></div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Stats Cards Grid */}
@@ -54,9 +86,11 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) 
             onLinkClick={() => navigate('/reports')}
             icon={
               <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             }
+            tooltip="Compared to previous 30 days"
+            tooltipPosition="left"
           />
         </div>
 
@@ -74,6 +108,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) 
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
             }
+            tooltip="Items requiring attention within 24-48 hours"
           />
         </div>
 
@@ -87,10 +122,11 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) 
             linkText={hasData ? "View open actions" : undefined}
             onLinkClick={() => navigate('/actions')}
             icon={
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             }
+            tooltip="Actions past their due date"
           />
         </div>
 
