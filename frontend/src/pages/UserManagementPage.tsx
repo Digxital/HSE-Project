@@ -13,7 +13,7 @@ import { microsoft365Service, type MicrosoftGraphUser } from '@/services/microso
 
 type UserRole = 'All' | 'PENDING' | 'ADMIN' | 'SUPERVISOR' | 'FIELD_USER' | 'HSE_OFFICER';
 type UserStatus = 'Active' | 'Deactivated' | 'Pending';
-type ActiveTab = 'platform' | 'microsoft';
+type ActiveTab = 'platform' | 'microsoft'; 
 
 interface User {
   id: string;

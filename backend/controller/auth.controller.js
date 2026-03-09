@@ -11,11 +11,11 @@ exports.login = async (req, res) => {
         return res.status(401).json({
             success: false,
             message: "Invalid credentials",
-            data: {} 
+            data: {}
         });
     }
 
-    if (user.status !== "ACTIVE") {
+    if (user.status.toUpperCase() !== "ACTIVE") {
         return res.status(403).json({
             success: false,
             message: `Account is ${user.status}. Contact admin.`,
@@ -39,7 +39,7 @@ exports.login = async (req, res) => {
             message: "Invalid credentials",
             data: {}
         });
-    } 
+    }
 
     const token = jwt.sign(
         {

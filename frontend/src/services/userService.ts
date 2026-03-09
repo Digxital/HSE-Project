@@ -9,7 +9,7 @@ export interface CreateUserData {
   jobPosition: string;
   createMicrosoftAccount?: boolean;
   password?: string;
-  status?: 'active' | 'pending' | 'inactive'; // Add this
+  status?: 'active' | 'pending' | 'inactive'; 
 }
 
 export interface UserResponse {

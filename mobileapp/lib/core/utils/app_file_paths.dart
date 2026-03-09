@@ -1,4 +1,7 @@
 class AppFilePaths {
+  // Lotties - png file
+  static const String loaderGif = "assets/images/loader_icon.gif";
+
   // Logo - png file
   static const String appLogo = "assets/images/logo.png";
 
@@ -33,9 +36,15 @@ class AppFilePaths {
   static const String warning = "assets/images/warning.png";
   static const String warning2 = "assets/images/warning2.png";
   static const String microphone = "assets/images/microphone.png";
+  static const String microphoneWhite = "assets/images/mic.png";
+  static const String recording = "assets/images/recording.png";
   static const String calendar = "assets/images/calendar.png";
   static const String gallery = "assets/images/gallery.png";
   static const String done = "assets/images/done.png";
   static const String done2 = "assets/images/done2.png";
   static const String star = "assets/images/star.png";
+  static const String bot = "assets/images/bot.png";
+  static const String profile2 = "assets/images/profile2.png";
+  static const String aiLoader = "assets/images/ai_loader.png";
+  static const String addImage = "assets/images/add-image.png";
 }

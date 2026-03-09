@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../model/user.model");
 
 // ADMIN can create users with or without a role
+
 exports.createUser = async (req, res) => {
     const { firstName, lastName, email, password, role } = req.body;
 
@@ -18,7 +19,7 @@ exports.createUser = async (req, res) => {
         lastName,
         email,
         passwordHash,
-        role: role || null,
+        role: role ? role.toUpperCase() : null,
         status: "PENDING"
     });
 
@@ -77,13 +78,37 @@ exports.getUserById = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
     try {
-        const { name, email, role } = req.body;
+        let { firstName, lastName, role, status } = req.body;
+
+        // Normalize to uppercase
+        if (role) role = role.toUpperCase();
+        if (status) status = status.toUpperCase();
+
+        // If activating user, validate that role is assigned
+        if (status === "ACTIVE") {
+            const roleToCheck = role || (await User.findById(req.params.id))?.role;
+            
+            if (!roleToCheck || !["SUPERVISOR", "FIELD_USER", "HSE_OFFICER"].includes(roleToCheck)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Role must be assigned before activation.",
+                    data: {}
+                });
+            }
+        }
+
+    
+        const updateData = {};
+        if (firstName !== undefined) updateData.firstName = firstName;
+        if (lastName !== undefined) updateData.lastName = lastName;
+        if (role !== undefined) updateData.role = role;
+        if (status !== undefined) updateData.status = status;
 
         const user = await User.findByIdAndUpdate(
             req.params.id,
-            { name, email, role },
+            updateData,
             { new: true, runValidators: true }
-        ).select("-password");
+        ).select("-passwordHash");
 
         if (!user) {
             return res.status(404).json({
@@ -145,7 +170,7 @@ exports.deactivateUser = async (req, res) => {
             });
         }
 
-        user.status = "INACTIVE";
+        user.status = "DEACTIVATED";
         await user.save();
 
         return res.json({
@@ -164,6 +189,20 @@ exports.deactivateUser = async (req, res) => {
 
 exports.activateUser = async (req, res) => {
     try {
+        let { role } = req.body;
+
+        // Normalize to uppercase
+        if (role) role = role.toUpperCase();
+
+        // Validate role assignment
+        if (!role || !["SUPERVISOR", "FIELD_USER", "HSE_OFFICER"].includes(role)) {
+            return res.status(400).json({
+                success: false,
+                message: "Role must be assigned before activation.",
+                data: {}
+            });
+        }
+
         const user = await User.findById(req.params.id);
 
         if (!user) {
@@ -174,6 +213,7 @@ exports.activateUser = async (req, res) => {
             });
         }
 
+        user.role = role;
         user.status = "ACTIVE";
         await user.save();
 
@@ -190,4 +230,3 @@ exports.activateUser = async (req, res) => {
         });
     }
 };
-

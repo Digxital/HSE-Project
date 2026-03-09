@@ -3,25 +3,34 @@ const router = express.Router();
 
 const auth = require("../middleware/auth");
 const authorize = require("../middleware/authorize");
-const {
-    createClient,
-    getClients
-} = require("../controller/client.controller");
+const { 
+    createReport, 
+    getReports, 
+    getReportById 
+} = require("../controller/report.controller");
 
-// Admin only 
-router.post(
-    "/clients",
+// Get all reports with filtering and pagination
+router.get(
+    "/reports",
     auth,
-    authorize(["ADMIN"], ["web"]),
-    createClient
+    authorize(["FIELD_USER", "SUPERVISOR", "HSE_OFFICER", "ADMIN"], ["mobile", "web"]),
+    getReports
 );
 
-// Admin & Supervisor (for dropdown)
+// Get single report by ID
 router.get(
-    "/clients",
+    "/reports/:id",
     auth,
-    authorize(["ADMIN", "SUPERVISOR"], ["web"]),
-    getClients
+    authorize(["FIELD_USER", "SUPERVISOR", "HSE_OFFICER", "ADMIN"], ["mobile", "web"]),
+    getReportById
+);
+
+// Field user & supervisor can submit reports
+router.post(
+    "/reports",
+    auth,
+    authorize(["FIELD_USER", "SUPERVISOR", "HSE_OFFICER"], ["mobile", "web"]),
+    createReport
 );
 
 module.exports = router;
