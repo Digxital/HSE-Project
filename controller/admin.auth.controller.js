@@ -47,7 +47,7 @@ exports.adminLogin = async (req, res) => {
         });
     }
 
-    if (user.status !== "ACTIVE") {
+    if (user.status.toUpperCase() !== "ACTIVE") {
         return res.status(403).json({
             success: false,
             message: "Account is not active. Contact admin.",

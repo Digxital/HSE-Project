@@ -19,7 +19,7 @@ exports.createUser = async (req, res) => {
         lastName,
         email,
         passwordHash,
-        role: role || null,
+        role: role ? role.toUpperCase() : null,
         status: "PENDING"
     });
 
@@ -78,7 +78,11 @@ exports.getUserById = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
     try {
-        const { firstName, lastName, role, status } = req.body;
+        let { firstName, lastName, role, status } = req.body;
+
+        // Normalize to uppercase
+        if (role) role = role.toUpperCase();
+        if (status) status = status.toUpperCase();
 
         // If activating user, validate that role is assigned
         if (status === "ACTIVE") {
@@ -93,7 +97,7 @@ exports.updateUser = async (req, res) => {
             }
         }
 
-        // Build update object with only provided fields
+    
         const updateData = {};
         if (firstName !== undefined) updateData.firstName = firstName;
         if (lastName !== undefined) updateData.lastName = lastName;
@@ -185,7 +189,10 @@ exports.deactivateUser = async (req, res) => {
 
 exports.activateUser = async (req, res) => {
     try {
-        const { role } = req.body;
+        let { role } = req.body;
+
+        // Normalize to uppercase
+        if (role) role = role.toUpperCase();
 
         // Validate role assignment
         if (!role || !["SUPERVISOR", "FIELD_USER", "HSE_OFFICER"].includes(role)) {
