@@ -170,7 +170,7 @@ exports.deactivateUser = async (req, res) => {
             });
         }
 
-        user.status = "USER_DEACTIVATED";
+        user.status = "DEACTIVATED";
         await user.save();
 
         return res.json({
