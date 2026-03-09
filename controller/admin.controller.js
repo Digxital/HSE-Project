@@ -78,11 +78,31 @@ exports.getUserById = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
     try {
-        const { firstName, lastName, role } = req.body;
+        const { firstName, lastName, role, status } = req.body;
+
+        // If activating user, validate that role is assigned
+        if (status === "ACTIVE") {
+            const roleToCheck = role || (await User.findById(req.params.id))?.role;
+            
+            if (!roleToCheck || !["SUPERVISOR", "FIELD_USER", "HSE_OFFICER"].includes(roleToCheck)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Role must be assigned before activation.",
+                    data: {}
+                });
+            }
+        }
+
+        // Build update object with only provided fields
+        const updateData = {};
+        if (firstName !== undefined) updateData.firstName = firstName;
+        if (lastName !== undefined) updateData.lastName = lastName;
+        if (role !== undefined) updateData.role = role;
+        if (status !== undefined) updateData.status = status;
 
         const user = await User.findByIdAndUpdate(
             req.params.id,
-            { firstName, lastName, role },
+            updateData,
             { new: true, runValidators: true }
         ).select("-passwordHash");
 
