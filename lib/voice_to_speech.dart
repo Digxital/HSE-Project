@@ -8,16 +8,15 @@ import 'package:invera_hse/utils/common_image_view.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 
-class CreateReportScreen extends StatefulWidget {
-  const CreateReportScreen({super.key});
+class VoiceToSpeechPage extends StatefulWidget {
+  const VoiceToSpeechPage({super.key});
 
   @override
-  State<CreateReportScreen> createState() => _CreateReportScreenState();
+  State<VoiceToSpeechPage> createState() => _VoiceToSpeechPageState();
 }
 
-class _CreateReportScreenState extends State<CreateReportScreen> {
+class _VoiceToSpeechPageState extends State<VoiceToSpeechPage> {
   FlutterSoundRecorder? _recorder; // object to manage recording
   bool isRecording = false; // Flag to check if recording is ongoing;
   String? _filePath; //path where the recorded file is saved
@@ -145,8 +144,9 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                       borderRadius: BorderRadius.circular(20)),
                   child: Center(
                     child: _isLoading
-                        ? LoadingAnimationWidget.threeRotatingDots(
-                            color: Colors.blue, size: 60)
+                        ? CommonImageView(
+                            imagePath: AppFilePaths.aiLoader,
+                            fit: BoxFit.scaleDown)
                         : Text(
                             _transcription == ""
                                 ? "Transcription goes here..."
@@ -191,8 +191,9 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
                     isRecording
                         ? SizedBox(
                             height: 20,
-                            child: LoadingAnimationWidget.threeRotatingDots(
-                                color: Colors.blue, size: 60))
+                            child: CommonImageView(
+                                imagePath: AppFilePaths.aiLoader,
+                                fit: BoxFit.scaleDown))
                         : GestureDetector(
                             onTap: () {
                               isRecording

@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:invera_hse/component/get_text.dart';
 import 'package:invera_hse/component/screen_properties.dart';
 import 'package:invera_hse/home_screen.dart';
-import 'package:invera_hse/profile_screen.dart';
+import 'package:invera_hse/profile/profile_screen.dart';
 import 'package:invera_hse/report_screen.dart';
 import 'package:invera_hse/review_screen.dart';
 import 'package:invera_hse/utils/app_colours.dart';
@@ -23,12 +23,10 @@ class BottomNav extends StatefulWidget {
 class _BottomNavState extends State<BottomNav> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   int selectedIndex = 0;
-  bool active = false;
 
   void onTap(int index) {
     setState(() {
       selectedIndex = index;
-      active = selectedIndex == index;
     });
   }
 
@@ -64,8 +62,9 @@ class _BottomNavState extends State<BottomNav> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   bottomNNavItem(
-                      AppFilePaths.homeActive, active ? "Home" : "", 0),
-                  bottomNNavItem(AppFilePaths.report, "", 1),
+                      AppFilePaths.homeActive, AppFilePaths.home, "Home", 0),
+                  bottomNNavItem(AppFilePaths.reportActive, AppFilePaths.report,
+                      "Reports", 1),
 
                   /// CENTER BUTTON
                   GestureDetector(
@@ -98,8 +97,10 @@ class _BottomNavState extends State<BottomNav> {
                       ),
                     ),
                   ),
-                  bottomNNavItem(AppFilePaths.review, "", 3),
-                  bottomNNavItem(AppFilePaths.profile, "", 4),
+                  bottomNNavItem(AppFilePaths.actionsActive,
+                      AppFilePaths.actions, "Actions", 3),
+                  bottomNNavItem(AppFilePaths.profileActive,
+                      AppFilePaths.profile, "Profile", 4),
                 ],
               ),
             )));
@@ -136,8 +137,9 @@ class _BottomNavState extends State<BottomNav> {
     );
   }
 
-  Widget bottomNNavItem(String icon, String label, int index) {
-    active = selectedIndex == index;
+  Widget bottomNNavItem(
+      String activeIcon, String inactiveIcon, String label, int index) {
+    final isActive = selectedIndex == index;
 
     return GestureDetector(
       onTap: () => onTap(index),
@@ -145,26 +147,24 @@ class _BottomNavState extends State<BottomNav> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CommonImageView(
-            imagePath: icon,
+            imagePath: isActive ? activeIcon : inactiveIcon,
             height: 24,
             width: 24,
             fit: BoxFit.scaleDown,
-            color: active ? AppColors.primaryColor : AppColors.lightRed3,
+            color: isActive ? AppColors.primaryColor : AppColors.lightRed3,
           ),
-          label.isNotEmpty
-              ? Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color:
-                          active ? AppColors.primaryColor : AppColors.lightRed3,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                )
-              : Container()
+          if (isActive && label.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.primaryColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            )
         ],
       ),
     );
