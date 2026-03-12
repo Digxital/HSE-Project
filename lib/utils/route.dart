@@ -16,6 +16,9 @@ class AppRoutes {
   static const String review = '/review';
   static const String profile = '/profile';
 
+  // ================= Profile Route paths =================
+  static const String editProfile = '/edit-profile';
+
   // ================= Report Route paths =================
   static const String createReport = '/create-report';
   static const String reportAgent = '/report-agent';
@@ -38,6 +41,7 @@ class AppRoutes {
   static const String reportName = 'report';
   static const String reviewName = 'review';
   static const String profileName = 'profile';
+  static const String editProfileName = 'edit-profile';
   static const String createReportName = 'create-report';
   static const String reportAgentName = '/report-agent';
   static const String newReportScreenName = '/new-report-screen';

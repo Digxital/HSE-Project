@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:invera_hse/component/custom_app_bar.dart';
 import 'package:invera_hse/component/get_container.dart';
 import 'package:invera_hse/component/get_text.dart';
 import 'package:invera_hse/component/screen_properties.dart';
@@ -66,7 +67,9 @@ class _NewReportScreenState extends State<NewReportScreen> {
         child: Column(
           children: [
             /// Fixed: Custom App Bar at top
-            const CustomAppBar(),
+            const CustomAppBar(
+              text: "New Report",
+            ),
 
             /// Flexible scrollable content area (middle)
             Expanded(
@@ -104,36 +107,6 @@ class _NewReportScreenState extends State<NewReportScreen> {
             )
           ],
         ),
-      ),
-    );
-  }
-}
-
-class CustomAppBar extends StatelessWidget {
-  const CustomAppBar({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          InkWell(
-              onTap: () => context.pop(),
-              child: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                size: 20,
-              )),
-          getText(
-              context: context,
-              title: "New Report",
-              fontSize: 16,
-              weight: FontWeight.w500),
-          const SizedBox()
-        ],
       ),
     );
   }

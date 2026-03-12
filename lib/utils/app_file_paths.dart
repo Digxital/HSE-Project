@@ -1,6 +1,7 @@
 class AppFilePaths {
   // Lotties - png file
-  static const String loaderGif = "assets/images/loader_icon.gif";
+  static const String loaderGif = "assets/lotties/loader_icon.gif";
+  static const String loaderGif2 = "assets/lotties/loader_icon2.gif";
 
   // Logo - png file
   static const String appLogo = "assets/images/logo.png";
@@ -15,8 +16,8 @@ class AppFilePaths {
   static const String homeActive = "assets/images/home_active.png";
   static const String report = "assets/images/report.png";
   static const String reportActive = "assets/images/report_active.png";
-  static const String review = "assets/images/review.png";
-  static const String reviewActive = "assets/images/review_active.png";
+  static const String actions = "assets/images/actions.png";
+  static const String actionsActive = "assets/images/actions_active.png";
   static const String profile = "assets/images/profile.png";
   static const String profileActive = "assets/images/profile_active.png";
 
@@ -26,11 +27,14 @@ class AppFilePaths {
   static const String checkedBox = "assets/images/checked_box.png";
   static const String uncheckedBox = "assets/images/unchecked_box.png";
   static const String arrowBack = "assets/images/arrow_back.png";
+  static const String arrowForward = "assets/images/arrow_forward.png";
   static const String arrowDown = "assets/images/arrow_down.png";
   static const String arrowUpRight = "assets/images/arrow_up_right.png";
   static const String avatar = "assets/images/avatar.png";
+  static const String avatar2 = "assets/images/avatar2.png";
   static const String notification = "assets/images/notification.png";
   static const String notification2 = "assets/images/notification2.png";
+  static const String notification3 = "assets/images/notification3.png";
   static const String smsNotification = "assets/images/sms_notification.png";
   static const String reportBlack = "assets/images/report_black.png";
   static const String warning = "assets/images/warning.png";
@@ -45,6 +49,12 @@ class AppFilePaths {
   static const String star = "assets/images/star.png";
   static const String bot = "assets/images/bot.png";
   static const String profile2 = "assets/images/profile2.png";
+  static const String profile3 = "assets/images/profile3.png";
   static const String aiLoader = "assets/images/ai_loader.png";
   static const String addImage = "assets/images/add-image.png";
+  static const String send = "assets/images/send.png";
+  static const String windows = "assets/images/windows.png";
+  static const String logout = "assets/images/logout.png";
+  static const String toggleOff = "assets/images/toggle_off.png";
+  static const String camera = "assets/images/camera.png";
 }

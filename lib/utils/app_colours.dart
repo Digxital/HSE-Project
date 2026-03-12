@@ -17,12 +17,14 @@ class AppColors {
   static const grey2 = Color.fromRGBO(230, 230, 230, 0.25);
   static const grey3 = Color(0XFF595959);
   static const grey4 = Color(0XFF898989);
+  static const grey6 = Color(0XFFEEEEEE);
   static const lightGrey = Color(0XFF6C6C6C);
   static const lightGrey2 = Color.fromRGBO(238, 238, 238, 0.2);
   static const lightGrey3 = Color.fromRGBO(238, 238, 238, 1);
   static const lightGrey4 = Color(0XFFA8A8A8);
   static const lightGrey5 = Color(0XFFF1F1F1);
   static const lightGrey6 = Color.fromRGBO(238, 238, 238, 0.8);
+  static const lightGrey7 = Color.fromRGBO(238, 238, 238, 0.3);
   static const neutralDarkGrey = Color(0XFF1A1A1A);
 
   static const darkBrown = Color(0XFF4C0000);
