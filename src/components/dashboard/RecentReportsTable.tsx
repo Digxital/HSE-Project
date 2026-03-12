@@ -19,11 +19,14 @@ interface Report {
   title: string;
   type: 'Incident' | 'Hazard';
   category: string;
+  description: string;
   location: string;
   risk: RiskLevel;
   status: ReportStatus;
   date: string;
   dateReported: string;
+  reportedBy: string;
+  equipmentInvolved: string;
   actions: Action[];
 }
 
@@ -38,69 +41,48 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
   const [reports, setReports] = useState<Report[]>(hasData
     ? [
       {
-        id: 'HAZ-1042',
-        title: 'Oil spill near pump',
+        id: 'HAZ-0001',
+        title: 'Slippery Floor in Main Entrance',
         type: 'Hazard',
-        category: 'Environmental Hazard',
-        location: 'Gulf of Mexico',
+        category: 'Slippery Floor in Main Entrance',
+        description: 'Water accumulation near the main entrance causing a slip hazard. Immediate attention required to prevent accidents.',
+        location: 'Head Office - Main Entrance - Lobby',
         risk: 'High',
         status: 'Open',
-        date: '21 Jan 2026',
-        dateReported: '21 Jan 2026\n08:42 AM',
-        actions: [
-          {
-            id: 'ACT-001',
-            action: 'Contain oil spill area',
-            assignedTo: 'Environmental Lead',
-            dueDate: 'Feb 08, 2026',
-            status: 'In Progress',
-          },
-          {
-            id: 'ACT-002',
-            action: 'Deploy cleanup equipment',
-            assignedTo: 'Operations Manager',
-            dueDate: 'Feb 08, 2026',
-            status: 'Open',
-          },
-        ],
+        date: '10 Mar 2026',
+        dateReported: '10 Mar 2026\n11:31 AM',
+        reportedBy: 'field@gmail.com',
+        equipmentInvolved: 'None',
+        actions: [],
       },
       {
-        id: 'HAZ-1038',
-        title: 'Slippery deck',
+        id: 'HAZ-0002',
+        title: 'Missing Fire Extinguisher Sign',
         type: 'Hazard',
-        category: 'Unsafe Condition',
-        location: 'North Sea',
+        category: 'Missing Fire Extinguisher Sign',
+        description: 'Fire extinguisher location sign missing in corridor B. Staff having difficulty locating emergency equipment.',
+        location: 'Head Office - Corridor B',
         risk: 'Medium',
-        status: 'In Progress',
-        date: '19 Jan 2026',
-        dateReported: '19 Jan 2026\n10:15 AM',
-        actions: [
-          {
-            id: 'ACT-003',
-            action: 'Apply non-slip coating',
-            assignedTo: 'Maintenance Lead',
-            dueDate: 'Feb 01, 2026',
-            status: 'In Progress',
-          },
-          {
-            id: 'ACT-004',
-            action: 'Install warning signs',
-            assignedTo: 'Safety Officer',
-            dueDate: 'Feb 10, 2026',
-            status: 'Completed',
-          },
-        ],
+        status: 'Open',
+        date: '10 Mar 2026',
+        dateReported: '10 Mar 2026\n11:35 AM',
+        reportedBy: 'field@gmail.com',
+        equipmentInvolved: 'Fire safety equipment',
+        actions: [],
       },
       {
-        id: 'INC-1031',
-        title: 'Minor hand injury',
-        type: 'Incident',
-        category: 'Incident',
-        location: 'Houston Office',
-        risk: 'Low',
-        status: 'Closed',
-        date: '17 Jan 2026',
-        dateReported: '17 Jan 2026\n02:30 PM',
+        id: 'HAZ-0003',
+        title: 'Oil Spill Near Generator Area',
+        type: 'Hazard',
+        category: 'Oil Spill Near Generator Area',
+        description: 'Oil spill detected near generator unit A. Area has been cordoned off pending cleanup. Potential environmental contamination risk.',
+        location: 'Refinery Site A - Generator Room',
+        risk: 'High',
+        status: 'Open',
+        date: '09 Mar 2026',
+        dateReported: '09 Mar 2026\n10:30 AM',
+        reportedBy: 'field@gmail.com',
+        equipmentInvolved: 'Generator Unit A',
         actions: [],
       },
     ]

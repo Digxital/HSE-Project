@@ -13,10 +13,13 @@ interface Report {
   id: string;
   type: 'Incident' | 'Hazard';
   category: string;
+  description: string;
   location: string;
   risk: 'High' | 'Medium' | 'Low';
   status: 'Open' | 'In Progress' | 'Closed';
   dateReported: string;
+  reportedBy: string;
+  equipmentInvolved: string;
   actions: Action[];
 }
 
@@ -102,9 +105,9 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
 
           {/* Report Title */}
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Loose Handrail on Deck</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">{report.category}</h2>
             <p className="text-gray-600 text-sm leading-relaxed mb-4">
-              Lorem ipsum dolor sit amet consectetur. Augue mauris sed velit volputpat dolor et cursds. Posuere risus imperdiet egestas neque vierra. Quisque vel rutrum nullam neque nisi urna. Mauris vitae dolor nisi nisi etiam.
+              {report.description}
             </p>
           </div>
 
@@ -112,7 +115,11 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
           <div className="space-y-3 mb-6">
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
               <span className="text-sm text-gray-600">Report type</span>
-              <span className="text-sm font-medium text-gray-900">{report.category}</span>
+              <span className="text-sm font-medium text-gray-900">{report.type}</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-200">
+              <span className="text-sm text-gray-600">Location</span>
+              <span className="text-sm font-medium text-gray-900">{report.location}</span>
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
               <span className="text-sm text-gray-600">Reported</span>
@@ -120,29 +127,37 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
             </div>
             <div className="flex items-center justify-between py-2 border-b border-gray-200">
               <span className="text-sm text-gray-600">Submitted by</span>
-              <span className="text-sm font-medium text-gray-900">Field User</span>
+              <span className="text-sm font-medium text-gray-900">{report.reportedBy}</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-200">
+              <span className="text-sm text-gray-600">Equipment involved</span>
+              <span className="text-sm font-medium text-gray-900">{report.equipmentInvolved}</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-200">
+              <span className="text-sm text-gray-600">Status</span>
+              <span className={`text-sm font-medium ${
+                report.status === 'Open' ? 'text-red-500' :
+                report.status === 'In Progress' ? 'text-orange-500' :
+                'text-gray-500'
+              }`}>{report.status}</span>
             </div>
           </div>
 
           {/* Attachments */}
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">Attachments</h3>
-            <div className="grid grid-cols-4 gap-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center"
-                >
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-              ))}
+            <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col items-center justify-center">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <p className="text-sm text-gray-500">No attachments</p>
             </div>
           </div>
 
@@ -151,16 +166,14 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
             <h3 className="text-sm font-semibold text-gray-900 mb-3">Risk Assessment</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between py-2">
-                <span className="text-sm text-gray-600">Severity</span>
-                <span className="text-lg font-semibold text-red-500">8/4</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-sm text-gray-600">Likelihood</span>
-                <span className="text-lg font-semibold text-orange-500">4/5</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-sm text-gray-600">Risk Score</span>
-                <span className="text-lg font-semibold text-orange-500">32</span>
+                <span className="text-sm text-gray-600">Risk Level</span>
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                  report.risk === 'High' ? 'bg-red-500 text-white' :
+                  report.risk === 'Medium' ? 'bg-orange-500 text-white' :
+                  'bg-green-500 text-white'
+                }`}>
+                  {report.risk}
+                </span>
               </div>
             </div>
           </div>
