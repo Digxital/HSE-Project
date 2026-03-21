@@ -7,7 +7,7 @@ import 'package:invera_hse/component/screen_properties.dart';
 import 'package:invera_hse/home_screen.dart';
 import 'package:invera_hse/profile/profile_screen.dart';
 import 'package:invera_hse/report_screen.dart';
-import 'package:invera_hse/review_screen.dart';
+import 'package:invera_hse/actions/actions_screen.dart';
 import 'package:invera_hse/utils/app_colours.dart';
 import 'package:invera_hse/utils/app_file_paths.dart';
 import 'package:invera_hse/utils/common_image_view.dart';
@@ -34,7 +34,7 @@ class _BottomNavState extends State<BottomNav> {
     const HomeScreen(),
     const ReportScreen(),
     Container(),
-    const ReviewScreen(),
+    const ActionScreen(),
     const ProfileScreen()
   ];
 

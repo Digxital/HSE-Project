@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+// import 'package:flutter_sound/public/flutter_sound_recorder.dart';
+// import 'package:flutter_sound/flutter_sound.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:invera_hse/component/custom_app_bar.dart';
+import 'package:invera_hse/component/constant.dart';
 import 'package:invera_hse/component/get_container.dart';
 import 'package:invera_hse/component/get_text.dart';
 import 'package:invera_hse/component/screen_properties.dart';
@@ -12,6 +15,9 @@ import 'package:invera_hse/utils/app_colours.dart';
 import 'package:invera_hse/utils/app_file_paths.dart';
 import 'package:invera_hse/utils/common_image_view.dart';
 import 'package:invera_hse/utils/route.dart';
+import 'package:http/http.dart' as http;
+// import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
 
 class NewReportScreen extends StatefulWidget {
   final String reportType;
@@ -25,32 +31,234 @@ class NewReportScreen extends StatefulWidget {
 class _NewReportScreenState extends State<NewReportScreen> {
   bool isLoading = false;
   bool showSecondPhase = false;
+  bool isConverting = false;
   File? selectedImage;
 
+  // FlutterSoundRecorder? _recorder; // object to manage recording
+  bool isRecording = false; // Flag to check if recording is ongoing;
+  String? _filePath; //path where the recorded file is saved
+  String _transcription = "";
+
+  @override
+  void initState() {
+    super.initState();
+    // initializs recorded when the app Start
+    // _initRecorder();
+  }
+
+  // Future<void> _initRecorder() async {
+  //   _recorder = FlutterSoundRecorder();
+  //   final status =
+  //       await Permission.microphone.request(); // Request microphone access
+  //   if (status != PermissionStatus.granted) {
+  //     print(" Microphone permission not granted");
+  //     throw Exception(
+  //       ' Microphone permission not granted',
+  //     ); // throw error if permission denied
+  //   }
+  //   print(" Microphone permission granted: $status");
+  //   await _recorder!.openRecorder(); // open the recorder
+  // }
+
+  //Start Recording audio
+  Future<void> _startRecording() async {
+    final tempDir = await getTemporaryDirectory(); // Get temporary directory
+    _filePath =
+        '${tempDir.path}/recording.m4a'; //Set file path for saving recording
+    print("Recording file path: $_filePath");
+
+    // await _recorder!.startRecorder(toFile: _filePath, codec: Codec.aacMP4);
+
+    setState(() {
+      isRecording = true;
+      _transcription = "";
+    });
+  }
+
+  // Stop recording audio
+
+  Future<void> _stopRecording() async {
+    try {
+      // await _recorder!.stopRecorder();
+      // Longer delay to ensure file is completely written to disk
+      await Future.delayed(const Duration(milliseconds: 1500));
+
+      // Verify file exists before attempting transcription
+      if (_filePath != null) {
+        final file = File(_filePath!);
+        if (await file.exists()) {
+          final fileSize = await file.length();
+          print("Audio file size: $fileSize bytes");
+          if (fileSize > 0) {
+            setState(() {
+              isRecording = false;
+              isConverting = true;
+            });
+            await _sendToWhisper(_filePath!);
+          } else {
+            throw Exception('Audio file is empty or not properly saved');
+          }
+        } else {
+          throw Exception('Audio file does not exist at $_filePath');
+        }
+      } else {
+        throw Exception('File path is null');
+      }
+    } catch (e) {
+      print("Error stopping recording: $e");
+      setState(() {
+        _transcription = "Error: ${e.toString()}";
+        isRecording = false;
+        isConverting = false;
+        isLoading = false;
+        showSecondPhase = true;
+      });
+    }
+  }
+
+  Future<void> _sendToWhisper(String path) async {
+    try {
+      String apiKey = apiSecretKey;
+
+      // Verify file exists and is readable
+      final file = File(path);
+      if (!await file.exists()) {
+        throw Exception('Audio file not found at path: $path');
+      }
+
+      print("Sending audio file to Whisper API: $path");
+      print("File size: ${await file.length()} bytes");
+
+      // Check for network connectivity before attempting API call
+      print("Checking network connectivity...");
+      try {
+        final result = await InternetAddress.lookup('google.com')
+            .timeout(const Duration(seconds: 5));
+        if (result.isEmpty || result[0].rawAddress.isEmpty) {
+          throw Exception('No internet connection available');
+        }
+        print("Network connectivity confirmed");
+      } on SocketException catch (_) {
+        throw Exception(
+            'Network Error: No internet connection. Please check your connection and try again.');
+      }
+
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('https://api.openai.com/v1/audio/transcriptions'),
+      )
+        ..headers['Authorization'] = 'Bearer $apiKey'
+        ..files.add(
+          await http.MultipartFile.fromPath('file', path),
+        )
+        ..fields['model'] = 'whisper-1'
+        ..fields['language'] = 'en';
+
+      print("Sending request to OpenAI Whisper API...");
+      final response = await request.send().timeout(
+            const Duration(seconds: 60),
+            onTimeout: () =>
+                throw Exception('API request timed out after 60 seconds'),
+          );
+
+      print("Response status: ${response.statusCode}");
+      final responseBody = await response.stream.bytesToString();
+      print("Response body: $responseBody");
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(responseBody);
+        print("Decoded response: $decoded");
+        final text = decoded['text'] ?? "";
+        print("Successfully transcribed: $text");
+
+        setState(() {
+          _transcription =
+              text.isNotEmpty ? text : "No speech detected. Please try again.";
+          isConverting = false;
+          isLoading = false;
+          showSecondPhase = true;
+        });
+      } else {
+        print("API Error: ${response.statusCode}");
+        final errorBody = json.decode(responseBody);
+        final errorMessage = errorBody['error']?['message'] ?? 'Unknown error';
+        throw Exception('API Error: $errorMessage');
+      }
+    } on SocketException catch (e) {
+      print("Socket/Network error: $e");
+      setState(() {
+        _transcription =
+            "Network Error: Cannot reach the server. Please check your internet connection.";
+        isConverting = false;
+        isLoading = false;
+        showSecondPhase = true;
+      });
+    } on TimeoutException catch (e) {
+      print("Timeout error: $e");
+      setState(() {
+        _transcription =
+            "Request timed out. Please check your internet and try again.";
+        isConverting = false;
+        isLoading = false;
+        showSecondPhase = true;
+      });
+    } catch (e) {
+      print("Transcription error: $e");
+      String errorMsg = e.toString();
+
+      // Provide user-friendly error messages
+      if (errorMsg.contains('Failed host lookup') ||
+          errorMsg.contains('Failed to lookup')) {
+        errorMsg =
+            "Cannot reach OpenAI server. Please check your internet connection.";
+      } else if (errorMsg.contains('Network Error')) {
+        errorMsg =
+            "Network error. Please check your internet connection and try again.";
+      } else if (errorMsg.contains('timed out')) {
+        errorMsg = "Request timed out. Please try recording again.";
+      } else if (errorMsg.contains('No internet')) {
+        errorMsg =
+            "No internet connection detected. Please connect to the internet and try again.";
+      } else if (errorMsg.contains('SocketException')) {
+        errorMsg =
+            "Connection failed. Please check your network and try again.";
+      }
+
+      setState(() {
+        _transcription = errorMsg;
+        isConverting = false;
+        isLoading = false;
+        showSecondPhase = true;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    // _recorder?.closeRecorder();
+    // _recorder = null;
+    super.dispose();
+  }
+
   void _handleRecordButtonTap() {
-    // If image is selected, submit instead of record
-    if (selectedImage != null && showSecondPhase) {
+    // If image is selected and transcription is done, submit
+    if (selectedImage != null && showSecondPhase && !isLoading) {
       // Navigate to success screen
       context.push(AppRoutes.successScreen);
       return;
     }
 
-    setState(() {
-      isLoading = !isLoading;
-      if (isLoading) {
-        // Recording started - hide content and show loader
-        showSecondPhase = false;
-      } else {
-        // Recording ended - show loader for a moment then display second phase
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) {
-            setState(() {
-              showSecondPhase = true;
-            });
-          }
-        });
-      }
-    });
+    // Toggle recording
+    if (!isLoading) {
+      // Start recording
+      setState(() {
+        isLoading = true;
+      });
+      _startRecording();
+    } else if (isRecording) {
+      // Stop recording
+      _stopRecording();
+    }
   }
 
   void _onImageSelected(File image) {
@@ -67,9 +275,7 @@ class _NewReportScreenState extends State<NewReportScreen> {
         child: Column(
           children: [
             /// Fixed: Custom App Bar at top
-            const CustomAppBar(
-              text: "New Report",
-            ),
+            const CustomAppBar(),
 
             /// Flexible scrollable content area (middle)
             Expanded(
@@ -77,7 +283,11 @@ class _NewReportScreenState extends State<NewReportScreen> {
                 children: [
                   /// Show either Loader or scrollable ContentBody
                   if (isLoading)
-                    const Center(child: Loader())
+                    Center(
+                      child: Loader(
+                        isConverting: isConverting,
+                      ),
+                    )
                   else
                     SingleChildScrollView(
                       reverse:
@@ -87,6 +297,7 @@ class _NewReportScreenState extends State<NewReportScreen> {
                         showFirstPhase: !showSecondPhase,
                         showSecondPhase: showSecondPhase,
                         onImageSelected: _onImageSelected,
+                        transcription: _transcription,
                       ),
                     ),
                 ],
@@ -96,17 +307,49 @@ class _NewReportScreenState extends State<NewReportScreen> {
             /// Fixed: AI Custom Button at bottom
             AICustomButton(
               onTap: _handleRecordButtonTap,
-              icon: selectedImage != null && showSecondPhase
-                  ? AppFilePaths.microphoneWhite
-                  : (isLoading
+              icon: selectedImage != null && showSecondPhase && !isLoading
+                  ? AppFilePaths.send
+                  : (isLoading && isRecording
                       ? AppFilePaths.recording
                       : AppFilePaths.microphoneWhite),
-              text: selectedImage != null && showSecondPhase
+              text: selectedImage != null && showSecondPhase && !isLoading
                   ? "Submit"
-                  : (isLoading ? "Tap to end record" : "Tap to record"),
+                  : (isLoading && isRecording
+                      ? "Tap to end record"
+                      : "Tap to record"),
             )
           ],
         ),
+      ),
+    );
+  }
+}
+
+class CustomAppBar extends StatelessWidget {
+  const CustomAppBar({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          InkWell(
+              onTap: () => context.pop(),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                size: 20,
+              )),
+          getText(
+              context: context,
+              title: "New Report",
+              fontSize: 16,
+              weight: FontWeight.w500),
+          const SizedBox()
+        ],
       ),
     );
   }
@@ -166,7 +409,9 @@ class AICustomButton extends StatelessWidget {
 }
 
 class Loader extends StatefulWidget {
-  const Loader({super.key});
+  final bool isConverting;
+
+  const Loader({super.key, this.isConverting = false});
 
   @override
   State<Loader> createState() => _LoaderState();
@@ -181,12 +426,17 @@ class _LoaderState extends State<Loader> {
   void initState() {
     super.initState();
 
-    Timer(const Duration(seconds: 3), () {
-      setState(() {
-        guideText = "Listening...";
-        description = "Speak clearly. You can describe the situation fully.";
+    if (!widget.isConverting) {
+      Timer(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            guideText = "Listening...";
+            description =
+                "Speak clearly. You can describe the situation fully.";
+          });
+        }
       });
-    });
+    }
   }
 
   @override
@@ -209,17 +459,20 @@ class _LoaderState extends State<Loader> {
                 getText(
                     context: context,
                     textAlign: TextAlign.center,
-                    title: guideText,
+                    title: widget.isConverting
+                        ? "Converting speech to text..."
+                        : guideText,
                     fontSize: 12,
                     weight: FontWeight.w400),
-                addVerticalSpace(5),
-                getText(
-                    context: context,
-                    textAlign: TextAlign.center,
-                    title: description,
-                    fontSize: 12,
-                    weight: FontWeight.w400,
-                    color: AppColors.grey4),
+                if (!widget.isConverting) addVerticalSpace(5),
+                if (!widget.isConverting)
+                  getText(
+                      context: context,
+                      textAlign: TextAlign.center,
+                      title: description,
+                      fontSize: 12,
+                      weight: FontWeight.w400,
+                      color: AppColors.grey4),
               ],
             ),
           ],
@@ -234,6 +487,7 @@ class ContentBody extends StatefulWidget {
   final bool showFirstPhase;
   final bool showSecondPhase;
   final Function(File) onImageSelected;
+  final String transcription;
 
   const ContentBody({
     super.key,
@@ -241,6 +495,7 @@ class ContentBody extends StatefulWidget {
     this.showFirstPhase = true,
     this.showSecondPhase = false,
     required this.onImageSelected,
+    this.transcription = "",
   });
 
   @override
@@ -305,6 +560,11 @@ class _ContentBodyState extends State<ContentBody> {
     }
   }
 
+  bool _isTranscriptionError() {
+    return widget.transcription.contains("Failed") ||
+        widget.transcription == "Transcription Error";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -322,16 +582,31 @@ class _ContentBodyState extends State<ContentBody> {
           if (_showFirstPrompt)
             const AnimatedOpacityWidget(child: FirstPrompt()),
 
-          /// Transcription tag (appears in second phase)
+          /// Transcription tag or Error tag (appears in second phase)
           if (_showTranscription)
-            const AnimatedOpacityWidget(child: TranscriptionTag()),
+            if (_isTranscriptionError())
+              AnimatedOpacityWidget(
+                child: ErrorTranscriptionTag(
+                  errorMessage: widget.transcription,
+                ),
+              )
+            else
+              AnimatedOpacityWidget(
+                child: TranscriptionTag(
+                  transcription: widget.transcription,
+                ),
+              ),
+
+          /// Retry prompt after error
+          if (_showTranscription && _isTranscriptionError())
+            const AnimatedOpacityWidget(child: FirstPrompt()),
 
           /// Bot Message 2 (appears after 3 seconds in second phase)
-          if (_showSecondPrompt)
+          if (_showSecondPrompt && !_isTranscriptionError())
             const AnimatedOpacityWidget(child: SecondPrompt()),
 
           /// Attach Image tag (appears after 3 seconds in second phase)
-          if (_showAttachImage)
+          if (_showAttachImage && !_isTranscriptionError())
             AnimatedOpacityWidget(
               child: AttachImageTag(
                 onImageSelected: widget.onImageSelected,
@@ -568,8 +843,11 @@ class SecondPrompt extends StatelessWidget {
 }
 
 class TranscriptionTag extends StatelessWidget {
+  final String transcription;
+
   const TranscriptionTag({
     super.key,
+    this.transcription = "",
   });
 
   @override
@@ -595,9 +873,11 @@ class TranscriptionTag extends StatelessWidget {
                       bottomLeft: Radius.circular(18),
                       bottomRight: Radius.circular(18)),
                 ),
-                child: const Text(
-                  "There was an incident this morning at the production site around 9:15 a.m. A worker slipped near the loading area because the floor was wet from a leaking pipe close to the storage section. There were no warning signs placed around the area at the time. The worker fell but did not sustain any serious injury, although first aid was provided immediately. The water had been dripping for some time before the incident happened. The area is frequently used by staff moving materials in and out of the warehouse. I believe the leak needs to be fixed urgently, and proper caution signs should be installed to prevent this from happening again. The specific location is near the rear entrance beside the packaging unit.",
-                  style: TextStyle(
+                child: Text(
+                  transcription.isEmpty
+                      ? "There was an incident this morning at the production site around 9:15 a.m. A worker slipped near the loading area because the floor was wet from a leaking pipe close to the storage section. There were no warning signs placed around the area at the time. The worker fell but did not sustain any serious injury, although first aid was provided immediately. The water had been dripping for some time before the incident happened. The area is frequently used by staff moving materials in and out of the warehouse. I believe the leak needs to be fixed urgently, and proper caution signs should be installed to prevent this from happening again. The specific location is near the rear entrance beside the packaging unit."
+                      : transcription,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w500,
                   ),
@@ -625,6 +905,65 @@ class TranscriptionTag extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class ErrorTranscriptionTag extends StatelessWidget {
+  final String errorMessage;
+
+  const ErrorTranscriptionTag({
+    super.key,
+    this.errorMessage = "Transcription failed",
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 40),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          getContainer(
+            context: context,
+            height: 45,
+            width: 45,
+            decorationColor: AppColors.lightGrey5,
+            shape: BoxShape.circle,
+            child: Center(
+              child: CommonImageView(
+                imagePath: AppFilePaths.bot,
+                fit: BoxFit.scaleDown,
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          /// Error Message Bubble
+          Padding(
+            padding: const EdgeInsets.only(top: 20),
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.65,
+              padding: const EdgeInsets.all(16),
+              decoration: const BoxDecoration(
+                color: AppColors.lightGrey6,
+                borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(18),
+                    bottomLeft: Radius.circular(18),
+                    bottomRight: Radius.circular(18)),
+              ),
+              child: Text(
+                errorMessage,
+                style: const TextStyle(
+                  fontSize: 15,
+                  height: 1.5,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

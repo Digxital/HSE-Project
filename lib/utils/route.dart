@@ -13,7 +13,8 @@ class AppRoutes {
   // ================= Navbar Route paths =================
   static const String home = '/home';
   static const String report = '/report';
-  static const String review = '/review';
+  static const String action = '/action';
+  static const String actionDetails = '/action-details';
   static const String profile = '/profile';
 
   // ================= Profile Route paths =================
@@ -39,7 +40,8 @@ class AppRoutes {
   static const String homeName = 'home';
   static const String notificationName = 'notification-screen';
   static const String reportName = 'report';
-  static const String reviewName = 'review';
+  static const String actionName = 'action';
+  static const String actionDetailsName = 'action-details';
   static const String profileName = 'profile';
   static const String editProfileName = 'edit-profile';
   static const String createReportName = 'create-report';

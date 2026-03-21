@@ -28,6 +28,9 @@ class AppFilePaths {
   static const String uncheckedBox = "assets/images/unchecked_box.png";
   static const String arrowBack = "assets/images/arrow_back.png";
   static const String arrowForward = "assets/images/arrow_forward.png";
+  static const String arrowForward2 = "assets/images/arrow_forward.png";
+  static const String arrowForwardRound =
+      "assets/images/arrow_forward_round.png";
   static const String arrowDown = "assets/images/arrow_down.png";
   static const String arrowUpRight = "assets/images/arrow_up_right.png";
   static const String avatar = "assets/images/avatar.png";
@@ -57,4 +60,7 @@ class AppFilePaths {
   static const String logout = "assets/images/logout.png";
   static const String toggleOff = "assets/images/toggle_off.png";
   static const String camera = "assets/images/camera.png";
+  static const String filter = "assets/images/filter.png";
+  static const String actionWhite = "assets/images/actions_white.png";
+  static const String actionGrey = "assets/images/actions_grey.png";
 }

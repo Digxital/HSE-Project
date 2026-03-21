@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:invera_hse/actions/actions_details.dart';
 import 'package:invera_hse/bottom_nav.dart';
 import 'package:invera_hse/create_report_screen.dart';
 import 'package:invera_hse/home_screen.dart';
@@ -11,7 +12,7 @@ import 'package:invera_hse/profile/edit_profile.dart';
 import 'package:invera_hse/profile/profile_screen.dart';
 import 'package:invera_hse/report_agent.dart';
 import 'package:invera_hse/report_screen.dart';
-import 'package:invera_hse/review_screen.dart';
+import 'package:invera_hse/actions/actions_screen.dart';
 import 'package:invera_hse/success_screen.dart';
 import 'package:invera_hse/utils/route.dart';
 
@@ -157,14 +158,23 @@ class AppRouter {
             },
           ),
 
-// ================= Review routes =================
+// ================= Action routes =================
 
-          // Review route
+          // Actions route
           GoRoute(
-            path: AppRoutes.review,
-            name: AppRoutes.reviewName,
+            path: AppRoutes.action,
+            name: AppRoutes.actionName,
             builder: (BuildContext context, GoRouterState state) {
-              return const ReviewScreen();
+              return const ActionScreen();
+            },
+          ),
+
+          // Actions Details route
+          GoRoute(
+            path: AppRoutes.actionDetails,
+            name: AppRoutes.actionDetailsName,
+            builder: (BuildContext context, GoRouterState state) {
+              return const ActionsDetails();
             },
           ),
 
