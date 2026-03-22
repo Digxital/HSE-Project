@@ -3,7 +3,11 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import johnMatthewsImg from '@/assets/images/Jhn-Matthew-profileImg.jpg';
 
-export const ProfilePage: React.FC = () => {
+interface ProfilePageProps {
+  role?: 'admin' | 'supervisor';
+}
+
+export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -87,6 +91,7 @@ export const ProfilePage: React.FC = () => {
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         isMobileOpen={mobileMenuOpen}
         onMobileClose={() => setMobileMenuOpen(false)}
+        role={role}
       />
 
       {/* Main Content */}
@@ -96,8 +101,8 @@ export const ProfilePage: React.FC = () => {
           pageTitle="Profile"
           onMenuClick={() => setMobileMenuOpen(true)}
           showMenuButton={true}
-          userName="Peter Omogbolahan"
-          userRole="System Administrator"
+          userName={role === 'supervisor' ? 'John Matthew' : 'Peter Omorogbolahan'}
+          userRole={role === 'supervisor' ? 'Supervisor' : 'System Administrator'}
           notificationCount={4}
         />
 

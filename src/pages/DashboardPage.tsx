@@ -5,7 +5,11 @@ import { StatsOverview } from '@/components/dashboard/StatsOverview';
 import { AIInsights } from '@/components/dashboard/AIInsights';
 import { RecentReportsTable } from '@/components/dashboard/RecentReportsTable';
 
-export const DashboardPage: React.FC = () => {
+interface DashboardPageProps {
+  role?: 'admin' | 'supervisor';
+}
+
+export const DashboardPage: React.FC<DashboardPageProps> = ({ role = 'admin' }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -48,6 +52,7 @@ export const DashboardPage: React.FC = () => {
         onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         isMobileOpen={isMobileSidebarOpen}
         onMobileClose={closeMobileSidebar}
+        role={role}
       />
 
       {/* Main Content Area */}
@@ -59,8 +64,8 @@ export const DashboardPage: React.FC = () => {
         {/* Top Bar */}
         <TopBar
           pageTitle="Dashboard"
-          userName="Peter C"
-          userRole="Admin"
+          userName={role === 'supervisor' ? 'John Matthew' : 'Peter Omorogbolahan'}
+          userRole={role === 'supervisor' ? 'Supervisor' : 'Admin'}
           syncStatus="synced"
           notificationCount={4}
           onMenuClick={handleMobileSidebarToggle}

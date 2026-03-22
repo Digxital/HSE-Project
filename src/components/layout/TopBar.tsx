@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface TopBarProps {
   pageTitle: string;
@@ -21,6 +22,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const navigate = useNavigate();
 
   const getSyncStatusConfig = () => {
     switch (syncStatus) {
@@ -204,7 +206,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             >
               <div className="w-8 h-8 md:w-10 md:h-10 bg-primary-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-semibold text-sm md:text-base">
-                  {userName.charAt(0)}
+                  {userName.split(' ').map(n => n.charAt(0)).join('')}
                 </span>
               </div>
               <div className="hidden md:block text-left">
@@ -227,7 +229,10 @@ export const TopBar: React.FC<TopBarProps> = ({
                     Settings
                   </button>
                   <hr className="my-2" />
-                  <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded transition-colors">
+                  <button
+                    onClick={() => navigate('/')}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
+                  >
                     Logout
                   </button>
                 </div>

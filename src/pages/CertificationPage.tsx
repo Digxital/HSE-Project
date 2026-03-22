@@ -11,7 +11,11 @@ interface Certification {
   status: 'Active' | 'Valid' | 'Expired';
 }
 
-export const CertificationPage: React.FC = () => {
+interface CertificationPageProps {
+  role?: 'admin' | 'supervisor';
+}
+
+export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'admin' }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -87,6 +91,7 @@ export const CertificationPage: React.FC = () => {
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         isMobileOpen={mobileMenuOpen}
         onMobileClose={() => setMobileMenuOpen(false)}
+        role={role}
       />
 
       {/* Main Content */}
@@ -96,8 +101,8 @@ export const CertificationPage: React.FC = () => {
           pageTitle="Certification"
           onMenuClick={() => setMobileMenuOpen(true)}
           showMenuButton={true}
-          userName="Peter Omogbolahan"
-          userRole="System Administrator"
+          userName={role === 'supervisor' ? 'John Matthew' : 'Peter Omorogbolahan'}
+          userRole={role === 'supervisor' ? 'Supervisor' : 'System Administrator'}
           notificationCount={4}
         />
 

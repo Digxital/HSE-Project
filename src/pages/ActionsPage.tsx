@@ -17,7 +17,11 @@ interface Action {
   status: ActionStatus;
 }
 
-export const ActionsPage: React.FC = () => {
+interface ActionsPageProps {
+  role?: 'admin' | 'supervisor';
+}
+
+export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<ActionFilterType>('All Actions');
@@ -142,6 +146,7 @@ export const ActionsPage: React.FC = () => {
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         isMobileOpen={mobileMenuOpen}
         onMobileClose={() => setMobileMenuOpen(false)}
+        role={role}
       />
 
       {/* Main Content */}
@@ -153,8 +158,8 @@ export const ActionsPage: React.FC = () => {
         {/* Top Bar */}
         <TopBar 
           pageTitle="Actions"
-          userName="Peter Omojolaibiun"
-          userRole="Admin"
+          userName={role === 'supervisor' ? 'John Matthew' : 'Peter Omorogbolahan'}
+          userRole={role === 'supervisor' ? 'Supervisor' : 'Admin'}
           notificationCount={4}
           onMenuClick={() => setMobileMenuOpen(true)}
           showMenuButton={true}

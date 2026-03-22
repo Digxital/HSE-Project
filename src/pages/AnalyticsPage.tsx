@@ -117,7 +117,7 @@ export const AnalyticsPage: React.FC = () => {
           pageTitle="Analytics"
           onMenuClick={() => setMobileMenuOpen(true)}
           showMenuButton={true}
-          userName="Peter Omogbolahan"
+          userName="Peter Omorogbolahan"
           userRole="System Administrator"
           notificationCount={4}
         />

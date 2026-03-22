@@ -8,6 +8,7 @@ interface SidebarProps {
   onToggle: () => void;
   isMobileOpen?: boolean;
   onMobileClose?: () => void;
+  role?: 'admin' | 'supervisor';
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -15,10 +16,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggle,
   isMobileOpen = false,
   onMobileClose,
+  role = 'admin',
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+
+  const pathPrefix = role === 'supervisor' ? '/supervisor' : '';
 
   const menuItems = [
     {
@@ -33,7 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </svg>
       ),
       label: 'Dashboard',
-      path: '/dashboard',
+      path: `${pathPrefix}/dashboard`,
     },
     {
       icon: (
@@ -47,7 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </svg>
       ),
       label: 'Reports',
-      path: '/reports',
+      path: `${pathPrefix}/reports`,
     },
     {
       icon: (
@@ -61,7 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </svg>
       ),
       label: 'Actions',
-      path: '/actions',
+      path: `${pathPrefix}/actions`,
     },
     {
       icon: (
@@ -75,7 +79,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </svg>
       ),
       label: 'Analytics',
-      path: '/analytics',
+      path: `${pathPrefix}/analytics`,
     },
     {
       icon: (
@@ -90,6 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ),
       label: 'Users',
       path: '/users',
+      adminOnly: true,
     },
     {
       icon: (
@@ -103,7 +108,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </svg>
       ),
       label: 'Profile',
-      path: '/profile',
+      path: `${pathPrefix}/profile`,
     },
     {
       icon: (
@@ -117,7 +122,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </svg>
       ),
       label: 'Certification',
-      path: '/certification',
+      path: `${pathPrefix}/certification`,
     },
     {
       icon: (
@@ -137,9 +142,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </svg>
       ),
       label: 'Setting',
-      path: '/settings',
+      path: `${pathPrefix}/settings`,
     },
-  ];
+  ].filter(item => !(role === 'supervisor' && (item as any).adminOnly));
 
   return (
   <>
@@ -247,7 +252,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Logout Button */}
       <div className="px-4 py-4 border-t border-gray-100">
         <button
-          onClick={() => navigate('/login')}
+          onClick={() => navigate('/')}
           className={`w-full flex items-center ${
             isCollapsed ? 'justify-center px-3' : 'justify-start px-4'
           } py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all`}

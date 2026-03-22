@@ -9,6 +9,14 @@ interface Action {
   status: 'Open' | 'In Progress' | 'Completed';
 }
 
+interface Comment {
+  id: string;
+  author: string;
+  role: 'Admin' | 'Supervisor';
+  text: string;
+  timestamp: string;
+}
+
 interface Report {
   id: string;
   type: 'Incident' | 'Hazard';
@@ -21,6 +29,7 @@ interface Report {
   reportedBy: string;
   equipmentInvolved: string;
   actions: Action[];
+  comments: Comment[];
 }
 
 interface ReportDetailsModalProps {
@@ -34,11 +43,13 @@ interface ReportDetailsModalProps {
     priority: string;
     description: string;
   }) => void;
+  onAddComment: (reportId: string, text: string) => void;
   report: Report | null;
 }
 
-export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, onClose, onCloseReport, onAddAction, report }) => {
+export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, onClose, onCloseReport, onAddAction, onAddComment, report }) => {
   const [isAddActionModalOpen, setIsAddActionModalOpen] = useState(false);
+  const [newComment, setNewComment] = useState('');
 
   const handleAddAction = (actionData: {
     actionTitle: string;
@@ -49,6 +60,13 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
   }) => {
     if (report) {
       onAddAction(report.id, actionData);
+    }
+  };
+
+  const handleSubmitComment = () => {
+    if (newComment.trim() && report) {
+      onAddComment(report.id, newComment.trim());
+      setNewComment('');
     }
   };
 
@@ -70,7 +88,7 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="p-6">
+        <div className="p-4 md:p-6">
           {/* Header */}
           <div className="flex items-start justify-between mb-6">
             <button
@@ -202,8 +220,8 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
             </div>
             
             {report.actions.length > 0 ? (
-              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                <table className="w-full">
+              <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+                <table className="w-full min-w-[480px]">
                   <thead className="bg-[#FFF9F5] border-b border-gray-200">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Action</th>
@@ -254,6 +272,67 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
                 </p>
               </div>
             ) : null}
+          </div>
+
+          {/* Comments Section */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Comments</h3>
+
+            {/* Comment Input */}
+            <div className="mb-4">
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent resize-none"
+                rows={3}
+                placeholder="Add a comment..."
+              />
+              <div className="flex justify-end mt-2">
+                <button
+                  onClick={handleSubmitComment}
+                  disabled={!newComment.trim()}
+                  className="px-4 py-2 bg-[#C24438] hover:bg-[#a03830] disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors text-sm"
+                >
+                  Add Comment
+                </button>
+              </div>
+            </div>
+
+            {/* Comments List */}
+            {report.comments && report.comments.length > 0 ? (
+              <div className="space-y-3">
+                {report.comments.map((comment) => (
+                  <div key={comment.id} className="bg-white rounded-lg border border-gray-200 p-3 md:p-4">
+                    <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mb-2">
+                      <div className="w-7 h-7 bg-[#C24438] rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-xs font-medium">
+                          {comment.author.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="text-sm font-medium text-gray-900">{comment.author}</span>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        comment.role === 'Admin'
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-orange-100 text-orange-700'
+                      }`}>
+                        {comment.role}
+                      </span>
+                      <span className="text-xs text-gray-400">{comment.timestamp}</span>
+                    </div>
+                    <p className="text-sm text-gray-600 leading-relaxed">{comment.text}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col items-center justify-center">
+                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </div>
+                <p className="text-sm text-gray-500">No comments yet</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

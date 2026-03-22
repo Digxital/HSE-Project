@@ -158,7 +158,7 @@ export const UserManagementPage: React.FC = () => {
       <div className={`transition-all duration-300 ${isMobile ? 'ml-0' : sidebarCollapsed ? 'ml-20' : 'ml-64'}`}>
         <TopBar 
           pageTitle="User Management"
-          userName="Peter Omogbolahan"
+          userName="Peter Omorogbolahan"
           userRole="Admin"
           notificationCount={4}
           onMenuClick={handleMobileSidebarToggle}
