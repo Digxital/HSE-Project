@@ -31,28 +31,23 @@ class AuthService {
     try {
       Map<String, dynamic> requestData;
       
-      if (request.provider == 'email') {
-        // Regular email/password login
-        requestData = {
-          'email': request.email,
-          'password': request.password,
-        };
-        print('📤 Email login request for: ${request.email}');
-      } else {
-        // Provider login (Microsoft, Google, etc.)
-        requestData = {
-          'provider': request.provider,
-          'email': request.email,
-          'providerData': request.providerData,
-          if (request.providerToken != null)
-            'providerToken': request.providerToken,
-        };
-        print('📤 Provider login request for: ${request.provider} - ${request.email}');
-      }
+     
+      // Regular email/password login
+      requestData = {
+        'email': request.email,
+        'password': request.password,
+      };
+      print('📤 Email login request for: ${request.email}');
       
+      
+      print('requestData:$requestData');
       final response = await _dio.post(
         ApiEndpoints.login,
         data: requestData,
+        options: Options(headers: {
+          "Content-Type": "application/json",
+          "X-PLATFORM": "mobile",
+        }),
       );
       
       // Handle successful response

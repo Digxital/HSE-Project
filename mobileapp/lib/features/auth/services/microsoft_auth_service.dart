@@ -8,7 +8,7 @@ class MsalAuthService {
   static const String _tenantId = 'f50045de-252f-4788-af9b-d2a2e2e3eda1';
   static const String _clientId = 'da372529-e417-4944-9145-515aa8187388';
   
-  // Platform-specific redirect URIs
+  // Platform-specific redirect URIs 
   String get _redirectUri {
     if (Platform.isIOS) {
       return 'msauth.com.aegix.app://auth';

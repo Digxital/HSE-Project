@@ -38,7 +38,7 @@ class _DashboardPageState extends State<DashboardPage> {
     const ReportScreen(),
     Container(),
     const ReviewScreen(),
-    const ProfileScreen()
+    const ProfileScreen() 
   ];
 
   @override
