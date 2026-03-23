@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 
 const reportSchema = new mongoose.Schema(
     {
-        recordCategory: {
+        recordType: {
             type: String,
-            enum: ["hazard", "observation", "incident"],
+            enum: ["incident", "hazard"],
             required: true
         },
 

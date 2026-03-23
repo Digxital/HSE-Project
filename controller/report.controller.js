@@ -2,7 +2,7 @@ const Report = require("../model/report.model");
 
 exports.createReport = async (req, res) => {
     const {
-        recordCategory,
+        recordType,
         title,
         description,
         riskLevel,
@@ -17,14 +17,14 @@ exports.createReport = async (req, res) => {
     } = req.body;
 
     // Basic validation
-    if (!recordCategory || !title || !description || !riskLevel || !location) {
+    if (!recordType || !title || !description || !riskLevel || !location) {
         return res.status(400).json({
             message: "Missing required report fields"
         });
     }
 
     const report = await Report.create({
-        recordCategory,
+        recordType,
         title,
         description,
         riskLevel,

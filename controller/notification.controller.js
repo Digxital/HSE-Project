@@ -62,3 +62,77 @@ exports.createNotification = async (req, res) => {
         });
     }
 };
+
+// GET NOTIFICATIONS (for logged in user)
+exports.getNotifications = async (req, res) => {
+    try {
+        const notifications = await Notification.find({ user: req.user.id })
+            .sort({ createdAt: -1 });
+
+        const response = notifications.map((notification) => ({
+            id: notification._id.toString(),
+            type: notification.type,
+            title: notification.title,
+            description: notification.description,
+            timestamp: notification.createdAt.toISOString(),
+            read: notification.read,
+            data: notification.data || null
+        }));
+
+        return res.status(200).json({
+            success: true,
+            message: "Notifications fetched successfully",
+            data: response
+        });
+
+    } catch (err) {
+        console.error("Error fetching notifications:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            data: {}
+        });
+    }
+};
+
+// GET NOTIFICATION BY ID (for logged in user)
+exports.getNotificationById = async (req, res) => {
+    try {
+        const notification = await Notification.findOne({
+            _id: req.params.id,
+            user: req.user.id
+        });
+
+        if (!notification) {
+            return res.status(404).json({
+                success: false,
+                message: "Notification not found",
+                data: {}
+            });
+        }
+
+        const response = {
+            id: notification._id.toString(),
+            type: notification.type,
+            title: notification.title,
+            description: notification.description,
+            timestamp: notification.createdAt.toISOString(),
+            read: notification.read,
+            data: notification.data || null
+        };
+
+        return res.status(200).json({
+            success: true,
+            message: "Notification fetched successfully",
+            data: response
+        });
+
+    } catch (err) {
+        console.error("Error fetching notification by ID:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            data: {}
+        });
+    }
+};
