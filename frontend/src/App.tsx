@@ -25,6 +25,7 @@ import { SupervisorDashboardPage } from '@/pages/supervisor/SupervisorDashboardP
 import { SupervisorProfilePage } from '@/pages/supervisor/SupervisorProfilePage';
 import { SupervisorReportsPage } from '@/pages/supervisor/SupervisorReportsPage';
 import { SupervisorSettingsPage } from '@/pages/supervisor/SupervisorSettingsPage';
+import { ReportsProvider } from './services/ReportsContext';
 
 // Create a separate component for the authenticated routes
 const AppRoutes = () => {
@@ -55,32 +56,34 @@ const AppRoutes = () => {
   }, [navigate]);
 
   return (
-    <Routes> 
-      <Route path="/" element={<RoleSelectionPage />} />
+    <ReportsProvider>
+      <Routes> 
+        <Route path="/" element={<RoleSelectionPage />} />
 
-      {/* Admin routes */}
-      <Route path="/admin/login" element={<LoginPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/users" element={<UserManagementPage />} />
-      <Route path="/reports" element={<ReportsPage />} />
-      <Route path="/actions" element={<ActionsPage />} />
-      <Route path="/analytics" element={<AnalyticsPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
-      <Route path="/certification" element={<CertificationPage />} />
-      <Route path="/settings" element={<SettingsPage />} />
+        {/* Admin routes */}
+        <Route path="/admin/login" element={<LoginPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/users" element={<UserManagementPage />} />
+        <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/actions" element={<ActionsPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/certification" element={<CertificationPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
 
-      {/* Supervisor routes */}
-      <Route path="/supervisor/login" element={<SupervisorLoginPage />} />
-      <Route path="/supervisor/dashboard" element={<SupervisorDashboardPage />} />
-      <Route path="/supervisor/reports" element={<SupervisorReportsPage />} />
-      <Route path="/supervisor/actions" element={<SupervisorActionsPage />} />
-      <Route path="/supervisor/analytics" element={<SupervisorAnalyticsPage />} />
-      <Route path="/supervisor/profile" element={<SupervisorProfilePage />} />
-      <Route path="/supervisor/certification" element={<SupervisorCertificationPage />} />
-      <Route path="/supervisor/settings" element={<SupervisorSettingsPage />} />
-        
-    </Routes>
+        {/* Supervisor routes */}
+        <Route path="/supervisor/login" element={<SupervisorLoginPage />} />
+        <Route path="/supervisor/dashboard" element={<SupervisorDashboardPage />} />
+        <Route path="/supervisor/reports" element={<SupervisorReportsPage />} />
+        <Route path="/supervisor/actions" element={<SupervisorActionsPage />} />
+        <Route path="/supervisor/analytics" element={<SupervisorAnalyticsPage />} />
+        <Route path="/supervisor/profile" element={<SupervisorProfilePage />} />
+        <Route path="/supervisor/certification" element={<SupervisorCertificationPage />} />
+        <Route path="/supervisor/settings" element={<SupervisorSettingsPage />} />
+          
+      </Routes>
+    </ReportsProvider>
   );
 };
 
