@@ -3,13 +3,33 @@ const router = express.Router();
 
 const auth = require("../middleware/auth");
 const authorize = require("../middleware/authorize");
-const { createReport } = require("../controller/report.controller");
+const { 
+    createReport, 
+    getReports, 
+    getReportById 
+} = require("../controller/report.controller");
+
+// Get all reports with filtering and pagination
+router.get(
+    "/reports",
+    auth,
+    authorize(["FIELD_USER", "SUPERVISOR", "HSE_OFFICER", "ADMIN"], ["mobile", "web"]),
+    getReports
+);
+
+// Get single report by ID
+router.get(
+    "/reports/:id",
+    auth,
+    authorize(["FIELD_USER", "SUPERVISOR", "HSE_OFFICER", "ADMIN"], ["mobile", "web"]),
+    getReportById
+);
 
 // Field user & supervisor can submit reports
 router.post(
     "/reports",
     auth,
-    authorize(["FIELD_USER", "SUPERVISOR"], ["mobile", "web"]),
+    authorize(["FIELD_USER", "SUPERVISOR", "HSE_OFFICER"], ["mobile", "web"]),
     createReport
 );
 

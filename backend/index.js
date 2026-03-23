@@ -6,7 +6,7 @@ const cors = require("cors");
 const app = express();
  
 // ========== CORS CONFIGURATION - MUST BE FIRST ==========
-const allowedOrigins = [
+const allowedOrigins = [ 
   // Local development
   'http://localhost:5173',
   'http://localhost:5174',
@@ -174,7 +174,7 @@ const loadRoutes = () => {
  
     { name: "client", path: "./routes/client", routePath: "/api/client" },
     { name: "location", path: "./routes/location", routePath: "/api/location" },
-    { name: "report", path: "./routes/report", routePath: "/api/report" },
+    { name: "report", path: "./routes/report", routePath: "/api/report" }, 
 
     { name: "feedback", path: "./routes/feedback.routes", routePath: "/api/feedback" },
     { name: "config", path: "./routes/config", routePath: "/api/config" },

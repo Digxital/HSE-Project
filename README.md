@@ -290,3 +290,7 @@ Spectacular@7?
 https://www.oysterchecks.com/login
 
 flutter pub run build_runner build --delete-conflicting-outputs
+
+Display name: Testuser Uno
+Username: testuseruno@croxxtalent.com
+Password: N*029816922090uj
