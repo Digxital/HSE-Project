@@ -4,10 +4,12 @@ import { TopBar } from '@/components/layout/TopBar';
 import { StatsOverview } from '@/components/dashboard/StatsOverview';
 import { AIInsights } from '@/components/dashboard/AIInsights';
 import { RecentReportsTable } from '@/components/dashboard/RecentReportsTable';
-import { getUserData, type UserData } from '@/utils/authStorage';
 
-export const DashboardPage: React.FC = () => {
-  const [user, setUser] = useState<UserData | null>(null);
+interface DashboardPageProps {
+  role?: 'admin' | 'supervisor';
+}
+ 
+export const DashboardPage: React.FC<DashboardPageProps> = ({ role = 'admin' }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -16,12 +18,9 @@ export const DashboardPage: React.FC = () => {
 
   // Check if mobile on mount and window resize
   useEffect(() => {
-    const userData = getUserData();
-    setUser(userData);
-
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
-    };  
+    };
 
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -36,10 +35,6 @@ export const DashboardPage: React.FC = () => {
   const closeMobileSidebar = () => {
     setIsMobileSidebarOpen(false);
   };
-  
-  if (!user) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <div className="min-h-screen bg-background-light">
@@ -57,7 +52,8 @@ export const DashboardPage: React.FC = () => {
         onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         isMobileOpen={isMobileSidebarOpen}
         onMobileClose={closeMobileSidebar}
-      /> 
+        role={role}
+      />
 
       {/* Main Content Area */}
       <div
@@ -68,8 +64,8 @@ export const DashboardPage: React.FC = () => {
         {/* Top Bar */}
         <TopBar
           pageTitle="Dashboard"
-          userName={user.name}
-          userRole={user.role}
+          userName={role === 'supervisor' ? 'John Matthew' : 'Peter Omorogbolahan'}
+          userRole={role === 'supervisor' ? 'Supervisor' : 'Admin'}
           syncStatus="synced"
           notificationCount={4}
           onMenuClick={handleMobileSidebarToggle}

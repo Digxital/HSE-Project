@@ -1,451 +1,349 @@
+import { AddActionModal } from '@/components/reports/AddActionModal';
 import React, { useState } from 'react';
-import { Sidebar } from '@/components/layout/Sidebar';
-import { TopBar } from '@/components/layout/TopBar';
-import { ReportDetailsModal } from '@/components/reports/ReportDetailsModal';
 
-type ReportType = 'All' | 'Incidents' | 'Hazard';
-type RiskLevel = 'High' | 'Medium' | 'Low';
-type ReportStatus = 'Open' | 'In Progress' | 'Closed';
-type ActionStatus = 'Open' | 'In Progress' | 'Completed';
 
 interface Action {
   id: string;
   action: string;
   assignedTo: string;
   dueDate: string;
-  status: ActionStatus;
+  status: 'Open' | 'In Progress' | 'Completed';
+}
+
+interface Comment {
+  id: string;
+  author: string;
+  role: 'Admin' | 'Supervisor';
+  text: string;
+  timestamp: string;
 }
 
 interface Report {
   id: string;
   type: 'Incident' | 'Hazard';
   category: string;
+  description: string;
   location: string;
-  risk: RiskLevel;
-  status: ReportStatus;
+  risk: 'High' | 'Medium' | 'Low';
+  status: 'Open' | 'In Progress' | 'Closed';
   dateReported: string;
+  reportedBy: string;
+  equipmentInvolved: string;
   actions: Action[];
+  comments: Comment[];
 }
 
-export const ReportsPage: React.FC = () => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [selectedType, setSelectedType] = useState<ReportType>('All');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+interface ReportDetailsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onCloseReport: (reportId: string) => void;
+  onAddAction: (reportId: string, action: {
+    actionTitle: string;
+    assignedTo: string;
+    dueDate: string;
+    priority: string;
+    description: string;
+  }) => void;
+  onAddComment: (reportId: string, text: string) => void;
+  report: Report | null;
+}
 
-  const [reports, setReports] = useState<Report[]>([
-    {
-      id: 'INC-0104',
-      type: 'Incident',
-      category: 'Fire Incident',
-      location: 'North Boa Platform A',
-      risk: 'High',
-      status: 'Open',
-      dateReported: '21 Jan 2026\n08:42 AM',
-      actions: [
-        {
-          id: 'ACT-001',
-          action: 'Secure loose handrail',
-          assignedTo: 'Maintenance Lead',
-          dueDate: 'Feb 08, 2026',
-          status: 'In Progress',
-        },
-        {
-          id: 'ACT-002',
-          action: 'Inspect nearby rails',
-          assignedTo: 'Safety Officer',
-          dueDate: 'Feb 08, 2026',
-          status: 'Open',
-        },
-      ],
-    },
-    {
-      id: 'INC-0103',
-      type: 'Incident',
-      category: 'Gas Leak',
-      location: 'Gulf of Mexico',
-      risk: 'High',
-      status: 'In Progress',
-      dateReported: '21 Jan 2026\n08:42 AM',
-      actions: [
-        {
-          id: 'ACT-003',
-          action: 'Emergency gas shut-off',
-          assignedTo: 'Operations Manager',
-          dueDate: 'Feb 01, 2026',
-          status: 'Completed',
-        },
-        {
-          id: 'ACT-004',
-          action: 'Review gas detection system',
-          assignedTo: 'Technical Lead',
-          dueDate: 'Feb 10, 2026',
-          status: 'In Progress',
-        },
-      ],
-    },
-    {
-      id: 'INC-0102',
-      type: 'Incident',
-      category: 'Gas Leak',
-      location: 'Gulf of Mexico',
-      risk: 'Low',
-      status: 'Closed',
-      dateReported: '21 Jan 2026\n08:42 AM',
-      actions: [],
-    },
-    {
-      id: 'INC-0101',
-      type: 'Incident',
-      category: 'Gas Leak',
-      location: 'Gulf of Mexico',
-      risk: 'Medium',
-      status: 'In Progress',
-      dateReported: '21 Jan 2026\n08:42 AM',
-      actions: [
-        {
-          id: 'ACT-005',
-          action: 'Seal affected pipeline section',
-          assignedTo: 'Field Engineer',
-          dueDate: 'Feb 12, 2026',
-          status: 'In Progress',
-        },
-      ],
-    },
-    {
-      id: 'HAZ-0061',
-      type: 'Hazard',
-      category: 'Unsafe Act',
-      location: 'Alaska Pipeline',
-      risk: 'Medium',
-      status: 'Open',
-      dateReported: '21 Jan 2026\n08:42 AM',
-      actions: [
-        {
-          id: 'ACT-006',
-          action: 'Update safety protocols',
-          assignedTo: 'Safety Manager',
-          dueDate: 'Feb 15, 2026',
-          status: 'Open',
-        },
-        {
-          id: 'ACT-007',
-          action: 'Conduct team safety briefing',
-          assignedTo: 'Team Lead',
-          dueDate: 'Feb 16, 2026',
-          status: 'Open',
-        },
-      ],
-    },
-    {
-      id: 'HAZ-0060',
-      type: 'Hazard',
-      category: 'Unsafe Act',
-      location: 'Alaska Pipeline',
-      risk: 'Medium',
-      status: 'Open',
-      dateReported: '21 Jan 2026\n08:42 AM',
-      actions: [
-        {
-          id: 'ACT-008',
-          action: 'Implement new safety checks',
-          assignedTo: 'Operations Team',
-          dueDate: 'Feb 20, 2026',
-          status: 'In Progress',
-        },
-      ],
-    },
-    {
-      id: 'HAZ-0059',
-      type: 'Hazard',
-      category: 'Near Miss',
-      location: 'Houston Office',
-      risk: 'Low',
-      status: 'Closed',
-      dateReported: '21 Jan 2026\n08:42 AM',
-      actions: [],
-    },
-    {
-      id: 'HAZ-0058',
-      type: 'Hazard',
-      category: 'Near Miss',
-      location: 'Houston Office',
-      risk: 'Low',
-      status: 'Closed',
-      dateReported: '21 Jan 2026\n08:42 AM',
-      actions: [],
-    },
-  ]);
+export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, onClose, onCloseReport, onAddAction, onAddComment, report }) => {
+  const [isAddActionModalOpen, setIsAddActionModalOpen] = useState(false);
+  const [newComment, setNewComment] = useState('');
 
-  const types: { label: ReportType; count: number }[] = [
-    { label: 'All', count: reports.length },
-    { label: 'Incidents', count: reports.filter((r) => r.type === 'Incident').length },
-    { label: 'Hazard', count: reports.filter((r) => r.type === 'Hazard').length },
-  ];
-
-  const filteredReports = reports.filter((report) => {
-    const matchesType = 
-      selectedType === 'All' || 
-      (selectedType === 'Incidents' && report.type === 'Incident') ||
-      (selectedType === 'Hazard' && report.type === 'Hazard');
-    const matchesSearch =
-      searchQuery === '' ||
-      report.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.risk.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      report.status.toLowerCase().includes(searchQuery.toLowerCase());
-
-    return matchesType && matchesSearch;
-  });
-
-  const handleCloseReport = (reportId: string) => {
-    setReports(prevReports =>
-      prevReports.map(report =>
-        report.id === reportId ? { ...report, status: 'Closed' as ReportStatus } : report
-      )
-    );
-    setSelectedReport(null); // Close the modal
-  };
-
-  const handleAddAction = (
-    reportId: string,
-    actionData: {
-      actionTitle: string;
-      assignedTo: string;
-      dueDate: string;
-      priority: string;
-      description: string;
+  const handleAddAction = (actionData: {
+    actionTitle: string;
+    assignedTo: string;
+    dueDate: string;
+    priority: string;
+    description: string;
+  }) => {
+    if (report) {
+      onAddAction(report.id, actionData);
     }
-  ) => {
-    // Generate a new action ID
-    const newActionId = `ACT-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
-
-    // Format the due date to match the existing format (e.g., "Feb 08, 2026")
-    const formatDate = (dateStr: string) => {
-      const date = new Date(dateStr);
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      return `${months[date.getMonth()]} ${String(date.getDate()).padStart(2, '0')}, ${date.getFullYear()}`;
-    };
-
-    const newAction: Action = {
-      id: newActionId,
-      action: actionData.actionTitle,
-      assignedTo: actionData.assignedTo,
-      dueDate: formatDate(actionData.dueDate),
-      status: 'Open',
-    };
-
-    // Update the reports array with the new action
-    setReports(prevReports =>
-      prevReports.map(report =>
-        report.id === reportId
-          ? { ...report, actions: [...report.actions, newAction] }
-          : report
-      )
-    );
-
-    // Update selectedReport to reflect the new action immediately in the modal
-    setSelectedReport(prevReport =>
-      prevReport && prevReport.id === reportId
-        ? { ...prevReport, actions: [...prevReport.actions, newAction] }
-        : prevReport
-    );
   };
 
-  const getRiskBadge = (risk: RiskLevel) => {
-    const styles = {
-      High: 'bg-red-500 text-white',
-      Medium: 'bg-orange-500 text-white',
-      Low: 'bg-green-500 text-white',
-    };
-
-    return (
-      <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles[risk]}`}>
-        {risk}
-      </span>
-    );
+  const handleSubmitComment = () => {
+    if (newComment.trim() && report) {
+      onAddComment(report.id, newComment.trim());
+      setNewComment('');
+    }
   };
 
-  const getStatusText = (status: ReportStatus) => {
-    const styles = {
-      Open: 'text-[#FF3B30] font-medium',
-      'In Progress': 'text-[#FF9500] font-medium',
-      Closed: 'text-gray-500 font-medium',
-    };
-
-    return <span className={styles[status]}>{status}</span>;
-  };
+  if (!report) return null;
 
   return (
-    <div className="min-h-screen bg-background-light">
-      {/* Sidebar */}
-      <Sidebar
-        isCollapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        isMobileOpen={mobileMenuOpen}
-        onMobileClose={() => setMobileMenuOpen(false)}
+    <>
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity z-40 ${
+          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={onClose}
       />
 
-      {/* Main Content */}
-      <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
-        {/* Top Bar */}
-        <TopBar
-          pageTitle="Report"
-          onMenuClick={() => setMobileMenuOpen(true)}
-          showMenuButton={true}
-          userName="Peter Omorogbolahan"
-          userRole="System Administrator"
-          notificationCount={4}
-        />
-
-        {/* Main Content Area */}
-        <main className="p-4 md:p-6 lg:p-8">
-          <div>
-            {/* Page Header */}
-            <div className="flex items-center justify-between mb-6" data-aos="fade-down">
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-semibold text-gray-900">Reports List</h1>
-                <button className="p-1 hover:bg-gray-100 rounded-full">
-                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Filter Tabs */}
-            <div className="flex flex-wrap items-center gap-3 mb-6" data-aos="fade-up" data-aos-delay="50">
-              {types.map((type) => (
-                <button
-                  key={type.label}
-                  onClick={() => setSelectedType(type.label)}
-                  className={`px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
-                    selectedType === type.label
-                      ? 'bg-orange-50 text-[#C24438] border border-[#C24438]'
-                      : 'bg-[#FFF9F5] text-gray-600 hover:bg-[#FFFEFB]'
-                  }`}
-                >
-                  {type.label}
-                  <span
-                    className={`ml-1 px-1.5 md:px-2 py-0.5 rounded-full text-xs ${
-                      selectedType === type.label
-                        ? 'bg-[#C24438] text-white'
-                        : 'bg-gray-200 text-gray-600'
-                    }`}
-                  >
-                    {type.count}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            {/* Search and Filter */}
-            <div className="flex flex-row gap-3 mb-6" data-aos="fade-up" data-aos-delay="100">
-              <div className="flex-1 relative">
-                <svg
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
+      {/* Slide-in Panel */}
+      <div
+        className={`fixed top-0 right-0 h-full w-full md:w-[600px] lg:w-[680px] bg-[#FFFAF5] shadow-2xl z-50 transform transition-transform duration-300 overflow-y-auto ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        <div className="p-4 md:p-6">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-6">
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-[#FFF9F5] rounded-lg transition-colors"
+            >
+              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </button>
+            
+            {/* Conditional Close Report Button / Closed Badge */}
+            {report.status === 'Closed' ? (
+              <div className="px-4 py-2 bg-gray-200 text-gray-600 rounded-lg font-medium text-sm flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <input
-                  type="text"
-                  placeholder="Search by incident, hazard, Risk level, status..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-[#FFF9F5] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-sm"
-                />
+                Closed
               </div>
-              <button className="px-4 py-2.5 bg-[#FFF9F5] border border-gray-200 rounded-lg hover:bg-[#FFFEFB] transition-colors flex items-center gap-2 text-sm font-medium text-gray-700 justify-center whitespace-nowrap">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                  />
+            ) : (
+              <button
+                onClick={() => onCloseReport(report.id)}
+                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors text-sm flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                Filter
+                Close Report
               </button>
-            </div>
+            )}
+          </div>
 
-            {/* Reports Table */}
-            <div className="overflow-x-auto -mx-3 md:mx-0" data-aos="fade-up" data-aos-delay="150">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="bg-[#FFF9F5] border-b border-gray-200">
-                      <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Report ID</th>
-                      <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500 hidden md:table-cell">
-                        Type
-                      </th>
-                      <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Category</th>
-                      <th className="hidden lg:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500">
-                        Location
-                      </th>
-                      <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Risk</th>
-                      <th className="hidden md:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500">
-                        Status
-                      </th>
-                      <th className="hidden lg:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500">
-                        Date Reported
-                      </th>
+          {/* Report Title */}
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">{report.category}</h2>
+            <p className="text-gray-600 text-sm leading-relaxed mb-4">
+              {report.description}
+            </p>
+          </div>
+
+          {/* Report Info */}
+          <div className="space-y-3 mb-6">
+            <div className="flex items-center justify-between py-2 border-b border-gray-200">
+              <span className="text-sm text-gray-600">Report type</span>
+              <span className="text-sm font-medium text-gray-900">{report.type}</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-200">
+              <span className="text-sm text-gray-600">Location</span>
+              <span className="text-sm font-medium text-gray-900">{report.location}</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-200">
+              <span className="text-sm text-gray-600">Reported</span>
+              <span className="text-sm font-medium text-gray-900">{report.dateReported.replace('\n', ' ')}</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-200">
+              <span className="text-sm text-gray-600">Submitted by</span>
+              <span className="text-sm font-medium text-gray-900">{report.reportedBy}</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-200">
+              <span className="text-sm text-gray-600">Equipment involved</span>
+              <span className="text-sm font-medium text-gray-900">{report.equipmentInvolved}</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-200">
+              <span className="text-sm text-gray-600">Status</span>
+              <span className={`text-sm font-medium ${
+                report.status === 'Open' ? 'text-red-500' :
+                report.status === 'In Progress' ? 'text-orange-500' :
+                'text-gray-500'
+              }`}>{report.status}</span>
+            </div>
+          </div>
+
+          {/* Attachments */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Attachments</h3>
+            <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col items-center justify-center">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <p className="text-sm text-gray-500">No attachments</p>
+            </div>
+          </div>
+
+          {/* Risk Assessment */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Risk Assessment</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-gray-600">Risk Level</span>
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                  report.risk === 'High' ? 'bg-red-500 text-white' :
+                  report.risk === 'Medium' ? 'bg-orange-500 text-white' :
+                  'bg-green-500 text-white'
+                }`}>
+                  {report.risk}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Corrective Actions */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900">Corrective Actions</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Actions created from this report ({report.actions.length} total)
+                </p>
+              </div>
+              {/* Add Action Button - Only show for non-closed reports */}
+              {report.status !== 'Closed' && (
+                <button
+                  onClick={() => setIsAddActionModalOpen(true)}
+                  className="px-4 py-2 bg-[#C24438] hover:bg-[#a03830] text-white rounded-lg font-medium transition-colors flex items-center gap-2 text-sm whitespace-nowrap"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add Action
+                </button>
+              )}
+            </div>
+            
+            {report.actions.length > 0 ? (
+              <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+                <table className="w-full min-w-[480px]">
+                  <thead className="bg-[#FFF9F5] border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Action</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Assigned to</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Due Date</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredReports.map((report) => (
-                      <tr
-                        key={report.id}
-                        onClick={() => setSelectedReport(report)}
-                        className="bg-[#FFFAF5] hover:bg-[#FFFEFB] transition-colors border-l-4 border-l-[#C24438] border-b border-b-gray-200 cursor-pointer"
-                      >
-                        <td className="py-3 md:py-4 px-3 md:px-4">
-                          <div className="font-medium text-gray-900 text-xs md:text-sm">{report.id}</div>
-                        </td>
-                        <td className="py-3 md:py-4 px-3 md:px-4 hidden md:table-cell">
-                          <div className="text-gray-900 text-sm">{report.type}</div>
-                        </td>
-                        <td className="py-3 md:py-4 px-3 md:px-4">
-                          <div className="text-gray-600 text-xs md:text-sm">{report.category}</div>
-                        </td>
-                        <td className="hidden lg:table-cell py-4 px-4">
-                          <div className="text-gray-600">{report.location}</div>
-                        </td>
-                        <td className="py-3 md:py-4 px-3 md:px-4">{getRiskBadge(report.risk)}</td>
-                        <td className="hidden md:table-cell py-4 px-4">{getStatusText(report.status)}</td>
-                        <td className="hidden lg:table-cell py-4 px-4">
-                          <div className="text-gray-600 text-sm whitespace-pre-line">{report.dateReported}</div>
+                    {report.actions.map((action) => (
+                      <tr key={action.id} className="bg-[#FFFAF5] hover:bg-[#FFFEFB] transition-colors border-l-4 border-l-[#C24438] border-b border-b-gray-200">
+                        <td className="px-4 py-3 text-sm text-gray-900">{action.action}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{action.assignedTo}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900">{action.dueDate}</td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                              action.status === 'Completed'
+                                ? 'bg-green-100 text-green-700'
+                                : action.status === 'In Progress'
+                                ? 'bg-orange-100 text-orange-700'
+                                : 'bg-red-100 text-red-700'
+                            }`}
+                          >
+                            {action.status}
+                          </span>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-            </div>
+              </div>
+            ) : report.status !== 'Closed' ? (
+              <div className="bg-white rounded-lg border border-gray-200 p-8 flex flex-col items-center justify-center">
+                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                </div>
+                <p className="text-sm text-gray-500 text-center mb-1">No actions created yet.</p>
+                <p className="text-xs text-gray-400 text-center">
+                  Click "Add Action" Button to create corrective actions for this report
+                </p>
+              </div>
+            ) : null}
           </div>
-        </main>
+
+          {/* Comments Section */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Comments</h3>
+
+            {/* Comment Input */}
+            <div className="mb-4">
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent resize-none"
+                rows={3}
+                placeholder="Add a comment..."
+              />
+              <div className="flex justify-end mt-2">
+                <button
+                  onClick={handleSubmitComment}
+                  disabled={!newComment.trim()}
+                  className="px-4 py-2 bg-[#C24438] hover:bg-[#a03830] disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors text-sm"
+                >
+                  Add Comment
+                </button>
+              </div>
+            </div>
+
+            {/* Comments List */}
+            {report.comments && report.comments.length > 0 ? (
+              <div className="space-y-3">
+                {report.comments.map((comment) => (
+                  <div key={comment.id} className="bg-white rounded-lg border border-gray-200 p-3 md:p-4">
+                    <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mb-2">
+                      <div className="w-7 h-7 bg-[#C24438] rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-xs font-medium">
+                          {comment.author.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="text-sm font-medium text-gray-900">{comment.author}</span>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        comment.role === 'Admin'
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-orange-100 text-orange-700'
+                      }`}>
+                        {comment.role}
+                      </span>
+                      <span className="text-xs text-gray-400">{comment.timestamp}</span>
+                    </div>
+                    <p className="text-sm text-gray-600 leading-relaxed">{comment.text}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col items-center justify-center">
+                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </div>
+                <p className="text-sm text-gray-500">No comments yet</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Report Details Modal */}
-      <ReportDetailsModal
-        isOpen={selectedReport !== null}
-        onClose={() => setSelectedReport(null)}
-        onCloseReport={handleCloseReport}
+      {/* Add Action Modal */}
+      <AddActionModal
+        isOpen={isAddActionModalOpen}
+        onClose={() => setIsAddActionModalOpen(false)}
         onAddAction={handleAddAction}
-        report={selectedReport}
       />
-    </div>
+    </>
   );
 };
