@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 
-export const SettingsPage: React.FC = () => {
+interface SettingsPageProps {
+  role?: 'admin' | 'supervisor';
+}
+
+export const SettingsPage: React.FC<SettingsPageProps> = ({ role = 'admin' }) => {
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -50,8 +54,8 @@ export const SettingsPage: React.FC = () => {
   };
 
   const handleLogout = () => {
-    // Navigate to login page
-    navigate('/login');
+    // Navigate to role selection page
+    navigate('/');
   };
 
   // Toggle Switch Component
@@ -93,6 +97,7 @@ export const SettingsPage: React.FC = () => {
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         isMobileOpen={mobileMenuOpen}
         onMobileClose={closeMobileSidebar}
+        role={role}
       />
 
       {/* Main Content */}
@@ -104,10 +109,10 @@ export const SettingsPage: React.FC = () => {
           pageTitle="Settings"
           onMenuClick={handleMobileSidebarToggle}
           showMenuButton={isMobile}
-          userName="Peter Omogbolahan"
-          userRole="Admin"
+          userName={role === 'supervisor' ? 'John Matthew' : 'Peter Omorogbolahan'}
+          userRole={role === 'supervisor' ? 'Supervisor' : 'Admin'}
           notificationCount={4}
-        /> 
+        />
 
         {/* Main Content Area */}
         <main className="p-4 md:p-6 lg:p-8">
