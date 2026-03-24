@@ -8,7 +8,7 @@ import { RecentReportsTable } from '@/components/dashboard/RecentReportsTable';
 interface DashboardPageProps {
   role?: 'admin' | 'supervisor';
 }
-
+ 
 export const DashboardPage: React.FC<DashboardPageProps> = ({ role = 'admin' }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);

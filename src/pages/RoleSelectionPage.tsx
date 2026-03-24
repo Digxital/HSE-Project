@@ -11,7 +11,7 @@ export const RoleSelectionPage: React.FC = () => {
   const handleRoleSelect = (role: 'admin' | 'supervisor') => {
     setIsLoading(true);
     setTimeout(() => {
-      setIsLoading(false);
+      setIsLoading(false); 
       if (role === 'admin') {
         navigate('/admin/login');
       } else {

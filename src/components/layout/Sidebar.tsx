@@ -13,7 +13,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed,
-  onToggle,
+  onToggle, 
   isMobileOpen = false,
   onMobileClose,
   role = 'admin',
@@ -21,7 +21,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navigate = useNavigate();
   const location = useLocation();
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-
+ 
   const pathPrefix = role === 'supervisor' ? '/supervisor' : '';
 
   const menuItems = [

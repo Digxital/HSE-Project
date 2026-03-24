@@ -1,33 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { EmptyState } from '../common/EmptyState';
-import { ReportDetailsModal } from '../reports/ReportDetailsModal';
-
-type RiskLevel = 'High' | 'Medium' | 'Low';
-type ReportStatus = 'Open' | 'In Progress' | 'Closed';
-type ActionStatus = 'Open' | 'In Progress' | 'Completed';
-
-interface Action {
-  id: string;
-  action: string;
-  assignedTo: string;
-  dueDate: string;
-  status: ActionStatus;
-}
 
 interface Report {
   id: string;
   title: string;
-  type: 'Incident' | 'Hazard';
   category: string;
-  description: string;
   location: string;
-  risk: RiskLevel;
-  status: ReportStatus;
+  risk: 'High' | 'Medium' | 'Low';
+  status: 'Open' | 'Progress' | 'Closed';
   date: string;
-  dateReported: string;
-  reportedBy: string;
-  equipmentInvolved: string;
-  actions: Action[];
 }
 
 interface RecentReportsTableProps {
@@ -35,108 +16,38 @@ interface RecentReportsTableProps {
 }
 
 export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData = true }) => {
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-
   // Mock data - will be replaced with API data later
-  const [reports, setReports] = useState<Report[]>(hasData
+  const reports: Report[] = hasData
     ? [
       {
-        id: 'HAZ-0001',
-        title: 'Slippery Floor in Main Entrance',
-        type: 'Hazard',
-        category: 'Slippery Floor in Main Entrance',
-        description: 'Water accumulation near the main entrance causing a slip hazard. Immediate attention required to prevent accidents.',
-        location: 'Head Office - Main Entrance - Lobby',
+        id: 'RPT-1042',
+        title: 'Oil spill near pump',
+        category: 'Environmental Hazard',
+        location: 'Gulf of Mexico',
         risk: 'High',
         status: 'Open',
-        date: '10 Mar 2026',
-        dateReported: '10 Mar 2026\n11:31 AM',
-        reportedBy: 'field@gmail.com',
-        equipmentInvolved: 'None',
-        actions: [],
+        date: '21 Jan 2026',
       },
       {
-        id: 'HAZ-0002',
-        title: 'Missing Fire Extinguisher Sign',
-        type: 'Hazard',
-        category: 'Missing Fire Extinguisher Sign',
-        description: 'Fire extinguisher location sign missing in corridor B. Staff having difficulty locating emergency equipment.',
-        location: 'Head Office - Corridor B',
+        id: 'RPT-1038',
+        title: 'Slippery deck',
+        category: 'Unsafe Condition',
+        location: 'North Sea',
         risk: 'Medium',
-        status: 'Open',
-        date: '10 Mar 2026',
-        dateReported: '10 Mar 2026\n11:35 AM',
-        reportedBy: 'field@gmail.com',
-        equipmentInvolved: 'Fire safety equipment',
-        actions: [],
+        status: 'Progress',
+        date: '19 Jan 2026',
       },
       {
-        id: 'HAZ-0003',
-        title: 'Oil Spill Near Generator Area',
-        type: 'Hazard',
-        category: 'Oil Spill Near Generator Area',
-        description: 'Oil spill detected near generator unit A. Area has been cordoned off pending cleanup. Potential environmental contamination risk.',
-        location: 'Refinery Site A - Generator Room',
-        risk: 'High',
-        status: 'Open',
-        date: '09 Mar 2026',
-        dateReported: '09 Mar 2026\n10:30 AM',
-        reportedBy: 'field@gmail.com',
-        equipmentInvolved: 'Generator Unit A',
-        actions: [],
+        id: 'RPT-1031',
+        title: 'Minor hand injury',
+        category: 'Incident',
+        location: 'Houston Office',
+        risk: 'Low',
+        status: 'Closed',
+        date: '17 Jan 2026',
       },
     ]
-    : []);
-
-  const handleCloseReport = (reportId: string) => {
-    setReports(prevReports =>
-      prevReports.map(report =>
-        report.id === reportId ? { ...report, status: 'Closed' as ReportStatus } : report
-      )
-    );
-    setSelectedReport(null);
-  };
-
-  const handleAddAction = (
-    reportId: string,
-    actionData: {
-      actionTitle: string;
-      assignedTo: string;
-      dueDate: string;
-      priority: string;
-      description: string;
-    }
-  ) => {
-    const newActionId = `ACT-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
-
-    const formatDate = (dateStr: string) => {
-      const date = new Date(dateStr);
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      return `${months[date.getMonth()]} ${String(date.getDate()).padStart(2, '0')}, ${date.getFullYear()}`;
-    };
-
-    const newAction: Action = {
-      id: newActionId,
-      action: actionData.actionTitle,
-      assignedTo: actionData.assignedTo,
-      dueDate: formatDate(actionData.dueDate),
-      status: 'Open',
-    };
-
-    setReports(prevReports =>
-      prevReports.map(report =>
-        report.id === reportId
-          ? { ...report, actions: [...report.actions, newAction] }
-          : report
-      )
-    );
-
-    setSelectedReport(prevReport =>
-      prevReport && prevReport.id === reportId
-        ? { ...prevReport, actions: [...prevReport.actions, newAction] }
-        : prevReport
-    );
-  };
+    : [];
 
   const getRiskBadgeColor = (risk: string) => {
     switch (risk) {
@@ -155,7 +66,7 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
     switch (status) {
       case 'Open':
         return 'text-gray-700';
-      case 'In Progress':
+      case 'Progress':
         return 'text-blue-700';
       case 'Closed':
         return 'text-gray-500';
@@ -225,7 +136,6 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
                 {reports.map((report, index) => (
                   <tr
                     key={report.id}
-                    onClick={() => setSelectedReport(report)}
                     className="bg-[#FFFAF5] hover:bg-[#FFFEFB] transition-colors cursor-pointer"
                   >
                     {/* Red indicator line for first row */}
@@ -258,15 +168,6 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
           </div>
         )}
       </div>
-
-      {/* Report Details Modal */}
-      <ReportDetailsModal
-        isOpen={selectedReport !== null}
-        onClose={() => setSelectedReport(null)}
-        onCloseReport={handleCloseReport}
-        onAddAction={handleAddAction}
-        report={selectedReport}
-      />
     </div>
   );
 };

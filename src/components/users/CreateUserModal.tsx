@@ -1,27 +1,29 @@
 import React, { useState } from 'react';
 
-interface CreateUserModalProps {
+interface CreateUserModal {
   isOpen: boolean;
   onClose: () => void;
-  onCreateUser: (userData: {
+  onUserCreated: (userData: {
     firstName: string;
     surname: string;
     email: string;
     role: string;
     jobPosition: string;
+    createMicrosoftAccount: true;
   }) => void;
 }
-
-export const CreateUserModal: React.FC<CreateUserModalProps> = ({
+ 
+export const CreateUserModal: React.FC<CreateUserModal> = ({
   isOpen,
   onClose,
-  onCreateUser,
+  onUserCreated,
 }) => {
   const [firstName, setFirstName] = useState('');
   const [surname, setSurname] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
   const [jobPosition, setJobPosition] = useState('');
+  // const [createMicrosoftAccount, setCreateMicrosoftAccount] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   if (!isOpen) return null;
@@ -62,12 +64,13 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       return;
     }
 
-    onCreateUser({
+    onUserCreated({
       firstName,
       surname,
       email,
       role,
       jobPosition,
+      createMicrosoftAccount: true,
     });
 
     // Reset form
@@ -76,7 +79,20 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     setEmail('');
     setRole('');
     setJobPosition('');
+    // setCreateMicrosoftAccount(false);
     setErrors({});
+    onClose();
+  };
+
+  const handleClose = () => {
+    setFirstName('');
+    setSurname('');
+    setEmail('');
+    setRole('');
+    setJobPosition('');
+    // setCreateMicrosoftAccount(false);
+    setErrors({});
+    onClose();
   };
 
   return (
@@ -84,9 +100,9 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       {/* Backdrop */}
       <div
         className={`fixed inset-0 bg-black z-50 flex items-center justify-center p-4 transition-opacity duration-300 ${
-          isOpen ? 'bg-opacity-50' : 'bg-opacity-0'
+          isOpen ? 'bg-opacity-50' : 'bg-opacity-0 pointer-events-none'
         }`}
-        onClick={onClose}
+        onClick={handleClose}
       >
         {/* Modal */}
         <div
@@ -97,7 +113,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
         >
           {/* Close Button */}
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="absolute top-6 right-6 p-1 hover:bg-gray-100 rounded-full transition-colors"
           >
             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,51 +122,51 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
           </button>
 
           {/* Header */}
-          <div className="p-6 pb-4">
+          <div className="p-6 pb-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900 mb-1">Create New User</h2>
-            <p className="text-sm text-gray-500">Add a field user or supervisor to the system</p>
+            <p className="text-sm text-gray-500">Add a new user to the system</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="px-6 pb-6">
+          <form onSubmit={handleSubmit} className="p-6">
             <div className="space-y-4">
               {/* First Name and Surname */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-700 mb-2">First Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    First Name <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
                     value={firstName}
                     onChange={(e) => {
                       setFirstName(e.target.value);
-                      if (errors.firstName) {
-                        setErrors(prev => ({ ...prev, firstName: '' }));
-                      }
+                      if (errors.firstName) setErrors(prev => ({ ...prev, firstName: '' }));
                     }}
                     className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${
                       errors.firstName ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder=""
+                    placeholder="Enter first name"
                   />
                   {errors.firstName && (
                     <p className="text-red-500 text-xs mt-1">{errors.firstName}</p>
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm text-gray-700 mb-2">Surname</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Surname <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
                     value={surname}
                     onChange={(e) => {
                       setSurname(e.target.value);
-                      if (errors.surname) {
-                        setErrors(prev => ({ ...prev, surname: '' }));
-                      }
+                      if (errors.surname) setErrors(prev => ({ ...prev, surname: '' }));
                     }}
                     className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${
                       errors.surname ? 'border-red-500' : 'border-gray-300'
                     }`}
-                    placeholder=""
+                    placeholder="Enter surname"
                   />
                   {errors.surname && (
                     <p className="text-red-500 text-xs mt-1">{errors.surname}</p>
@@ -158,91 +174,127 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 </div>
               </div>
 
-              {/* Email and Role */}
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${
+                    errors.email ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="user@example.com"
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                )}
+              </div>
+
+              {/* Role and Job Position */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-gray-700 mb-2">Email Address</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      if (errors.email) {
-                        setErrors(prev => ({ ...prev, email: '' }));
-                      }
-                    }}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${
-                      errors.email ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder=""
-                  />
-                  {errors.email && (
-                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-700 mb-2">Role</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Role <span className="text-red-500">*</span>
+                  </label>
                   <select
                     value={role}
                     onChange={(e) => {
                       setRole(e.target.value);
-                      if (errors.role) {
-                        setErrors(prev => ({ ...prev, role: '' }));
-                      }
+                      if (errors.role) setErrors(prev => ({ ...prev, role: '' }));
                     }}
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-gray-700 bg-white ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${
                       errors.role ? 'border-red-500' : 'border-gray-300'
                     }`}
                   >
-                    <option value="">Choose role</option>
-                    <option value="Admin">Admin</option>
+                    <option value="">Select role</option>
+                    {/* <option value="Admin">Admin</option> */}
                     <option value="Supervisor">Supervisor</option>
-                    <option value="Field User">Field User</option>
-                    <option value="HSE Officer">HSE Officer</option>
+                    <option value="Field_User">Field User</option>
+                    <option value="HSE_Officer">HSE Officer</option>
                   </select>
                   {errors.role && (
                     <p className="text-red-500 text-xs mt-1">{errors.role}</p>
                   )}
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Job Position <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={jobPosition}
+                    onChange={(e) => {
+                      setJobPosition(e.target.value);
+                      if (errors.jobPosition) setErrors(prev => ({ ...prev, jobPosition: '' }));
+                    }}
+                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${
+                      errors.jobPosition ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  >
+                    <option value="">Select position</option>
+                    <option value="Safety Manager">Safety Manager</option>
+                    <option value="Field Supervisor">Field Supervisor</option>
+                    <option value="HSE Officer">HSE Officer</option>
+                    <option value="Operations Manager">Operations Manager</option>
+                    <option value="Engineer">Engineer</option>
+                    <option value="Technician">Technician</option>
+                  </select>
+                  {errors.jobPosition && (
+                    <p className="text-red-500 text-xs mt-1">{errors.jobPosition}</p>
+                  )}
+                </div>
               </div>
 
-              {/* Job Position */}
-              <div>
-                <label className="block text-sm text-gray-700 mb-2">Job Position</label>
-                <select
-                  value={jobPosition}
-                  onChange={(e) => {
-                    setJobPosition(e.target.value);
-                    if (errors.jobPosition) {
-                      setErrors(prev => ({ ...prev, jobPosition: '' }));
-                    }
-                  }}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-gray-700 bg-white ${
-                    errors.jobPosition ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                >
-                  <option value="">Choose position</option>
-                  <option value="Safety Manager">Safety Manager</option>
-                  <option value="Field Supervisor">Field Supervisor</option>
-                  <option value="HSE Officer">HSE Officer</option>
-                  <option value="Operations Manager">Operations Manager</option>
-                  <option value="Engineer">Engineer</option>
-                  <option value="Technician">Technician</option>
-                </select>
-                {errors.jobPosition && (
-                  <p className="text-red-500 text-xs mt-1">{errors.jobPosition}</p>
+              {/* Microsoft 365 Account Section */}
+              {/* <div className="mt-6 pt-4 border-t border-gray-200">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="createMicrosoftAccount"
+                    checked={createMicrosoftAccount}
+                    onChange={(e) => setCreateMicrosoftAccount(e.target.checked)}
+                    className="w-4 h-4 text-[#C24438] border-gray-300 rounded focus:ring-[#C24438]"
+                  />
+                  <label htmlFor="createMicrosoftAccount" className="ml-2 text-sm font-medium text-gray-700">
+                    Also create Microsoft 365 account for mobile app login
+                  </label>
+                </div>
+                
+                {createMicrosoftAccount && (
+                  <div className="mt-3 ml-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-700">
+                      <span className="text-xs">
+                        A Microsoft account will be created. The user can use these credentials 
+                        to log into your mobile app. A temporary password will be generated.
+                      </span>
+                    </p>
+                  </div>
                 )}
-              </div>
+              </div> */}
+            </div>
 
-              {/* Submit Button */}
+            {/* Form Actions */}
+            <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C24438] transition-colors"
+              >
+                Cancel
+              </button>
               <button
                 type="submit"
-                className="w-full py-3 bg-[#C24438] hover:bg-[#a03830] text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 mt-6"
+                className="px-4 py-2 text-sm font-medium text-white bg-[#C24438] border border-transparent rounded-lg hover:bg-[#a03830] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C24438] transition-colors flex items-center gap-2"
               >
-                <span>Send Email Invitation</span>
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
+                Create User
               </button>
             </div>
           </form>

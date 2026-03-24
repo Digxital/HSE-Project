@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StatsCard } from './StatsCard';
-
+ 
 interface StatsOverviewProps {
   hasData?: boolean;
-}
+} 
 
 export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) => {
   const navigate = useNavigate();
   const [showHeaderTooltip, setShowHeaderTooltip] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-
+ 
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
@@ -48,7 +48,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) 
       {/* Section Header */}
       <div className="flex items-center space-x-2 mb-6">
         <h2 className="text-lg font-semibold text-gray-900">HSE Management Overview</h2>
-        <div 
+        <div  
           className="relative"
           onMouseEnter={() => setShowHeaderTooltip(true)}
           onMouseLeave={() => setShowHeaderTooltip(false)}
@@ -60,7 +60,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) 
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-          </button>
+          </button> 
           
           {/* Tooltip */}
           {showHeaderTooltip && (

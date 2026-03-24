@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { reportService } from '@/services/reportService';
+import { authService } from '@/services/authService';
 
 // Types
 export type RiskLevel = 'High' | 'Medium' | 'Low';
@@ -12,7 +14,7 @@ export interface Action {
   dueDate: string;
   status: ActionStatus;
 }
-
+ 
 export interface Comment {
   id: string;
   author: string;
@@ -23,6 +25,7 @@ export interface Comment {
 
 export interface Report {
   id: string;
+  _id?: string;
   type: 'Incident' | 'Hazard';
   category: string;
   description: string;
@@ -38,6 +41,9 @@ export interface Report {
 
 interface ReportsContextType {
   reports: Report[];
+  loading: boolean;
+  error: string | null;
+  refreshReports: () => Promise<void>;
   closeReport: (reportId: string) => void;
   addComment: (reportId: string, text: string, role: 'admin' | 'supervisor') => void;
   addAction: (reportId: string, actionData: {
@@ -497,32 +503,63 @@ const initialReports: Report[] = [
   },
 ];
 
-const STORAGE_KEY = 'hse_reports';
-
-const loadReports = (): Report[] => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return JSON.parse(stored);
-  } catch { /* ignore parse errors, fall back to defaults */ }
-  return initialReports;
-};
-
 export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [reports, setReports] = useState<Report[]>(loadReports);
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchReports = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await reportService.getReports();
+      setReports(data);
+    } catch (err) {
+      console.error('Failed to fetch reports from API, using fallback data:', err);
+      setError('Failed to load reports from server');
+      // Fallback to hardcoded data so the UI still works
+      setReports(initialReports);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
-  }, [reports]);
+    if (authService.isAuthenticated()) {
+      fetchReports();
+    } else {
+      setLoading(false);
+    }
+  }, [fetchReports]);
 
-  const closeReport = (reportId: string) => {
+  const closeReport = async (reportId: string) => {
+    // Find the report to get its backend _id
+    const report = reports.find(r => r.id === reportId);
+    const backendId = report?._id;
+
+    // Optimistic update
     setReports(prev =>
-      prev.map(report =>
-        report.id === reportId ? { ...report, status: 'Closed' as ReportStatus } : report
+      prev.map(r =>
+        r.id === reportId ? { ...r, status: 'Closed' as ReportStatus } : r
       )
     );
+
+    if (backendId) {
+      try {
+        await reportService.closeReport(backendId);
+      } catch (err) {
+        console.error('Failed to close report on server:', err);
+        // Revert on failure
+        fetchReports();
+      }
+    }
   };
 
-  const addComment = (reportId: string, text: string, role: 'admin' | 'supervisor') => {
+  const addComment = async (reportId: string, text: string, role: 'admin' | 'supervisor') => {
+    const report = reports.find(r => r.id === reportId);
+    const backendId = report?._id;
+
+    // Optimistic update
     const newComment: Comment = {
       id: `CMT-${Date.now()}`,
       author: role === 'supervisor' ? 'John Matthew' : 'Peter Omorogbolahan',
@@ -540,15 +577,23 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     setReports(prev =>
-      prev.map(report =>
-        report.id === reportId
-          ? { ...report, comments: [newComment, ...report.comments] }
-          : report
+      prev.map(r =>
+        r.id === reportId
+          ? { ...r, comments: [newComment, ...r.comments] }
+          : r
       )
     );
+
+    if (backendId) {
+      try {
+        await reportService.addComment(backendId, text, role);
+      } catch (err) {
+        console.error('Failed to add comment on server:', err);
+      }
+    }
   };
 
-  const addAction = (
+  const addAction = async (
     reportId: string,
     actionData: {
       actionTitle: string;
@@ -558,6 +603,10 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       description: string;
     }
   ) => {
+    const report = reports.find(r => r.id === reportId);
+    const backendId = report?._id;
+
+    // Optimistic update
     const newActionId = `ACT-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
 
     const formatDate = (dateStr: string) => {
@@ -575,16 +624,24 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     setReports(prev =>
-      prev.map(report =>
-        report.id === reportId
-          ? { ...report, actions: [...report.actions, newAction] }
-          : report
+      prev.map(r =>
+        r.id === reportId
+          ? { ...r, actions: [...r.actions, newAction] }
+          : r
       )
     );
+
+    if (backendId) {
+      try {
+        await reportService.addAction(backendId, actionData);
+      } catch (err) {
+        console.error('Failed to add action on server:', err);
+      }
+    }
   };
 
   return (
-    <ReportsContext.Provider value={{ reports, closeReport, addComment, addAction }}>
+    <ReportsContext.Provider value={{ reports, loading, error, refreshReports: fetchReports, closeReport, addComment, addAction }}>
       {children}
     </ReportsContext.Provider>
   );

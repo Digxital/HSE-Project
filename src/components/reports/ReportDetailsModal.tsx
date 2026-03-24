@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AddActionModal } from './AddActionModal';
-
+ 
 interface Action {
   id: string;
   action: string;

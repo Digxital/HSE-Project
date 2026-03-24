@@ -3,15 +3,15 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { ReportDetailsModal } from '@/components/reports/ReportDetailsModal';
 import { useReports, type Report, type RiskLevel, type ReportStatus } from '@/services/ReportsContext';
-
+ 
 type ReportType = 'All' | 'Incidents' | 'Hazard';
 
 interface ReportsPageProps {
   role?: 'admin' | 'supervisor';
 }
-
+ 
 export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
-  const { reports, closeReport, addComment, addAction } = useReports();
+  const { reports, loading, error, closeReport, addComment, addAction } = useReports();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<ReportType>('All');
@@ -244,7 +244,29 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredReports.map((report) => (
+                    {loading ? (
+                      <tr>
+                        <td colSpan={7} className="py-12 text-center">
+                          <div className="flex flex-col items-center gap-3">
+                            <div className="w-8 h-8 border-4 border-[#C24438] border-t-transparent rounded-full animate-spin" />
+                            <p className="text-gray-500 text-sm">Loading reports...</p>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : error && reports.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-12 text-center">
+                          <p className="text-red-500 text-sm">{error}</p>
+                        </td>
+                      </tr>
+                    ) : filteredReports.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-12 text-center">
+                          <p className="text-gray-500 text-sm">No reports found</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredReports.map((report) => (
                       <tr
                         key={report.id}
                         onClick={() => setSelectedReport(report)}
@@ -268,7 +290,8 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
                           <div className="text-gray-600 text-sm whitespace-pre-line">{report.dateReported}</div>
                         </td>
                       </tr>
-                    ))}
+                    ))
+                    )}
                   </tbody>
                 </table>
             </div>
