@@ -1,53 +1,16 @@
 import React from 'react';
 import { EmptyState } from '../common/EmptyState';
-
-interface Report {
-  id: string;
-  title: string;
-  category: string;
-  location: string;
-  risk: 'High' | 'Medium' | 'Low';
-  status: 'Open' | 'Progress' | 'Closed';
-  date: string;
-}
+import { useReports } from '@/services/ReportsContext';
 
 interface RecentReportsTableProps {
   hasData?: boolean;
 }
 
 export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData = true }) => {
-  // Mock data - will be replaced with API data later
-  const reports: Report[] = hasData
-    ? [
-      {
-        id: 'RPT-1042',
-        title: 'Oil spill near pump',
-        category: 'Environmental Hazard',
-        location: 'Gulf of Mexico',
-        risk: 'High',
-        status: 'Open',
-        date: '21 Jan 2026',
-      },
-      {
-        id: 'RPT-1038',
-        title: 'Slippery deck',
-        category: 'Unsafe Condition',
-        location: 'North Sea',
-        risk: 'Medium',
-        status: 'Progress',
-        date: '19 Jan 2026',
-      },
-      {
-        id: 'RPT-1031',
-        title: 'Minor hand injury',
-        category: 'Incident',
-        location: 'Houston Office',
-        risk: 'Low',
-        status: 'Closed',
-        date: '17 Jan 2026',
-      },
-    ]
-    : [];
+  const { reports: allReports, loading } = useReports();
+
+  // Show the 3 most recent reports from the API context
+  const reports = hasData ? allReports.slice(0, 3) : [];
 
   const getRiskBadgeColor = (risk: string) => {
     switch (risk) {
@@ -89,7 +52,11 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
 
       {/* Table or Empty State */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
-        {reports.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
+          </div>
+        ) : reports.length === 0 ? (
           <EmptyState
             title="No Reports Yet"
             description="No reports have been submitted for this period."
@@ -111,9 +78,6 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
                 <tr className="bg-[#FFF9F5] border-b border-gray-100">
                   <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Report ID
-                  </th>
-                  <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Title
                   </th>
                   <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Category
@@ -145,7 +109,6 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
                       )}
                       <span className={index === 0 ? 'ml-2' : ''}>{report.id}</span>
                     </td>
-                    <td className="py-4 px-6 text-sm text-gray-700">{report.title}</td>
                     <td className="py-4 px-6 text-sm text-gray-700">{report.category}</td>
                     <td className="py-4 px-6 text-sm text-gray-700">{report.location}</td>
                     <td className="py-4 px-6">
@@ -160,7 +123,7 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
                     <td className={`py-4 px-6 text-sm font-medium ${getStatusColor(report.status)}`}>
                       {report.status}
                     </td>
-                    <td className="py-4 px-6 text-sm text-gray-500">{report.date}</td>
+                    <td className="py-4 px-6 text-sm text-gray-500">{report.dateReported}</td>
                   </tr>
                 ))}
               </tbody>

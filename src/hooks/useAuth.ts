@@ -17,15 +17,15 @@ export const useAuth = () => {
       removeAuthToken();
       removeUserData();
       
-      // Redirect to login
-      navigate('/login');
+      // Redirect to role selection page
+      navigate('/');
     }
   };
 
   // Listen for auth:logout event from axios interceptor
   useEffect(() => {
     const handleAuthLogout = () => {
-      navigate('/login');
+      navigate('/');
     };
 
     window.addEventListener('auth:logout', handleAuthLogout);

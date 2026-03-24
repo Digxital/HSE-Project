@@ -508,17 +508,53 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper to load saved comments from localStorage
+  const loadSavedComments = (): Record<string, Comment[]> => {
+    try {
+      const saved = localStorage.getItem('aegix_report_comments');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  };
+
+  // Helper to save comments to localStorage
+  const saveCommentsToStorage = (reportId: string, comments: Comment[]) => {
+    try {
+      const saved = loadSavedComments();
+      saved[reportId] = comments;
+      localStorage.setItem('aegix_report_comments', JSON.stringify(saved));
+    } catch (err) {
+      console.error('Failed to save comments to localStorage:', err);
+    }
+  };
+
+  // Merge saved comments into fetched reports
+  const mergeWithSavedComments = (fetchedReports: Report[]): Report[] => {
+    const saved = loadSavedComments();
+    return fetchedReports.map(report => {
+      const savedComments = saved[report.id];
+      if (savedComments && savedComments.length > 0) {
+        // Merge: add saved comments that aren't already in the report
+        const existingIds = new Set(report.comments.map(c => c.id));
+        const newComments = savedComments.filter(c => !existingIds.has(c.id));
+        return { ...report, comments: [...newComments, ...report.comments] };
+      }
+      return report;
+    });
+  };
+
   const fetchReports = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       const data = await reportService.getReports();
-      setReports(data);
+      setReports(mergeWithSavedComments(data));
     } catch (err) {
       console.error('Failed to fetch reports from API, using fallback data:', err);
       setError('Failed to load reports from server');
       // Fallback to hardcoded data so the UI still works
-      setReports(initialReports);
+      setReports(mergeWithSavedComments(initialReports));
     } finally {
       setLoading(false);
     }
@@ -577,11 +613,15 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     setReports(prev =>
-      prev.map(r =>
-        r.id === reportId
-          ? { ...r, comments: [newComment, ...r.comments] }
-          : r
-      )
+      prev.map(r => {
+        if (r.id === reportId) {
+          const updatedComments = [newComment, ...r.comments];
+          // Persist to localStorage
+          saveCommentsToStorage(reportId, updatedComments);
+          return { ...r, comments: updatedComments };
+        }
+        return r;
+      })
     );
 
     if (backendId) {

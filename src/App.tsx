@@ -42,7 +42,7 @@ const AppRoutes = () => {
           // Token exists but is expired
           console.log('🔐 Token expired. Logging out...');
           authService.logout();
-          navigate('/login');
+          navigate('/');
         }
       }
     };

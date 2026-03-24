@@ -11,13 +11,18 @@ interface ReportsPageProps {
 }
  
 export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
-  const { reports, loading, error, closeReport, addComment, addAction } = useReports();
+  const { reports, loading, error, refreshReports, closeReport, addComment, addAction } = useReports();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<ReportType>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [showHeaderTooltip, setShowHeaderTooltip] = useState(false);
+
+  // Re-fetch reports every time the page is visited
+  useEffect(() => {
+    refreshReports();
+  }, []);
 
   // Keep selectedReport in sync with context data
   useEffect(() => {

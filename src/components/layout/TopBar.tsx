@@ -58,8 +58,8 @@ export const TopBar: React.FC<TopBarProps> = ({
         onLogout();
       }
       
-      // Navigate to login page
-      navigate('/login', { replace: true });
+      // Navigate to role selection page
+      navigate('/', { replace: true });
       
     } catch (error) {
       console.error('Logout error:', error);
@@ -74,7 +74,7 @@ export const TopBar: React.FC<TopBarProps> = ({
         message: 'Error during logout, but you have been signed out locally',
       });
       
-      navigate('/login', { replace: true });
+      navigate('/', { replace: true });
       
     } finally {
       setIsLoggingOut(false);
