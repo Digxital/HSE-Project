@@ -13,4 +13,14 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool("isOnboarded") ?? false;
   }
+
+  static storeAccessToken(token) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString("token", token);
+  }
+
+  static getAccessToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString("token");
+  }
 }

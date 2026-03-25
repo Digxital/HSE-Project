@@ -14,7 +14,6 @@ class AppRoutes {
   static const String home = '/home';
   static const String report = '/report';
   static const String action = '/action';
-  static const String actionDetails = '/action-details';
   static const String profile = '/profile';
 
   // ================= Profile Route paths =================
@@ -25,6 +24,12 @@ class AppRoutes {
   static const String reportAgent = '/report-agent';
   static const String newReportScreen = '/new-report-screen';
   static const String successScreen = '/success-screen';
+
+  // ================= Action Route paths =================
+  static const String actionDetails = '/action-details';
+  static const String startActionDetails = '/start-action-details';
+  static const String actionSuccessScreen = '/action-success-screen';
+  static const String filterScreen = '/filter';
 
   // ================= Notifications Route paths =================
   static const String notification = '/notification-screen';
@@ -42,6 +47,9 @@ class AppRoutes {
   static const String reportName = 'report';
   static const String actionName = 'action';
   static const String actionDetailsName = 'action-details';
+  static const String filterScreenName = 'filter';
+  static const String startActionDetailsName = 'start-action-details';
+  static const String actionSuccessScreenName = 'action-success-screen';
   static const String profileName = 'profile';
   static const String editProfileName = 'edit-profile';
   static const String createReportName = 'create-report';

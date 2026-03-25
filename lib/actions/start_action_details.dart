@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:invera_hse/component/custom_app_bar.dart';
+import 'package:invera_hse/component/custom_textarea.dart';
 import 'package:invera_hse/component/get_container.dart';
 import 'package:invera_hse/component/get_text.dart';
 import 'package:invera_hse/component/screen_properties.dart';
@@ -9,14 +13,25 @@ import 'package:invera_hse/utils/app_file_paths.dart';
 import 'package:invera_hse/utils/common_image_view.dart';
 import 'package:invera_hse/utils/route.dart';
 
-class ActionsDetails extends StatefulWidget {
-  const ActionsDetails({super.key});
+class StartActionsDetails extends StatefulWidget {
+  const StartActionsDetails({super.key});
 
   @override
-  State<ActionsDetails> createState() => _ActionsDetailsState();
+  State<StartActionsDetails> createState() => _StartActionsDetailsState();
 }
 
-class _ActionsDetailsState extends State<ActionsDetails> {
+class _StartActionsDetailsState extends State<StartActionsDetails> {
+  final commentController = TextEditingController();
+
+  File? selectedImage;
+
+  File _onImageSelected(File image) {
+    setState(() {
+      selectedImage = image;
+    });
+    return selectedImage!;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,9 +59,11 @@ class _ActionsDetailsState extends State<ActionsDetails> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                   borderRadius: BorderRadius.circular(20),
-                  decorationColor: AppColors.orange2,
+                  decorationColor: AppColors.lightOrange4,
                   child: getText(
-                      context: context, title: "Open", color: AppColors.red)),
+                      context: context,
+                      title: "In Progress",
+                      color: AppColors.orange)),
               addVerticalSpace(40),
               const DetailsCard(),
               addVerticalSpace(30),
@@ -92,26 +109,63 @@ class _ActionsDetailsState extends State<ActionsDetails> {
                   weight: FontWeight.w400,
                 ),
               ),
-              addVerticalSpace(50),
+              const Divider(
+                height: 70,
+                color: AppColors.lightGrey6,
+              ),
+              getText(
+                context: context,
+                title: "Upload proof after completing the task.",
+                fontSize: 14,
+                weight: FontWeight.w500,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  AttachImageTag(onImageSelected: _onImageSelected),
+                  AttachImageTag(onImageSelected: _onImageSelected),
+                  AttachImageTag(onImageSelected: _onImageSelected),
+                ],
+              ),
+              AttachImageTag(onImageSelected: _onImageSelected),
+              const Divider(
+                height: 70,
+                color: AppColors.lightGrey6,
+              ),
+              CustomTextArea(
+                controller: commentController,
+                title: "Comment (Optional)",
+                titleSize: 14,
+                titleFontWeight: FontWeight.w500,
+                titleColor: Colors.black,
+                hintText: "Placeholder",
+                hintTextColor: AppColors.grey4,
+                isFilled: true,
+                isSuffix: false,
+                maxLines: 3,
+              ),
+              addVerticalSpace(35),
               SizedBox(
                 width: double.infinity,
                 height: 44,
                 child: Container(
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      gradient: const LinearGradient(
-                        colors: [
-                          AppColors.secondaryColor,
-                          AppColors.primaryColor
-                        ],
+                      gradient: LinearGradient(
+                        colors: _onImageSelected == null
+                            ? [AppColors.lightOrange7, AppColors.lightOrange7]
+                            : [
+                                AppColors.secondaryColor,
+                                AppColors.primaryColor
+                              ],
                       )),
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: () => context.push(AppRoutes.startActionDetails),
+                      onTap: () => context.push(AppRoutes.actionSuccessScreen),
                       child: const Center(
                         child: Text(
-                          "Start Action",
+                          "Submit",
                           style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -122,6 +176,7 @@ class _ActionsDetailsState extends State<ActionsDetails> {
                   ),
                 ),
               ),
+              addVerticalSpace(20),
             ],
           ),
         )),
@@ -241,5 +296,105 @@ class DetailsCard extends StatelessWidget {
             ),
           ],
         ));
+  }
+}
+
+class AttachImageTag extends StatefulWidget {
+  final Function(File) onImageSelected;
+
+  const AttachImageTag({
+    super.key,
+    required this.onImageSelected,
+  });
+
+  @override
+  State<AttachImageTag> createState() => _AttachImageTagState();
+}
+
+class _AttachImageTagState extends State<AttachImageTag> {
+  File? _selectedImage;
+  final ImagePicker _imagePicker = ImagePicker();
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(source: source);
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(image.path);
+        });
+        widget.onImageSelected(_selectedImage!);
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+    }
+  }
+
+  void _showImageSourceDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Select Image Source'),
+          content: const Text('Choose where to pick the image from'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.camera);
+              },
+              child: const Text('Camera'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.gallery);
+              },
+              child: const Text('Gallery'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 10),
+          child: InkWell(
+            onTap: _showImageSourceDialog,
+            child: Container(
+              height: 117,
+              width: 117,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.lightGrey5,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Center(
+                child: _selectedImage != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.file(
+                          _selectedImage!,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : CommonImageView(
+                        imagePath: AppFilePaths.addImage,
+                        height: 40,
+                        width: 40,
+                        fit: BoxFit.scaleDown,
+                      ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

@@ -42,6 +42,7 @@ class AppColors {
   static const lightOrange4 = Color(0XFFFFF8E5);
   static const lightOrange5 = Color(0XFFFFEADC);
   static const lightOrange6 = Color.fromRGBO(255, 244, 230, 0.5);
+  static const lightOrange7 = Color.fromRGBO(255, 121, 78, 0.2);
 
   static const green = Color(0XFF509712);
   static const green2 = Color(0XFF77BC68);

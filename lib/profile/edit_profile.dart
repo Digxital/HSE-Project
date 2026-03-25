@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:invera_hse/component/custom_app_bar.dart';
 import 'package:invera_hse/component/custom_textfield.dart';
 import 'package:invera_hse/component/get_container.dart';
@@ -35,8 +36,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CustomAppBar(
+                CustomAppBar(
                   text: "Profile",
+                  onTap: () => context.pop(),
                 ),
                 addVerticalSpace(40),
                 Align(

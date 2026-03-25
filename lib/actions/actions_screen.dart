@@ -31,8 +31,9 @@ class _ActionScreenState extends State<ActionScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               children: [
-                const CustomAppBar(
+                CustomAppBar(
                   text: "Action",
+                  onTap: () => context.push(AppRoutes.bottomNav),
                 ),
                 addVerticalSpace(20),
 
@@ -88,26 +89,30 @@ class _ActionScreenState extends State<ActionScreen> {
                     ),
 
                     /// Filter Button
-                    Container(
-                        height: 48,
-                        width: 48,
-                        decoration: BoxDecoration(
-                            color: AppColors.lightOrange5,
-                            borderRadius: BorderRadius.circular(12),
-                            border:
-                                Border.all(color: AppColors.neutralDarkGrey2)),
-                        child: Center(
-                          child: CommonImageView(
-                              imagePath: AppFilePaths.filter,
-                              height: 12,
-                              width: 12,
-                              fit: BoxFit.scaleDown),
-                        ))
+                    InkWell(
+                      onTap: () => context.push(AppRoutes.filterScreen),
+                      child: Container(
+                          height: 48,
+                          width: 48,
+                          decoration: BoxDecoration(
+                              color: AppColors.lightOrange5,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                  color: AppColors.neutralDarkGrey2)),
+                          child: Center(
+                            child: CommonImageView(
+                                imagePath: AppFilePaths.filter,
+                                height: 12,
+                                width: 12,
+                                fit: BoxFit.scaleDown),
+                          )),
+                    )
                   ],
                 ),
 
                 addVerticalSpace(40),
 
+                // content body
                 ActionData(
                     onTap: () => context.push(AppRoutes.actionDetails),
                     title: "Secure loose cable near main entrance",

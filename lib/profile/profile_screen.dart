@@ -28,8 +28,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const CustomAppBar(
+                  CustomAppBar(
                     text: "Profile",
+                    onTap: () => context.push(AppRoutes.bottomNav),
                   ),
                   addVerticalSpace(30),
                   const ProfileOverview(),

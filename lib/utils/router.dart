@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:invera_hse/actions/action_success.dart';
 import 'package:invera_hse/actions/actions_details.dart';
+import 'package:invera_hse/actions/filter_screen.dart';
+import 'package:invera_hse/actions/start_action_details.dart';
 import 'package:invera_hse/bottom_nav.dart';
 import 'package:invera_hse/create_report_screen.dart';
 import 'package:invera_hse/home_screen.dart';
@@ -169,12 +172,39 @@ class AppRouter {
             },
           ),
 
+          // Filter route
+          GoRoute(
+            path: AppRoutes.filterScreen,
+            name: AppRoutes.filterScreenName,
+            builder: (BuildContext context, GoRouterState state) {
+              return const FilterScreen();
+            },
+          ),
+
           // Actions Details route
           GoRoute(
             path: AppRoutes.actionDetails,
             name: AppRoutes.actionDetailsName,
             builder: (BuildContext context, GoRouterState state) {
               return const ActionsDetails();
+            },
+          ),
+
+          // Start Action Details route
+          GoRoute(
+            path: AppRoutes.startActionDetails,
+            name: AppRoutes.startActionDetailsName,
+            builder: (BuildContext context, GoRouterState state) {
+              return const StartActionsDetails();
+            },
+          ),
+
+          // Actions Success route
+          GoRoute(
+            path: AppRoutes.actionSuccessScreen,
+            name: AppRoutes.actionSuccessScreenName,
+            builder: (BuildContext context, GoRouterState state) {
+              return const ActionSuccessScreen();
             },
           ),
 

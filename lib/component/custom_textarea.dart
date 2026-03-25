@@ -13,9 +13,13 @@ class CustomTextArea extends StatelessWidget {
   final Color borderColor;
   final Color filledColor;
   final Color hintTextColor;
+  final Color titleColor;
   final bool isFilled;
   final bool isSuffix;
   final Widget? suffixIcon;
+  final double? titleSize;
+  final FontWeight? titleFontWeight;
+  final int? maxLines;
   const CustomTextArea(
       {super.key,
       this.title,
@@ -28,6 +32,10 @@ class CustomTextArea extends StatelessWidget {
       this.isSuffix = true,
       this.suffixIcon,
       this.borderColor = Colors.transparent,
+      this.titleSize = 12,
+      this.titleFontWeight = FontWeight.w400,
+      this.maxLines = 5,
+      this.titleColor = AppColors.grey3,
       this.hintTextColor = AppColors.lightBrown2});
 
   @override
@@ -41,14 +49,14 @@ class CustomTextArea extends StatelessWidget {
           child: getText(
               context: context,
               title: title!,
-              fontSize: 12,
-              weight: FontWeight.w400,
-              color: AppColors.grey3),
+              fontSize: titleSize!,
+              weight: titleFontWeight!,
+              color: titleColor),
         ),
         Stack(
           children: [
             TextFormField(
-              maxLines: 5,
+              maxLines: maxLines,
               keyboardType: TextInputType.multiline,
               textCapitalization: TextCapitalization.sentences,
               onChanged: onChanged,
