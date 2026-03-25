@@ -1,1 +1,1 @@
-const apiSecretKey = "";
+const apiKey = "";
