@@ -18,22 +18,28 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   var reportDataList = [
     {
-      "title": "Oil spill near pump station",
-      "date": "Now",
-      "status": "Open",
-      "riskLevel": "High"
+      "title": "Loose cable near main entrance",
+      "date": "Submitted 3 mins ago",
+      "status": "Closed",
+      "riskLevel": "High Risk",
+      "icon": AppFilePaths.warning3,
+      "iconColor": AppColors.red
     },
     {
       "title": "Oil spill near pump station",
-      "date": "Jan 30",
-      "status": "Open",
-      "riskLevel": "High"
+      "date": "Submitted Jan 30, 2026",
+      "status": "Under Review",
+      "riskLevel": "High Risk",
+      "icon": AppFilePaths.warning4,
+      "iconColor": AppColors.black
     },
     {
-      "title": "Oil spill near pump station",
-      "date": "Jan 30",
-      "status": "Open",
-      "riskLevel": "High"
+      "title": "Blocked emergency exit",
+      "date": "Submitted Jan 30, 2026",
+      "status": "Action Created",
+      "riskLevel": "Medium Risk",
+      "icon": AppFilePaths.warning4,
+      "iconColor": AppColors.black
     },
   ];
   @override
@@ -51,14 +57,27 @@ class _HomeScreenState extends State<HomeScreen> {
               addVerticalSpace(50),
               const ReportCards(),
               addVerticalSpace(40),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: getText(
-                    context: context,
-                    title: "Recent Reports",
-                    fontSize: 18,
-                    weight: FontWeight.w500,
-                    color: AppColors.darkBrown),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: getText(
+                      context: context,
+                      title: "Recent Reports",
+                      fontSize: 18,
+                      weight: FontWeight.w500,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: getText(
+                        context: context,
+                        title: "View all",
+                        fontSize: 18,
+                        weight: FontWeight.w500),
+                  ),
+                ],
               ),
               addVerticalSpace(20),
               ...List.generate(
@@ -70,6 +89,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ReportData(
                         title: item['title'] as String,
                         date: item['date'] as String,
+                        icon: item['icon'] as String,
+                        iconColor: item['iconColor'] as Color,
                       ),
                       if (index < reportDataList.length - 1)
                         const Divider(
@@ -101,9 +122,9 @@ class ReportCards extends StatelessWidget {
         title: "Total Reports",
         reportCount: "18",
         isTotalReport: true,
-        bgColor: AppColors.primaryColor,
-        textColor: Colors.white,
-        borderColor: Colors.transparent,
+        bgColor: AppColors.lightOrange,
+        textColor: Colors.black,
+        borderColor: AppColors.lightOrange,
       ),
       ReportCardData(
         title: "Open Reports",
@@ -162,68 +183,99 @@ class ReportCards extends StatelessWidget {
 class ReportData extends StatelessWidget {
   final String title;
   final String date;
-  const ReportData({super.key, required this.title, required this.date});
+  final String icon;
+  final Color iconColor;
+  const ReportData(
+      {super.key,
+      required this.title,
+      required this.date,
+      required this.icon,
+      required this.iconColor});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Row(
+          IconWidget(
+            icon: icon,
+            iconColor: iconColor,
+          ),
+          addHorizontalSpace(15),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              getContainer(
+              getText(
                   context: context,
-                  height: 48,
-                  width: 48,
-                  borderRadius: BorderRadius.circular(12),
-                  decorationColor: AppColors.lightOrange,
-                  child: Center(
-                    child: CommonImageView(
-                      imagePath: AppFilePaths.reportBlack,
-                      height: 24,
-                      width: 24,
-                      fit: BoxFit.scaleDown,
-                    ),
-                  )),
-              addHorizontalSpace(15),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                  title: title,
+                  fontSize: 16,
+                  weight: FontWeight.w500),
+              addVerticalSpace(5),
+              Row(
                 children: [
-                  getText(
-                      context: context,
-                      title: title,
-                      fontSize: 16,
-                      weight: FontWeight.w400),
-                  Row(
-                    children: [
-                      const ReportUpdate(update: "Incident"),
-                      addHorizontalSpace(10),
-                      const ReportUpdate(update: "Open"),
-                      addHorizontalSpace(10),
-                      const ReportUpdate(update: "High"),
-                    ],
+                  const ReportUpdate(
+                    update: "Incident",
+                    indicatorColor: Colors.black,
+                  ),
+                  addHorizontalSpace(10),
+                  const ReportUpdate(
+                    update: "Closed",
+                    indicatorColor: AppColors.green,
+                  ),
+                  addHorizontalSpace(10),
+                  const ReportUpdate(
+                    update: "High Risk",
+                    indicatorColor: AppColors.red,
                   ),
                 ],
-              )
+              ),
+              addVerticalSpace(5),
+              getText(
+                  context: context,
+                  title: date,
+                  fontSize: 12,
+                  weight: FontWeight.w400,
+                  color: AppColors.grey4),
             ],
-          ),
-          getText(
-              context: context,
-              title: date,
-              fontSize: 12,
-              weight: FontWeight.w400)
+          )
         ],
       ),
     );
   }
 }
 
+class IconWidget extends StatelessWidget {
+  final String icon;
+  final Color iconColor;
+  const IconWidget({super.key, required this.icon, required this.iconColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: getContainer(
+          context: context,
+          height: 48,
+          width: 48,
+          borderRadius: BorderRadius.circular(40),
+          decorationColor: iconColor,
+          child: Center(
+            child: CommonImageView(
+              imagePath: icon,
+              height: 24,
+              width: 24,
+              fit: BoxFit.scaleDown,
+            ),
+          )),
+    );
+  }
+}
+
 class ReportUpdate extends StatelessWidget {
   final String update;
-  const ReportUpdate({super.key, required this.update});
+  final Color indicatorColor;
+  const ReportUpdate(
+      {super.key, required this.update, required this.indicatorColor});
 
   @override
   Widget build(BuildContext context) {
@@ -235,13 +287,13 @@ class ReportUpdate extends StatelessWidget {
               context: context,
               height: 3,
               width: 3,
-              decorationColor: Colors.black,
+              decorationColor: indicatorColor,
               shape: BoxShape.circle),
           addHorizontalSpace(6),
           getText(
               context: context,
               title: update,
-              fontSize: 10,
+              fontSize: 12,
               weight: FontWeight.w400,
               color: AppColors.black2),
         ],

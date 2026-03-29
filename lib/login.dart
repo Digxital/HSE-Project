@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:invera_hse/component/account_option.dart';
 import 'package:invera_hse/component/get_text.dart';
 import 'package:invera_hse/component/screen_properties.dart';
+import 'package:invera_hse/services/microsoft_auth_service.dart';
 import 'package:invera_hse/utils/app_colours.dart';
 import 'package:invera_hse/utils/app_file_paths.dart';
 import 'package:invera_hse/utils/common_image_view.dart';
@@ -16,6 +17,32 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  bool _isLoading = false;
+
+  Future<void> _signInWithMicrosoft() async {
+    setState(() => _isLoading = true);
+    try {
+      final token = await MicrosoftAuthService.signIn();
+      if (!mounted) return;
+
+      if (token != null) {
+        context.push(AppRoutes.bottomNav);
+      }
+      // If token is null the user cancelled — do nothing.
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Sign-in failed: ${e.toString()}'),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,49 +71,6 @@ class _LoginState extends State<Login> {
                           weight: FontWeight.w400,
                           color: AppColors.black),
                       addVerticalSpace(25),
-                      // Form(
-                      //   key: _formKey,
-                      //   child: Column(
-                      //     mainAxisAlignment: MainAxisAlignment.center,
-                      //     children: [
-                      //       CustomTextField(
-                      //         controller: _emailController,
-                      //         title: "Email Address",
-                      //         textInputType: TextInputType.emailAddress,
-                      //         hintText: "Enter email address",
-                      //         validator: (val) {
-                      //           if (!val!.isValidEmail) {
-                      //             return 'Enter a valid email';
-                      //           }
-                      //           return null;
-                      //         },
-                      //       ),
-                      //       addVerticalSpace(10),
-                      //       CustomTextField(
-                      //         controller: _passwordController,
-                      //         title: "Password",
-                      //         textInputType: TextInputType.text,
-                      //         hintText: "Enter password",
-                      //         obscureText: _obscurePassword,
-                      //         suffixIcon: InkWell(
-                      //             onTap: () => setState(() {
-                      //                   _obscurePassword = !_obscurePassword;
-                      //                 }),
-                      //             child: Icon(
-                      //                 _obscurePassword
-                      //                     ? Icons.visibility_off_outlined
-                      //                     : Icons.visibility_outlined,
-                      //                 color: AppColors.lightGrey)),
-                      //         validator: (val) {
-                      //           if (!val!.isValidPassword) {
-                      //             return 'Enter a valid password';
-                      //           }
-                      //           return null;
-                      //         },
-                      //       ),
-                      //     ],
-                      //   ),
-                      // ),
                       addVerticalSpace(20),
                       SizedBox(
                         width: double.infinity,
@@ -103,29 +87,38 @@ class _LoginState extends State<Login> {
                           child: Material(
                             color: Colors.transparent,
                             child: InkWell(
-                              onTap: () {
-                                context.push(AppRoutes.bottomNav);
-                              },
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: _isLoading ? null : _signInWithMicrosoft,
                               child: Center(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    CommonImageView(
-                                      imagePath: AppFilePaths.windows,
-                                      height: 16,
-                                      width: 16,
-                                      fit: BoxFit.scaleDown,
-                                    ),
-                                    addHorizontalSpace(8),
-                                    const Text(
-                                      "Continue with Microsoft",
-                                      style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.white),
-                                    ),
-                                  ],
-                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          CommonImageView(
+                                            imagePath: AppFilePaths.windows,
+                                            height: 16,
+                                            width: 16,
+                                            fit: BoxFit.scaleDown,
+                                          ),
+                                          addHorizontalSpace(8),
+                                          const Text(
+                                            "Continue with Microsoft",
+                                            style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.white),
+                                          ),
+                                        ],
+                                      ),
                               ),
                             ),
                           ),

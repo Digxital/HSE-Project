@@ -10,7 +10,8 @@ import 'package:invera_hse/utils/common_image_view.dart';
 import 'package:invera_hse/utils/route.dart';
 
 class ActionsDetails extends StatefulWidget {
-  const ActionsDetails({super.key});
+  final Map<String, dynamic> action;
+  const ActionsDetails({super.key, required this.action});
 
   @override
   State<ActionsDetails> createState() => _ActionsDetailsState();
@@ -35,7 +36,7 @@ class _ActionsDetailsState extends State<ActionsDetails> {
               addVerticalSpace(20),
               getText(
                   context: context,
-                  title: "Secure loose cable near main entrance",
+                  title: widget.action['title'],
                   fontSize: 20,
                   weight: FontWeight.w500),
               addVerticalSpace(5),
@@ -44,11 +45,14 @@ class _ActionsDetailsState extends State<ActionsDetails> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                   borderRadius: BorderRadius.circular(20),
-                  decorationColor: AppColors.orange2,
+                  decorationColor: widget.action['statusBgColor'],
                   child: getText(
-                      context: context, title: "Open", color: AppColors.red)),
+                    context: context,
+                    title: widget.action['status'],
+                    color: widget.action['statusColor'],
+                  )),
               addVerticalSpace(40),
-              const DetailsCard(),
+              DetailsCard(action: widget.action),
               addVerticalSpace(30),
               Row(
                 children: [
@@ -131,9 +135,8 @@ class _ActionsDetailsState extends State<ActionsDetails> {
 }
 
 class DetailsCard extends StatelessWidget {
-  const DetailsCard({
-    super.key,
-  });
+  final Map<String, dynamic> action;
+  const DetailsCard({super.key, required this.action});
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +166,7 @@ class DetailsCard extends StatelessWidget {
                       width: 150,
                       child: getText(
                           context: context,
-                          title: "Production Site – Main Entrance",
+                          title: action['locationData'],
                           fontSize: 14,
                           weight: FontWeight.w400),
                     ),
@@ -230,7 +233,7 @@ class DetailsCard extends StatelessWidget {
                       width: 150,
                       child: getText(
                           context: context,
-                          title: "Feb 5, 2026",
+                          title: action['date'],
                           fontSize: 14,
                           weight: FontWeight.w400,
                           color: AppColors.red),

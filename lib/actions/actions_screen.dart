@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:invera_hse/actions/actions_details.dart';
 import 'package:invera_hse/component/custom_app_bar.dart';
 import 'package:invera_hse/component/get_container.dart';
 import 'package:invera_hse/component/get_text.dart';
@@ -20,6 +21,51 @@ class _ActionScreenState extends State<ActionScreen> {
   int selectedIndex = 0;
 
   final tabs = ["All", "Open", "In Progress"];
+
+  final List<Map<String, dynamic>> allActions = [
+    {
+      "title": "Secure loose cable near main entrance",
+      "status": "Open",
+      "statusColor": AppColors.red,
+      "statusBgColor": AppColors.orange2,
+      "fromData": "Loose cable near entrance",
+      "locationData": "Production Site – Main Entrance",
+      "date": "Feb 5, 2026",
+    },
+    {
+      "title": "Replace damaged fire extinguisher",
+      "status": "In Progress",
+      "statusColor": AppColors.orange,
+      "statusBgColor": AppColors.lightOrange4,
+      "fromData": "Fire extinguisher issue in storage room",
+      "locationData": "Storage Area B",
+      "date": "Feb 5, 2026",
+    },
+    {
+      "title": "Install warning sign near wet floor area",
+      "status": "Completed",
+      "statusColor": AppColors.green,
+      "statusBgColor": AppColors.lightGreen,
+      "fromData": "Wet floor hazard near corridor",
+      "locationData": "Wet floor hazard near corridor",
+      "date": "Jan 30, 2026",
+    },
+  ];
+
+  List<Map<String, dynamic>> get filteredActions {
+    if (selectedIndex == 0) {
+      // "All" tab - show all actions
+      return allActions;
+    } else if (selectedIndex == 1) {
+      // "Open" tab - show only Open status
+      return allActions.where((action) => action['status'] == 'Open').toList();
+    } else {
+      // "In Progress" tab - show only In Progress status
+      return allActions
+          .where((action) => action['status'] == 'In Progress')
+          .toList();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,35 +159,26 @@ class _ActionScreenState extends State<ActionScreen> {
                 addVerticalSpace(40),
 
                 // content body
-                ActionData(
-                    onTap: () => context.push(AppRoutes.actionDetails),
-                    title: "Secure loose cable near main entrance",
-                    status: "Open",
-                    fromData: "Loose cable near entrance",
-                    locationData: "Production Site – Main Entrance",
-                    date: "Due: Feb 5, 2026"),
-                ActionData(
-                    onTap: () {},
-                    title: "Replace damaged fire extinguisher",
-                    status: "In Progress",
-                    statusColor: AppColors.orange,
-                    statusBgColor: AppColors.lightOrange4,
-                    fromData: "Fire extinguisher issue in storage room",
-                    locationData: "Storage Area B",
-                    date: "Due: Feb 5, 2026"),
-                ActionData(
-                    onTap: () {},
-                    title: "Install warning sign near wet floor area",
-                    status: "Completed",
-                    statusColor: AppColors.green,
-                    statusBgColor: AppColors.lightGreen,
-                    fromData: "Wet floor hazard near corridor",
-                    locationData: "Wet floor hazard near corridor",
-                    date: "Due: Jan 30, 2026"),
-                // Text(
-                //   "Selected: ${tabs[selectedIndex]}",
-                //   style: const TextStyle(fontSize: 16),
-                // ),
+                ...filteredActions.map((action) {
+                  return ActionData(
+                    onTap: () => context.push(AppRoutes.actionDetails, extra: {
+                      'action': action,
+                    }),
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (_) => ActionsDetails(action: action),
+                    //   ),
+                    // ),
+                    title: action['title'],
+                    status: action['status'],
+                    statusColor: action['statusColor'],
+                    statusBgColor: action['statusBgColor'],
+                    fromData: action['fromData'],
+                    locationData: action['locationData'],
+                    date: action['date'],
+                  );
+                }),
               ],
             ),
           ),
@@ -173,13 +210,14 @@ class ActionData extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        InkWell(
-          onTap: onTap,
-          child: Padding(
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Padding(
             padding: const EdgeInsets.symmetric(vertical: 10),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 getContainer(
@@ -196,102 +234,131 @@ class ActionData extends StatelessWidget {
                         fit: BoxFit.scaleDown),
                   ),
                 ),
-                addHorizontalSpace(20),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 200,
+                SizedBox(
+                  // height: 150,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 150,
+                        child: getText(
+                            context: context,
+                            title: title,
+                            fontSize: 16,
+                            maxLines: 2,
+                            textOverflow: TextOverflow.ellipsis,
+                            weight: FontWeight.w500),
+                      ),
+                      addVerticalSpace(20),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              getText(
+                                  context: context,
+                                  title: "From Report",
+                                  fontSize: 12,
+                                  weight: FontWeight.w400,
+                                  color: AppColors.grey4),
+                              addVerticalSpace(5),
+                              SizedBox(
+                                width: 150,
+                                child: getText(
+                                    context: context,
+                                    title: fromData,
+                                    fontSize: 14,
+                                    weight: FontWeight.w400),
+                              ),
+                            ],
+                          ),
+                          addVerticalSpace(10),
+                          Row(
+                            children: [
+                              SizedBox(
+                                child: getText(
+                                    context: context,
+                                    title: "Due: ",
+                                    fontSize: 12,
+                                    weight: FontWeight.w400,
+                                    color: AppColors.red),
+                              ),
+                              SizedBox(
+                                child: getText(
+                                    context: context,
+                                    title: date,
+                                    fontSize: 12,
+                                    weight: FontWeight.w400,
+                                    color: AppColors.red),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  // height: 180,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      getContainer(
+                          context: context,
+                          width: 100,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          borderRadius: BorderRadius.circular(20),
+                          decorationColor: statusBgColor,
                           child: getText(
                               context: context,
-                              title: title,
-                              fontSize: 16,
-                              weight: FontWeight.w500),
-                        ),
-                        getContainer(
-                            context: context,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 18, vertical: 10),
-                            borderRadius: BorderRadius.circular(20),
-                            decorationColor: statusBgColor,
-                            child: getText(
-                                context: context,
-                                title: status,
-                                color: statusColor)),
-                      ],
-                    ),
-                    addVerticalSpace(20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            getText(
-                                context: context,
-                                title: "From Report",
-                                fontSize: 12,
-                                weight: FontWeight.w400,
-                                color: AppColors.grey4),
-                            addVerticalSpace(5),
-                            SizedBox(
-                              width: 150,
-                              child: getText(
+                              textAlign: TextAlign.center,
+                              title: status,
+                              color: statusColor)),
+                      addVerticalSpace(30),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              getText(
                                   context: context,
-                                  title: fromData,
-                                  fontSize: 14,
-                                  weight: FontWeight.w400),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            getText(
-                                context: context,
-                                title: "Location",
-                                fontSize: 12,
-                                weight: FontWeight.w400,
-                                color: AppColors.grey4),
-                            addVerticalSpace(5),
-                            SizedBox(
-                              width: 150,
-                              child: getText(
-                                  context: context,
-                                  title: locationData,
-                                  fontSize: 14,
-                                  weight: FontWeight.w400),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    addVerticalSpace(10),
-                    SizedBox(
-                      child: getText(
-                          context: context,
-                          title: date,
-                          fontSize: 12,
-                          weight: FontWeight.w400,
-                          color: AppColors.red),
-                    ),
-                  ],
+                                  title: "Location",
+                                  fontSize: 12,
+                                  weight: FontWeight.w400,
+                                  color: AppColors.grey4),
+                              addVerticalSpace(5),
+                              SizedBox(
+                                width: 150,
+                                child: getText(
+                                    context: context,
+                                    title: locationData,
+                                    fontSize: 14,
+                                    weight: FontWeight.w400,
+                                    textOverflow: TextOverflow.ellipsis,
+                                    maxLines: 2),
+                              ),
+                            ],
+                          ),
+                          addVerticalSpace(25),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-        ),
-        const Divider(
-          color: AppColors.lightGrey6,
-          height: 20,
-        ),
-        addVerticalSpace(10)
-      ],
+          const Divider(
+            color: AppColors.lightGrey6,
+            height: 20,
+          ),
+          addVerticalSpace(10)
+        ],
+      ),
     );
   }
 }

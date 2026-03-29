@@ -42,6 +42,8 @@ class AppFilePaths {
   static const String reportBlack = "assets/images/report_black.png";
   static const String warning = "assets/images/warning.png";
   static const String warning2 = "assets/images/warning2.png";
+  static const String warning3 = "assets/images/warning3.png";
+  static const String warning4 = "assets/images/warning4.png";
   static const String microphone = "assets/images/microphone.png";
   static const String microphoneWhite = "assets/images/mic.png";
   static const String recording = "assets/images/recording.png";

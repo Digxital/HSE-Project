@@ -79,12 +79,12 @@ class _CreateReportScreenState extends State<CreateReportScreen> {
     setState(() {
       _isLoading = true;
     });
-    String apiKey = apiSecretKey;
+    String token = apiKey;
     final request = http.MultipartRequest(
       'POST',
       Uri.parse('https://api.openai.com/v1/audio/transcriptions'),
     )
-      ..headers['Authorization'] = 'Bearer $apiKey'
+      ..headers['Authorization'] = 'Bearer $token'
       ..files.add(
         await http.MultipartFile.fromPath('file', path),
       ) // Add recorded File

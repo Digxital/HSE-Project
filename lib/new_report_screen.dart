@@ -118,7 +118,7 @@ class _NewReportScreenState extends State<NewReportScreen> {
 
   Future<void> _sendToWhisper(String path) async {
     try {
-      String apiKey = apiSecretKey;
+      String token = apiKey;
 
       // Verify file exists and is readable
       final file = File(path);
@@ -147,7 +147,7 @@ class _NewReportScreenState extends State<NewReportScreen> {
         'POST',
         Uri.parse('https://api.openai.com/v1/audio/transcriptions'),
       )
-        ..headers['Authorization'] = 'Bearer $apiKey'
+        ..headers['Authorization'] = 'Bearer $token'
         ..files.add(
           await http.MultipartFile.fromPath('file', path),
         )

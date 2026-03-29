@@ -186,7 +186,17 @@ class AppRouter {
             path: AppRoutes.actionDetails,
             name: AppRoutes.actionDetailsName,
             builder: (BuildContext context, GoRouterState state) {
-              return const ActionsDetails();
+              final extra = state.extra as Map<String, dynamic>?;
+              final action = extra?['action'] as Map<String, dynamic>?;
+
+              if (action == null) {
+                return const Scaffold(
+                  body: Center(
+                    child: Text('Action Details not found'),
+                  ),
+                );
+              }
+              return ActionsDetails(action: action);
             },
           ),
 
