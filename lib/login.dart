@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:invera_hse/component/account_option.dart';
 import 'package:invera_hse/component/get_text.dart';
 import 'package:invera_hse/component/screen_properties.dart';
-import 'package:invera_hse/services/microsoft_auth_service.dart';
+import 'package:invera_hse/api/microsoft_auth_service.dart';
 import 'package:invera_hse/utils/app_colours.dart';
 import 'package:invera_hse/utils/app_file_paths.dart';
 import 'package:invera_hse/utils/common_image_view.dart';
