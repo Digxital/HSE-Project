@@ -1,4 +1,6 @@
 const Report = require("../model/report.model");
+const User = require("../model/user.model");
+const Notification = require("../model/notification.model");
 const mongoose = require("mongoose");
 
 exports.createReport = async (req, res) => {
@@ -44,6 +46,25 @@ exports.createReport = async (req, res) => {
             role: req.user.role
         }
     });
+
+    // Fetch user details to get the full name
+    const user = await User.findById(req.user.id);
+
+    // Create notification
+    if (user) {
+        const userName = `${user.firstName} ${user.lastName}`;
+        await Notification.create({
+            user: req.user.id,
+            type: "report_submitted",
+            title: "New Report Submitted",
+            description: `A new report has been submitted by ${userName} and is awaiting review.`,
+            data: {
+                reportId: report._id,
+                recordType: report.recordType,
+                riskLevel: report.riskLevel
+            }
+        });
+    }
 
     res.status(201).json({
         message: "Report submitted successfully",
