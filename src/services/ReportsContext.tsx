@@ -568,6 +568,23 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [fetchReports]);
 
+  // Listen for localStorage changes from other tabs (cross-tab sync)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'aegix_report_comments') {
+        // Comments changed in another tab - refresh reports to pick up new comments
+        console.log('📢 Comments updated in another tab, syncing...');
+        fetchReports();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [fetchReports]);
+
   const closeReport = async (reportId: string) => {
     // Find the report to get its backend _id
     const report = reports.find(r => r.id === reportId);

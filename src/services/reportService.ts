@@ -47,13 +47,15 @@ interface ApiComment {
   createdAt: string;
 }
 
-// Counter for generating sequential IDs per type
-let hazardCounter = 0;
-let incidentCounter = 0;
-
-function generateReportId(recordType: string, index: number): string {
+// Generate stable ID from backend _id hash
+function generateReportId(recordType: string, backendId: string): string {
   const prefix = recordType === 'hazard' ? 'HAZ' : 'INC';
-  return `${prefix}-${String(index + 1).padStart(4, '0')}`;
+  // Generate a stable 4-digit number from the backend _id hash
+  const hash = backendId
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const number = (hash % 9000) + 1000; // Generate 4-digit number between 1000-10000
+  return `${prefix}-${String(number).padStart(4, '0')}`;
 }
 
 function formatLocation(location: ApiLocation): string {
@@ -106,15 +108,8 @@ function mapActionStatus(status: string): 'Open' | 'In Progress' | 'Completed' {
 function mapApiReportToReport(apiReport: ApiReport): Report {
   const type = apiReport.recordType === 'hazard' ? 'Hazard' : 'Incident';
 
-  // Generate sequential ID based on type
-  let displayId: string;
-  if (type === 'Hazard') {
-    hazardCounter++;
-    displayId = generateReportId('hazard', hazardCounter - 1);
-  } else {
-    incidentCounter++;
-    displayId = generateReportId('incident', incidentCounter - 1);
-  }
+  // Generate stable ID based on backend _id hash (not affected by order)
+  const displayId = generateReportId(apiReport.recordType, apiReport._id);
 
   const actions: Action[] = (apiReport.actions || []).map((a, i) => ({
     id: a._id || `ACT-${String(i + 1).padStart(3, '0')}`,

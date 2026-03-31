@@ -22,7 +22,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
   // Re-fetch reports every time the page is visited
   useEffect(() => {
     refreshReports();
-  }, []);
+  }, [refreshReports]);
 
   // Keep selectedReport in sync with context data
   useEffect(() => {
