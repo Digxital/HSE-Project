@@ -63,7 +63,7 @@ exports.createNotification = async (req, res) => {
     }
 };
 
-// GET NOTIFICATIONS (for logged in user)
+// GET NOTIFICATIONS
 exports.getNotifications = async (req, res) => {
     try {
         const notifications = await Notification.find({ user: req.user.id })
@@ -95,7 +95,7 @@ exports.getNotifications = async (req, res) => {
     }
 };
 
-// GET NOTIFICATION BY ID (for logged in user)
+// GET NOTIFICATION BY ID
 exports.getNotificationById = async (req, res) => {
     try {
         const notification = await Notification.findOne({
