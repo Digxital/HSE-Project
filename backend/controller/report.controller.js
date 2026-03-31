@@ -1,8 +1,9 @@
 const Report = require("../model/report.model");
+const mongoose = require("mongoose");
 
 exports.createReport = async (req, res) => {
     const {
-        recordCategory,
+        recordType,
         title,
         description,
         riskLevel,
@@ -17,14 +18,14 @@ exports.createReport = async (req, res) => {
     } = req.body;
 
     // Basic validation
-    if (!recordCategory || !title || !description || !riskLevel || !location) {
+    if (!recordType || !title || !description || !riskLevel || !location) {
         return res.status(400).json({
             message: "Missing required report fields"
         });
     }
 
     const report = await Report.create({
-        recordCategory,
+        recordType,
         title,
         description,
         riskLevel,
@@ -97,6 +98,38 @@ exports.getReportById = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Error fetching report",
+            error: error.message
+        });
+    }
+};
+
+// Get all reports submitted by a particular user
+exports.getReportsByUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Convert userId to ObjectId
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid user ID format"
+            });
+        }
+
+        const reports = await Report.find({ "reportedBy.userId": new mongoose.Types.ObjectId(userId) })
+            .populate('reportedBy.userId', 'name email')
+            .populate('location.clientId', 'name')
+            .populate('location.siteId', 'name')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            data: reports
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error fetching user reports",
             error: error.message
         });
     }

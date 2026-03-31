@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 
 const reportSchema = new mongoose.Schema(
     {
-        recordCategory: {
+        recordType: {
             type: String,
-            enum: ["hazard", "observation", "incident"],
+            enum: ["incident", "hazard"],
             required: true
         },
 
@@ -78,14 +78,14 @@ const reportSchema = new mongoose.Schema(
             },
             role: {
                 type: String,
-                enum: ["FIELD_USER", "SUPERVISOR"],
+                enum: ["FIELD_USER", "SUPERVISOR", "HSE_OFFICER"],
                 required: true
             }
         },
 
         status: {
             type: String,
-            enum: ["open", "under_review", "action_required", "closed"],
+            enum: ["open", "in_progress", "action_required", "completed"],
             default: "open"
         },
 
