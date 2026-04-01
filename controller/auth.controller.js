@@ -60,3 +60,81 @@ exports.login = async (req, res) => {
         }
     });
 };
+
+exports.updateProfile = async (req, res) => {
+    try {
+        const { firstName, lastName } = req.body;
+        const userId = req.user.id;
+
+        // Validate that firstName and lastName are provided
+        if (!firstName || !lastName) {
+            return res.status(400).json({
+                success: false,
+                message: "firstName and lastName are required",
+                data: {}
+            });
+        }
+
+        // Validate that they are not empty strings
+        if (firstName.trim() === "" || lastName.trim() === "") {
+            return res.status(400).json({
+                success: false,
+                message: "firstName and lastName cannot be empty",
+                data: {}
+            });
+        }
+
+        // Update user profile
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { firstName, lastName },
+            { new: true, runValidators: true }
+        ).select("-passwordHash");
+
+        res.json({
+            success: true,
+            message: "Profile updated successfully",
+            data: {
+                user: updatedUser
+            }
+        });
+    } catch (error) {
+        console.error("Error updating profile:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error updating profile",
+            data: {}
+        });
+    }
+};
+
+exports.getProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const user = await User.findById(userId).select("-passwordHash");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+                data: {}
+            });
+        }
+
+        res.json({
+            success: true,
+            message: "User details retrieved successfully",
+            data: {
+                user: user
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching profile:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error fetching profile",
+            data: {}
+        });
+    }
+};
