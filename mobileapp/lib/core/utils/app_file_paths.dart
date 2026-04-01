@@ -47,4 +47,15 @@ class AppFilePaths {
   static const String profile2 = "assets/images/profile2.png";
   static const String aiLoader = "assets/images/ai_loader.png";
   static const String addImage = "assets/images/add-image.png";
+  static const String toggleOff = "assets/images/toggle_off.png";
+  static const String arrowForward = "assets/images/arrow_forward.png";
+  static const String arrowForward2 = "assets/images/arrow_forward.png";
+  static const String arrowForwardRound =
+      "assets/images/arrow_forward_round.png";
+  static const String avatar2 = "assets/images/avatar2.png";
+  static const String notification3 = "assets/images/notification3.png";
+  static const String profile3 = "assets/images/profile3.png";
+  static const String logout = "assets/images/logout.png";
+  static const String filter = "assets/images/filter.png";
+  static const String actionWhite = "assets/images/actions_white.png";
 }

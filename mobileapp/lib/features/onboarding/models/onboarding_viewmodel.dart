@@ -1,4 +1,5 @@
 import 'package:aegix/core/routes/app_routes.dart';
+import 'package:aegix/core/routes/go_router.dart';
 import 'package:aegix/features/auth/services/microsoft_auth_service.dart';
 import 'package:aegix/features/onboarding/providers/onboarding_providers.dart';
 import 'package:flutter/material.dart';
@@ -7,13 +8,13 @@ import 'package:go_router/go_router.dart';
 
 class OnboardingViewModel {
   final WidgetRef ref;
-  
+
   OnboardingViewModel(this.ref);
 
   // Get providers
   PageController get pageController => ref.read(pageControllerProvider);
   int get currentPage => ref.read(currentPageProvider);
-  
+
   // Update current page
   void updatePage(int index) {
     ref.read(currentPageProvider.notifier).state = index;
@@ -55,7 +56,7 @@ class OnboardingViewModel {
     if (context.mounted) {
       context.push(AppRoutes.login);
     }
-  }  
+  }
 
   // Auto-slide timer logic
   void setupAutoSlide({
@@ -66,7 +67,7 @@ class OnboardingViewModel {
     required VoidCallback onResetToFirst,
   }) {
     if (!isAutoSliding) return;
-    
+
     if (currentPage < itemCount - 1) {
       onNextPage();
     } else {

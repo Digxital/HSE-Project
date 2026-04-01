@@ -1,14 +1,9 @@
 import 'package:aegix/core/themes/app_colors.dart';
-import 'package:aegix/core/utils/app_file_paths.dart';
-import 'package:aegix/core/utils/common_image_view.dart';
-import 'package:aegix/features/auth/models/login/login_form_model.dart';
-import 'package:aegix/features/auth/presentation/viewmodels/login_viewmodel.dart';
 import 'package:aegix/features/auth/providers/login_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
 
 class LoginButton extends ConsumerWidget {
   final VoidCallback onPressed;
@@ -31,10 +26,7 @@ class LoginButton extends ConsumerWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12.r),
           gradient: const LinearGradient(
-            colors: [
-              AppColors.secondaryColor,
-              AppColors.primaryColor,
-            ],
+            colors: [AppColors.secondaryColor, AppColors.primaryColor],
           ),
         ),
         child: Material(
@@ -59,9 +51,7 @@ class LoginButton extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w500,
-                            color: isFormValid 
-                                ? Colors.white 
-                                : Colors.white54,
+                            color: isFormValid ? Colors.white : Colors.white54,
                           ),
                         ),
                         SizedBox(width: 5.w),

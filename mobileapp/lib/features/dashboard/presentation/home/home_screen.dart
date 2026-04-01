@@ -1,4 +1,5 @@
 import 'package:aegix/core/routes/app_routes.dart';
+import 'package:aegix/core/routes/go_router.dart';
 import 'package:aegix/core/themes/app_colors.dart';
 import 'package:aegix/core/utils/app_file_paths.dart';
 import 'package:aegix/core/utils/common_image_view.dart';
@@ -8,6 +9,7 @@ import 'package:aegix/core/utils/screen_properties.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -21,19 +23,19 @@ class _HomeScreenState extends State<HomeScreen> {
       "title": "Oil spill near pump station",
       "date": "Now",
       "status": "Open",
-      "riskLevel": "High"
+      "riskLevel": "High",
     },
     {
       "title": "Oil spill near pump station",
       "date": "Jan 30",
       "status": "Open",
-      "riskLevel": "High"
+      "riskLevel": "High",
     },
     {
       "title": "Oil spill near pump station",
       "date": "Jan 30",
       "status": "Open",
-      "riskLevel": "High"
+      "riskLevel": "High",
     },
   ];
   @override
@@ -48,38 +50,49 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               SizedBox(height: 20.h),
               const Header(),
-              SizedBox(height: 50.h,),
+              SizedBox(height: 50.h),
               const ReportCards(),
-              SizedBox(height: 40.h,),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: CustomText(
-                    text: "Recent Reports",
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.darkBrown),
+              SizedBox(height: 20.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: CustomText(
+                      text: "Recent Reports",
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.darkBrown,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: CustomText(
+                      text: "View all",
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(height: 20.h,),
-              ...List.generate(
-                reportDataList.length,
-                (index) {
-                  final item = reportDataList[index];
-                  return Column(
-                    children: [
-                      ReportData(
-                        title: item['title'] as String,
-                        date: item['date'] as String,
+              SizedBox(height: 20.h),
+              ...List.generate(reportDataList.length, (index) {
+                final item = reportDataList[index];
+                return Column(
+                  children: [
+                    ReportData(
+                      title: item['title'] as String,
+                      date: item['date'] as String,
+                    ),
+                    if (index < reportDataList.length - 1)
+                      const Divider(
+                        height: 50,
+                        thickness: 0.2,
+                        color: AppColors.lightGreyColor4,
                       ),
-                      if (index < reportDataList.length - 1)
-                        const Divider(
-                          height: 50,
-                          thickness: 0.2,
-                          color: AppColors.lightGreyColor4,
-                        ),
-                    ],
-                  );
-                },
-              )
+                  ],
+                );
+              }),
             ],
           ),
         ),
@@ -89,9 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class ReportCards extends StatelessWidget {
-  const ReportCards({
-    super.key,
-  });
+  const ReportCards({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -174,46 +185,43 @@ class ReportData extends StatelessWidget {
           Row(
             children: [
               getContainer(
-                  context: context,
-                  height: 48.h,
-                  width: 48.w,
-                  borderRadius: BorderRadius.circular(12),
-                  decorationColor: AppColors.lightOrange,
-                  child: Center(
-                    child: CommonImageView(
-                      imagePath: AppFilePaths.reportBlack,
-                      height: 24,
-                      width: 24,
-                      fit: BoxFit.scaleDown,
-                    ),
-                  )),
-              SizedBox(width: 15.h,),
+                context: context,
+                height: 48.h,
+                width: 48.w,
+                borderRadius: BorderRadius.circular(12),
+                decorationColor: AppColors.lightOrange,
+                child: Center(
+                  child: CommonImageView(
+                    imagePath: AppFilePaths.reportBlack,
+                    height: 24,
+                    width: 24,
+                    fit: BoxFit.scaleDown,
+                  ),
+                ),
+              ),
+              SizedBox(width: 15.h),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
                     text: title,
                     fontSize: 16.sp,
-                    fontWeight: FontWeight.w400
+                    fontWeight: FontWeight.w400,
                   ),
                   Row(
                     children: [
                       const ReportUpdate(update: "Incident"),
-                      addHorizontalSpace(10),
+                      SizedBox(width: 10.w),
                       const ReportUpdate(update: "Open"),
-                      addHorizontalSpace(10),
+                      SizedBox(width: 10.w),
                       const ReportUpdate(update: "High"),
                     ],
                   ),
                 ],
-              )
+              ),
             ],
           ),
-          CustomText(
-            text: date,
-            fontSize: 12.sp,
-            fontWeight: FontWeight.w400
-          )
+          CustomText(text: date, fontSize: 12.sp, fontWeight: FontWeight.w400),
         ],
       ),
     );
@@ -231,17 +239,19 @@ class ReportUpdate extends StatelessWidget {
       child: Row(
         children: [
           getContainer(
-              context: context,
-              height: 3,
-              width: 3,
-              decorationColor: Colors.black,
-              shape: BoxShape.circle),
-          addHorizontalSpace(6),
+            context: context,
+            height: 3,
+            width: 3,
+            decorationColor: Colors.black,
+            shape: BoxShape.circle,
+          ),
+          SizedBox(width: 6.w),
           CustomText(
-              text: update,
-              fontSize: 10,
-              fontWeight: FontWeight.w400,
-              color: AppColors.blackColor2),
+            text: update,
+            fontSize: 10,
+            fontWeight: FontWeight.w400,
+            color: AppColors.blackColor2,
+          ),
         ],
       ),
     );
@@ -268,58 +278,59 @@ class ReportCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        height: 113,
-        width: 178,
-        decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: borderColor)),
-        child: Padding(
-          padding: const EdgeInsets.only(left: 20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                  text: title,
-                  fontSize: 14.sp,
+      height: 113,
+      width: 178,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CustomText(
+              text: title,
+              fontSize: 14.sp,
+              color: textColor,
+              fontWeight: FontWeight.w400,
+            ),
+            SizedBox(height: 5.h),
+            CustomText(
+              text: reportCount,
+              fontSize: 24,
+              color: textColor,
+              fontWeight: FontWeight.w700,
+            ),
+            SizedBox(height: 5.h),
+            Row(
+              children: [
+                CustomText(
+                  text: isTotalReport ? "View all reports" : "View reports",
+                  fontSize: 10.sp,
                   color: textColor,
-                  fontWeight: FontWeight.w400),
-              addVerticalSpace(5),
-              CustomText(
-                  text: reportCount,
-                  fontSize: 24,
-                  color: textColor,
-                  fontWeight: FontWeight.w700),
-              addVerticalSpace(5),
-              Row(
-                children: [
-                  CustomText(
-                      text:
-                          isTotalReport ? "View all reports" : "View reports",
-                      fontSize: 10.sp,
-                      color: textColor,
-                      fontWeight: FontWeight.w400
-                  ),
-                  CommonImageView(
-                    imagePath: AppFilePaths.arrowUpRight,
-                    height: 7.34,
-                    width: 7.34,
-                    color: isTotalReport ? Colors.white : Colors.black,
-                    fit: BoxFit.scaleDown,
-                  ),
-                ],
-              )
-            ],
-          ),
-        ));
+                  fontWeight: FontWeight.w400,
+                ),
+                CommonImageView(
+                  imagePath: AppFilePaths.arrowUpRight,
+                  height: 7.34,
+                  width: 7.34,
+                  color: isTotalReport ? Colors.white : Colors.black,
+                  fit: BoxFit.scaleDown,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
 class Header extends StatelessWidget {
-  const Header({
-    super.key,
-  });
+  const Header({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -336,24 +347,25 @@ class Header extends StatelessWidget {
                 width: 48,
                 fit: BoxFit.scaleDown,
               ),
-              addHorizontalSpace(8),
+              SizedBox(width: 8.w),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                      text: "Hello Peter 👋 ",
-                      fontSize: 16.sp,
-                      color: AppColors.darkBrown,
-                      fontWeight: FontWeight.w500),
+                    text: "Hello Peter 👋 ",
+                    fontSize: 16.sp,
+                    color: AppColors.darkBrown,
+                    fontWeight: FontWeight.w500,
+                  ),
                   Row(
                     children: [
                       CustomText(
-                          text: "Akure, Ondo",
-                          fontSize: 12.sp,
-                          color: AppColors.lightBrown,
-                          fontWeight: FontWeight.w400
-                        ),
-                      addHorizontalSpace(5),
+                        text: "Akure, Ondo",
+                        fontSize: 12.sp,
+                        color: AppColors.lightBrown,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      SizedBox(width: 5.w),
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
                         child: CommonImageView(
@@ -366,7 +378,7 @@ class Header extends StatelessWidget {
                     ],
                   ),
                 ],
-              )
+              ),
             ],
           ),
           Stack(
@@ -388,9 +400,11 @@ class Header extends StatelessWidget {
                   height: 8,
                   width: 8,
                   decoration: const BoxDecoration(
-                      color: AppColors.primaryColor, shape: BoxShape.circle),
+                    color: AppColors.primaryColor,
+                    shape: BoxShape.circle,
+                  ),
                 ),
-              )
+              ),
             ],
           ),
         ],

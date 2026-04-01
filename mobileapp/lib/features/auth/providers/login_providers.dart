@@ -9,21 +9,25 @@ final loginFormKeyProvider = Provider<GlobalKey<FormState>>((ref) {
 
 // Form data provider
 final loginFormProvider = StateProvider<LoginFormModel>((ref) {
-  return  LoginFormModel.initial();
+  return LoginFormModel.initial();
 });
- 
+
 // Password visibility provider
 final passwordVisibilityProvider = StateProvider<bool>((ref) => true);
 
 // Email controller provider
-final emailControllerProvider = Provider.autoDispose<TextEditingController>((ref) {
+final emailControllerProvider = Provider.autoDispose<TextEditingController>((
+  ref,
+) {
   final controller = TextEditingController();
   ref.onDispose(controller.dispose);
   return controller;
 });
 
 // Password controller provider
-final passwordControllerProvider = Provider.autoDispose<TextEditingController>((ref) {
+final passwordControllerProvider = Provider.autoDispose<TextEditingController>((
+  ref,
+) {
   final controller = TextEditingController();
   ref.onDispose(controller.dispose);
   return controller;

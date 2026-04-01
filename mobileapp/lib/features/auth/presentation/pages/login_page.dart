@@ -1,4 +1,5 @@
 import 'package:aegix/core/routes/app_routes.dart';
+import 'package:aegix/core/routes/go_router.dart';
 import 'package:aegix/core/themes/app_colors.dart';
 import 'package:aegix/features/auth/controllers/auth_controller.dart';
 import 'package:aegix/features/auth/controllers/auth_state.dart';
@@ -15,25 +16,25 @@ import 'package:go_router/go_router.dart';
 class LoginPage extends HookConsumerWidget {
   const LoginPage({super.key});
 
-  @override 
+  @override
   Widget build(BuildContext context, WidgetRef ref) {
     final emailController = useTextEditingController();
     final passwordController = useTextEditingController();
     final formKey = useMemoized(() => GlobalKey<FormState>());
     final obscurePassword = useState(true);
     final isLoggingIn = useState(false);
-    
+
     void handleLogin() async {
       if (formKey.currentState?.validate() ?? false) {
         isLoggingIn.value = true;
-        
+
         try {
           final request = LoginRequestModel(
             email: emailController.text.trim(),
             password: passwordController.text,
             rememberMe: false,
           );
-           
+
           await ref.read(authControllerProvider.notifier).login(request);
         } catch (e) {
           // Error is handled by listener
@@ -42,7 +43,7 @@ class LoginPage extends HookConsumerWidget {
         }
       }
     }
-    
+
     // FIXED: Properly handle Freezed union types
     ref.listen(authControllerProvider, (previous, next) {
       next.when(
@@ -57,10 +58,7 @@ class LoginPage extends HookConsumerWidget {
             unauthenticated: () {},
             error: (message) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(message),
-                  backgroundColor: Colors.red,
-                ),
+                SnackBar(content: Text(message), backgroundColor: Colors.red),
               );
             },
           );
@@ -78,7 +76,7 @@ class LoginPage extends HookConsumerWidget {
         },
       );
     });
-    
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -115,16 +113,15 @@ class LoginPage extends HookConsumerWidget {
                   ),
                   SizedBox(height: 25.h),
 
-                   LoginForm(),
-                  
-                  SizedBox(height: 15.h),
-                  
+                  LoginForm(),
+                  SizedBox(height: 20.h),
+
                   // Login Button
                   LoginButton(
                     onPressed: handleLogin,
                     isLoading: isLoggingIn.value,
                   ),
-                  
+
                   SizedBox(height: 10.h),
                 ],
               ),

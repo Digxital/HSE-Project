@@ -2,13 +2,14 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:aegix/core/constants/api_endpoints.dart';
 import 'package:aegix/core/network/api_interceptor.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
- 
+
 class ApiClient {
-  late Dio dio; 
-  
+  late Dio dio;
+
   ApiClient() {
-    dio = Dio( 
+    dio = Dio(
       BaseOptions(
         baseUrl: ApiEndpoints.baseUrl,
         connectTimeout: const Duration(seconds: 30),
@@ -16,22 +17,44 @@ class ApiClient {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'X-PLATFORM': 'mobile',
         },
       ),
     );
-    
+
     // Add interceptors
-    dio.interceptors.add(ApiInterceptor());
-    
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          const storage = FlutterSecureStorage();
+          final token = await storage.read(key: 'auth_token');
+
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+
+          return handler.next(options);
+        },
+        onError: (DioException error, handler) {
+          if (error.response?.statusCode == 401) {
+            // TODO: redirect to login
+          }
+          return handler.next(error);
+        },
+      ),
+    );
+
     if (kDebugMode) {
-      dio.interceptors.add(LogInterceptor(
-        request: true,
-        requestHeader: true,
-        requestBody: true,
-        responseHeader: true,
-        responseBody: true,
-        error: true,
-      ));
+      dio.interceptors.add(
+        LogInterceptor(
+          request: true,
+          requestHeader: true,
+          requestBody: true,
+          responseHeader: true,
+          responseBody: true,
+          error: true,
+        ),
+      );
     }
   }
 }

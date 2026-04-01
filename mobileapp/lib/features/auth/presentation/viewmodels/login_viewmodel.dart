@@ -1,3 +1,4 @@
+import 'package:aegix/core/routes/app_routes.dart';
 import 'package:aegix/features/auth/controllers/auth_controller.dart';
 import 'package:aegix/features/auth/models/login/login_request_model.dart';
 import 'package:aegix/features/auth/models/login/login_form_model.dart';
@@ -5,17 +6,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:aegix/features/auth/providers/login_providers.dart';
-import 'package:aegix/core/routes/app_routes.dart';
+import 'package:aegix/core/routes/go_router.dart';
 
 class LoginViewModel {
   final WidgetRef ref;
-  
+
   LoginViewModel(this.ref);
- 
+
   // Getters
   GlobalKey<FormState> get formKey => ref.read(loginFormKeyProvider);
-  TextEditingController get emailController => ref.read(emailControllerProvider);
-  TextEditingController get passwordController => ref.read(passwordControllerProvider);
+  TextEditingController get emailController =>
+      ref.read(emailControllerProvider);
+  TextEditingController get passwordController =>
+      ref.read(passwordControllerProvider);
   bool get isPasswordVisible => ref.watch(passwordVisibilityProvider);
   LoginFormModel get formData => ref.watch(loginFormProvider);
 
@@ -44,7 +47,9 @@ class LoginViewModel {
   void toggleRememberMe() {
     ref.read(loginFormProvider.notifier).update((state) {
       // Cast state to LoginFormModel
-      return (state as LoginFormModel).copyWith(rememberMe: !(state as LoginFormModel).rememberMe);
+      return (state as LoginFormModel).copyWith(
+        rememberMe: !(state as LoginFormModel).rememberMe,
+      );
     });
   }
 
@@ -61,8 +66,8 @@ class LoginViewModel {
     ref.read(loginFormProvider.notifier).update((state) {
       // Cast state to LoginFormModel
       return (state as LoginFormModel).copyWith(
-        errorMessage: error, 
-        isLoading: false
+        errorMessage: error,
+        isLoading: false,
       );
     });
   }
@@ -75,24 +80,24 @@ class LoginViewModel {
   // Handle login - Convert form data to request model for API
   Future<void> onLogin(BuildContext context) async {
     if (!validateForm() || !formData.isFormValid) return;
-    
+
     try {
       setLoading(true);
-      
+
       // Create request model from form data (for API)
       final loginRequest = LoginRequestModel(
         email: formData.email,
         password: formData.password,
         rememberMe: formData.rememberMe,
       );
-      
+
       // TODO: Implement actual login API call with loginRequest
       print('Login request: ${loginRequest.email}');
       await Future.delayed(const Duration(seconds: 2));
-      
+
       if (context.mounted) {
         // context.push(AppRoutes.bottomNav);
-        context.push(AppRoutes.dashboard); 
+        context.push(AppRoutes.dashboard);
       }
     } catch (e) {
       setError(e.toString());
@@ -122,21 +127,21 @@ class LoginViewModel {
 
   // Add this method to your LoginViewModel
   // In LoginViewModel.dart
-Future<void> onMicrosoftLogin(LoginRequestModel microsoftLoginRequest) async {
-  try {
-    setLoading(true); 
-    
-    // Call auth controller with Microsoft data
-    await ref.read(authControllerProvider.notifier).login(microsoftLoginRequest);
-    
-    // DON'T set loading false here - navigation will happen
-    // The widget might be disposed
-    
-  } catch (e) {
-    setError(e.toString());
-    setLoading(false); // Only set loading false on error
+  Future<void> onMicrosoftLogin(LoginRequestModel microsoftLoginRequest) async {
+    try {
+      setLoading(true);
+
+      // Call auth controller with Microsoft data
+      await ref
+          .read(authControllerProvider.notifier)
+          .login(microsoftLoginRequest);
+
+      // DON'T set loading false here - navigation will happen
+      // The widget might be disposed
+    } catch (e) {
+      setError(e.toString());
+      setLoading(false); // Only set loading false on error
+    }
+    // Don't set loading false on success - let navigation handle it
   }
-  // Don't set loading false on success - let navigation handle it
-}
-  
 }

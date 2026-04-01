@@ -12,9 +12,7 @@ class _ReportScreenState extends State<ReportScreen> {
   Widget build(BuildContext context) {
     return const Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child: Text("Report Screen"),
-      ),
+      body: Center(child: Text("Report Screen")),
     );
   }
 }

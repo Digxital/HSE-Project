@@ -1,13 +1,14 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
 android {
     namespace = "com.example.mobileapp"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "30.0.14904198"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -19,16 +20,20 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.aegix.app"
-        manifestPlaceholders["appAuthRedirectScheme"] = "com.aegix.app"
+        applicationId = "com.example.mobileapp"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // ✅ ADD THIS LINE
+        manifestPlaceholders["appAuthRedirectScheme"] = "com.example.mobileapp"
     }
 
     buildTypes {
         release {
+            // TODO: Add your own signing config for the release build.
+            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }

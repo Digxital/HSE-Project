@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CustomText extends StatelessWidget {
   final String text;
-  final double fontSize;
-  final FontWeight fontWeight;
+  final double? fontSize;
+  final FontWeight? fontWeight;
   final FontStyle? fontStyle;
   final int? maxLines;
   final Color? color;
@@ -20,8 +21,8 @@ class CustomText extends StatelessWidget {
   const CustomText({
     super.key,
     required this.text,
-    required this.fontSize,
-    required this.fontWeight,
+    this.fontSize,
+    this.fontWeight,
     this.fontStyle,
     this.maxLines,
     this.color,
@@ -45,13 +46,13 @@ class CustomText extends StatelessWidget {
       style: TextStyle(
         overflow: textOverflow,
         wordSpacing: wordSpacing,
-        fontSize: fontSize,
+        fontSize: fontSize!.sp,
         fontStyle: fontStyle,
         fontWeight: fontWeight,
         letterSpacing: letterSpacing,
         color: color ?? Colors.black,
         backgroundColor: backgroundColor ?? Colors.transparent,
-        height: textHeight != null ? textHeight! / fontSize : null,
+        height: textHeight != null ? textHeight! / fontSize! : null,
         decoration: decoration,
         shadows: shadows,
       ),
