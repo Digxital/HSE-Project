@@ -16,7 +16,7 @@ router.get(
     auth,
     authorize(["FIELD_USER", "SUPERVISOR", "HSE_OFFICER", "ADMIN"], ["mobile", "web"]),
     getReports
-);
+); 
 
 // Get all reports submitted by a particular user
 router.get(

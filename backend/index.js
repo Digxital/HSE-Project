@@ -21,7 +21,7 @@ const allowedOrigins = [
   'https://www.hse-frontend-eight.vercel.app',
   process.env.FRONTEND_URL,
 ].filter(Boolean);
-
+ 
 
 // CORS middleware - MUST BE FIRST
 app.use(cors({
@@ -174,7 +174,7 @@ const loadRoutes = () => {
  
     { name: "client", path: "./routes/client", routePath: "/api/client" },
     { name: "location", path: "./routes/location", routePath: "/api/location" },
-    { name: "report", path: "./routes/report", routePath: "/api/report" }, 
+    { name: "report", path: "./routes/report", routePath: "/api" }, 
 
     { name: "feedback", path: "./routes/feedback.routes", routePath: "/api/feedback" },
     { name: "config", path: "./routes/config", routePath: "/api/config" },
