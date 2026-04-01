@@ -23,6 +23,7 @@ class _LoginState extends State<Login> {
     setState(() => _isLoading = true);
     try {
       final token = await MicrosoftAuthService.signIn();
+      print("token: $token");
       if (!mounted) return;
 
       if (token != null) {
@@ -89,6 +90,7 @@ class _LoginState extends State<Login> {
                             child: InkWell(
                               borderRadius: BorderRadius.circular(12),
                               onTap: _isLoading ? null : _signInWithMicrosoft,
+                              // onTap: () => context.push(AppRoutes.bottomNav),
                               child: Center(
                                 child: _isLoading
                                     ? const SizedBox(
