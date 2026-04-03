@@ -1,20 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { ActionDetailsModal } from '@/components/actions/ActionDetailsModal';
+import { useReports, type Action as ReportAction } from '@/services/ReportsContext';
 
 type ActionFilterType = 'All Actions' | 'Open' | 'In Progress' | 'Completed' | 'Overdue';
 type ActionStatus = 'Open' | 'In Progress' | 'Completed';
 type PriorityLevel = 'High' | 'Medium' | 'Low';
 
-interface Action {
-  id: string;
-  actionTitle: string;
+interface Action extends ReportAction {
   relatedReport: string;
-  assignedTo: string;
   priority: PriorityLevel;
-  dueDate: string;
-  status: ActionStatus;
 }
 
 interface ActionsPageProps {
@@ -22,86 +18,74 @@ interface ActionsPageProps {
 }
 
 export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
+  const { reports, loading, error, refreshReports } = useReports();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<ActionFilterType>('All Actions');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAction, setSelectedAction] = useState<any>(null);
 
-  const [actions] = useState<Action[]>([
-    {
-      id: 'ACT-0034',
-      actionTitle: 'Secure loose handrail',
-      relatedReport: 'HAZ-0048',
-      assignedTo: 'Maintenance Lead',
-      priority: 'High',
-      dueDate: 'Feb 08, 2026',
-      status: 'In Progress',
-    },
-    {
-      id: 'ACT-0031',
-      actionTitle: 'Inspect gas valves',
-      relatedReport: 'INC-0103',
-      assignedTo: 'Supervisor',
-      priority: 'High',
-      dueDate: 'Feb 02, 2026',
-      status: 'Open',
-    },
-    {
-      id: 'ACT-0030',
-      actionTitle: 'Replace warning sign',
-      relatedReport: 'HAZ-0030',
-      assignedTo: 'Field User',
-      priority: 'Medium',
-      dueDate: 'Jan 30, 2026',
-      status: 'Completed',
-    },
-    {
-      id: 'ACT-0031',
-      actionTitle: 'Inspect gas valves',
-      relatedReport: 'INC-0103',
-      assignedTo: 'Supervisor',
-      priority: 'Low',
-      dueDate: 'Jan 28, 2026',
-      status: 'Open',
-    },
-    {
-      id: 'ACT-0030',
-      actionTitle: 'Replace warning sign',
-      relatedReport: 'HAZ-0030',
-      assignedTo: 'Field User',
-      priority: 'Medium',
-      dueDate: 'Jan 28, 2026',
-      status: 'Completed',
-    },
-  ]);
+  // Re-fetch reports every time the page is visited
+  useEffect(() => {
+    refreshReports();
+  }, [refreshReports]);
+
+  // Aggregate all actions from all reports
+  const allActions = useMemo(() => {
+    try {
+      const aggregated: Action[] = [];
+      reports.forEach((report) => {
+        report.actions.forEach((action) => {
+          aggregated.push({
+            ...action,
+            relatedReport: report.id,
+            priority: 'Medium' as PriorityLevel,
+          });
+        });
+      });
+      
+      const completedCount = aggregated.filter(a => a.status === 'Completed').length;
+      console.log(`📊 Actions aggregated: ${aggregated.length} total actions from ${reports.length} reports`);
+      console.log(`✅ Completed actions: ${completedCount}`);
+      console.log(`📋 Breakdown - Open: ${aggregated.filter(a => a.status === 'Open').length}, In Progress: ${aggregated.filter(a => a.status === 'In Progress').length}, Completed: ${completedCount}`);
+      
+      return aggregated;
+    } catch (err) {
+      console.error('Error aggregating actions:', err);
+      return [];
+    }
+  }, [reports]);
 
   // Calculate if action is overdue
   const isOverdue = (dueDate: string, status: ActionStatus): boolean => {
     if (status === 'Completed') return false;
-    const today = new Date('2026-02-15'); // Current date from context
-    const due = new Date(dueDate);
-    return due < today;
+    try {
+      const today = new Date();
+      const due = new Date(dueDate);
+      return due < today && !isNaN(due.getTime());
+    } catch {
+      return false;
+    }
   };
 
   const filters: { label: ActionFilterType; count: number }[] = [
-    { label: 'All Actions', count: actions.length },
-    { label: 'Open', count: actions.filter((a) => a.status === 'Open').length },
-    { label: 'In Progress', count: actions.filter((a) => a.status === 'In Progress').length },
-    { label: 'Completed', count: actions.filter((a) => a.status === 'Completed').length },
-    { label: 'Overdue', count: actions.filter((a) => isOverdue(a.dueDate, a.status)).length },
+    { label: 'All Actions', count: allActions.length },
+    { label: 'Open', count: allActions.filter((a) => a.status === 'Open').length },
+    { label: 'In Progress', count: allActions.filter((a) => a.status === 'In Progress').length },
+    { label: 'Completed', count: allActions.filter((a) => a.status === 'Completed').length },
+    { label: 'Overdue', count: allActions.filter((a) => isOverdue(a.dueDate, a.status as ActionStatus)).length },
   ];
 
-  const filteredActions = actions.filter((action) => {
+  const filteredActions = allActions.filter((action) => {
     const matchesFilter =
       selectedFilter === 'All Actions' ||
-      (selectedFilter === 'Overdue' && isOverdue(action.dueDate, action.status)) ||
+      (selectedFilter === 'Overdue' && isOverdue(action.dueDate, action.status as ActionStatus)) ||
       (selectedFilter !== 'Overdue' && action.status === selectedFilter);
 
     const matchesSearch =
       searchQuery === '' ||
       action.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      action.actionTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      action.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
       action.relatedReport.toLowerCase().includes(searchQuery.toLowerCase()) ||
       action.assignedTo.toLowerCase().includes(searchQuery.toLowerCase()) ||
       action.priority.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -134,6 +118,21 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
     return (
       <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${styles[status]}`}>
         {status}
+      </span>
+    );
+  };
+
+  const getTypeBadge = (type?: string) => {
+    if (!type) return null;
+    
+    const styles = {
+      'Suggested': 'bg-blue-100 text-blue-700',
+      'User-Created': 'bg-purple-100 text-purple-700',
+    };
+
+    return (
+      <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${styles[type as keyof typeof styles] || 'bg-gray-100 text-gray-700'}`}>
+        {type}
       </span>
     );
   };
@@ -178,7 +177,7 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
               {/* Section Header */}
               <div className="flex items-center gap-2 mb-6">
                 <h2 className="text-base md:text-lg font-semibold text-gray-900">
-                  Corrective actions created from reports
+                  Suggested and user-created corrective actions
                 </h2>
                 <button className="p-1 hover:bg-gray-100 rounded-full transition-colors">
                   <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -266,6 +265,9 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
                       <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">
                         Action Title
                       </th>
+                      <th className="hidden md:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500">
+                        Type
+                      </th>
                       <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">
                         Related Report
                       </th>
@@ -284,71 +286,83 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredActions.map((action, index) => (
-                      <tr
-                        key={`${action.id}-${index}`}
-                        onClick={() => {
-                          // Create full action details for modal
-                          setSelectedAction({
-                            id: action.id,
-                            title: action.actionTitle,
-                            description: 'Tighten bolts and inspect surrounding railings to prevent fall risk.',
-                            reportId: action.relatedReport,
-                            assignedTo: action.assignedTo,
-                            status: action.status,
-                            createdOn: 'Jan 30, 2026',
-                            dueDate: action.dueDate,
-                            comments: 'Lorem ipsum dolor sit amet consectetur. Mattis volutpat quis vestibulum quis egestas facilisis adipiscing. Facilisis elementum tellus neque vitae aliquot. Morbi id nec odio sed nunc feugiat tincidunt.',
-                            timeline: [
-                              {
-                                date: 'Jan 30, 2026 - Action Created',
-                                title: 'Assigned to Maintenance Lead by Supervisor',
-                                description: '',
-                              },
-                              {
-                                date: 'Feb 04, 2026 - Status Updated',
-                                title: 'Status changed to In Progress',
-                                description: '',
-                              },
-                              {
-                                date: 'Feb 04, 2026 - Update Added',
-                                title: '"Bolts tightened, inspection ongoing." (Photo attached)',
-                                description: '',
-                              },
-                              {
-                                date: 'Feb 05, 2026 - Action Completed',
-                                title: 'Marked completed by Maintenance Lead',
-                                description: '',
-                              },
-                              {
-                                date: 'Feb 06, 2026 - Action Closed',
-                                title: 'Verified by Supervisor',
-                                description: '',
-                              },
-                            ],
-                          });
-                        }}
-                        className="bg-[#FFFAF5] hover:bg-[#FFFEFB] transition-colors border-l-4 border-l-[#C24438] border-b border-b-gray-200 cursor-pointer"
-                      >
-                        <td className="py-3 md:py-4 px-3 md:px-4">
-                          <div className="font-medium text-gray-900 text-xs md:text-sm">{action.id}</div>
+                    {loading ? (
+                      <tr>
+                        <td colSpan={8} className="py-12 text-center">
+                          <div className="flex flex-col items-center gap-3">
+                            <div className="w-8 h-8 border-4 border-[#C24438] border-t-transparent rounded-full animate-spin" />
+                            <p className="text-gray-500 text-sm">Loading actions...</p>
+                          </div>
                         </td>
-                        <td className="py-3 md:py-4 px-3 md:px-4">
-                          <div className="text-gray-900 text-xs md:text-sm">{action.actionTitle}</div>
-                        </td>
-                        <td className="py-3 md:py-4 px-3 md:px-4">
-                          <div className="text-gray-600 text-xs md:text-sm">{action.relatedReport}</div>
-                        </td>
-                        <td className="hidden md:table-cell py-4 px-4">
-                          <div className="text-gray-600 text-sm">{action.assignedTo}</div>
-                        </td>
-                        <td className="hidden md:table-cell py-4 px-4">{getPriorityBadge(action.priority)}</td>
-                        <td className="hidden md:table-cell py-4 px-4">
-                          <div className="text-gray-600 text-sm">{action.dueDate}</div>
-                        </td>
-                        <td className="hidden lg:table-cell py-4 px-4">{getStatusBadge(action.status)}</td>
                       </tr>
-                    ))}
+                    ) : error ? (
+                      <tr>
+                        <td colSpan={8} className="py-12 text-center">
+                          <p className="text-red-500 text-sm">{error}</p>
+                        </td>
+                      </tr>
+                    ) : allActions.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="py-12 text-center">
+                          <p className="text-gray-500 text-sm">No actions found</p>
+                        </td>
+                      </tr>
+                    ) : filteredActions.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="py-12 text-center">
+                          <p className="text-gray-500 text-sm">No actions match your filter</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredActions.map((action, index) => (
+                        <tr
+                          key={`${action.id}-${index}`}
+                          onClick={() => {
+                            // Create full action details for modal
+                            setSelectedAction({
+                              id: action.id,
+                              title: action.action,
+                              description: 'Corrective action details',
+                              reportId: action.relatedReport,
+                              assignedTo: action.assignedTo,
+                              status: action.status,
+                              createdOn: new Date().toLocaleDateString(),
+                              dueDate: action.dueDate,
+                              comments: 'Action from report system',
+                              timeline: [
+                                {
+                                  date: `${new Date().toLocaleDateString()} - Action Created`,
+                                  title: `Assigned to ${action.assignedTo}`,
+                                  description: '',
+                                },
+                              ],
+                            });
+                          }}
+                          className="bg-[#FFFAF5] hover:bg-[#FFFEFB] transition-colors border-l-4 border-l-[#C24438] border-b border-b-gray-200 cursor-pointer"
+                        >
+                          <td className="py-3 md:py-4 px-3 md:px-4">
+                            <div className="font-medium text-gray-900 text-xs md:text-sm">{action.id}</div>
+                          </td>
+                          <td className="py-3 md:py-4 px-3 md:px-4">
+                            <div className="text-gray-900 text-xs md:text-sm">{action.action}</div>
+                          </td>
+                          <td className="hidden md:table-cell py-4 px-4">
+                            {getTypeBadge(action.type)}
+                          </td>
+                          <td className="py-3 md:py-4 px-3 md:px-4">
+                            <div className="text-gray-600 text-xs md:text-sm">{action.relatedReport}</div>
+                          </td>
+                          <td className="hidden md:table-cell py-4 px-4">
+                            <div className="text-gray-600 text-sm">{action.assignedTo}</div>
+                          </td>
+                          <td className="hidden md:table-cell py-4 px-4">{getPriorityBadge(action.priority)}</td>
+                          <td className="hidden md:table-cell py-4 px-4">
+                            <div className="text-gray-600 text-sm">{action.dueDate}</div>
+                          </td>
+                          <td className="hidden lg:table-cell py-4 px-4">{getStatusBadge(action.status as ActionStatus)}</td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>

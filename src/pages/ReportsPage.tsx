@@ -58,7 +58,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
 
   const handleCloseReport = (reportId: string) => {
     closeReport(reportId);
-    setSelectedReport(null);
+    // Keep modal open so user can see the actions updated to Completed
   };
 
   const handleAddComment = (reportId: string, text: string) => {

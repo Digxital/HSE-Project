@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
+import { useReports } from '@/services/ReportsContext';
 import {
   AreaChart,
   Area,
@@ -12,49 +13,20 @@ import {
   PieChart,
   Pie,
   Cell,
-  BarChart,
-  Bar,
 } from 'recharts';
 
-type TimeFilter = '12 months' | '6 months' | '30 days' | '7 days' | 'Custom range';
+type TimeFilter = '12 months' | '6 months' | '30 days' | '7 days';
 
-// Mock data for charts
-const reportTrendsData = [
-  { month: 'Jan', hazard: 45, incident: 25 },
-  { month: 'Feb', hazard: 35, incident: 20 },
-  { month: 'Mar', hazard: 30, incident: 15 },
-  { month: 'Apr', hazard: 25, incident: 10 },
-  { month: 'May', hazard: 35, incident: 15 },
-  { month: 'Jun', hazard: 55, incident: 40 },
-  { month: 'Jul', hazard: 45, incident: 30 },
-  { month: 'Aug', hazard: 30, incident: 20 },
-  { month: 'Sep', hazard: 25, incident: 15 },
-  { month: 'Oct', hazard: 30, incident: 20 },
-  { month: 'Nov', hazard: 45, incident: 30 },
-  { month: 'Dec', hazard: 55, incident: 40 },
-];
-
-const reportsByLocationData = [
-  { name: 'North Sea Platform', seg1: 35, seg2: 25, seg3: 20, seg4: 15 },
-  { name: 'Gulf of Mexico', seg1: 30, seg2: 20, seg3: 15, seg4: 10 },
-  { name: 'Houston Office', seg1: 20, seg2: 15, seg3: 10, seg4: 8 },
-  { name: 'Alaska Pipeline', seg1: 35, seg2: 20, seg3: 15, seg4: 20 },
-  { name: 'Singapore Refinery', seg1: 15, seg2: 10, seg3: 5, seg4: 0 },
-];
-
-const riskLevelData = [
-  { name: 'Low', value: 46, color: '#4CAF50' },
-  { name: 'Medium', value: 24, color: '#FF9800' },
-  { name: 'High', value: 15, color: '#E53935' },
-];
-
-const reportsByCategoryData = [
-  { name: 'Electrical', value: 46, color: '#C24438' },
-  { name: 'Fire', value: 24, color: '#E8795A' },
-  { name: 'Slips & Trips', value: 15, color: '#F5C063' },
-  { name: 'Chemical', value: 8, color: '#A8D5A2' },
-  { name: 'Machinery', value: 7, color: '#E53935' },
-];
+// Helper function to categorize reports based on keywords
+const categorizeReport = (category: string): string => {
+  const lower = category.toLowerCase();
+  if (lower.includes('electrical') || lower.includes('wiring') || lower.includes('power')) return 'Electrical';
+  if (lower.includes('fire') || lower.includes('extinguisher') || lower.includes('emergency exit')) return 'Fire';
+  if (lower.includes('slip') || lower.includes('trip') || lower.includes('floor') || lower.includes('surface')) return 'Slips & Trips';
+  if (lower.includes('chemical') || lower.includes('oil') || lower.includes('spill') || lower.includes('gas')) return 'Chemical';
+  if (lower.includes('machinery') || lower.includes('forklift') || lower.includes('scaffolding') || lower.includes('equipment')) return 'Machinery';
+  return 'Other';
+};
 
 export const SupervisorAnalyticsPage: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -63,7 +35,242 @@ export const SupervisorAnalyticsPage: React.FC = () => {
   const [trendsFilter, setTrendsFilter] = useState<TimeFilter>('12 months');
   const [locationFilter, setLocationFilter] = useState<TimeFilter>('12 months');
 
-  const timeFilters: TimeFilter[] = ['12 months', '6 months', '30 days', '7 days', 'Custom range'];
+  // Get real reports data
+  const { reports } = useReports();
+
+  // Calculate stat card values from real data
+  const totalReportsCount = useMemo(() => reports.length, [reports]);
+
+  const reportsTrendCount = useMemo(() => {
+    const now = new Date();
+    const oneMonthAgo = new Date(now);
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+    return reports.filter(r => {
+      const dateStr = r.dateReported.split('\n')[0];
+      const reportDate = new Date(dateStr);
+      return reportDate >= oneMonthAgo && reportDate <= now;
+    }).length;
+  }, [reports]);
+
+  const openActionsCount = useMemo(() => {
+    return reports.reduce((sum, report) => {
+      return sum + report.actions.filter(a => a.status === 'Open').length;
+    }, 0);
+  }, [reports]);
+
+  const overdueActionsCount = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let count = 0;
+
+    reports.forEach(report => {
+      report.actions.forEach(action => {
+        if (action.status !== 'Completed') {
+          try {
+            const dueDate = new Date(action.dueDate);
+            dueDate.setHours(0, 0, 0, 0);
+            if (dueDate < today) count++;
+          } catch (e) {
+            // Skip if date parsing fails
+          }
+        }
+      });
+    });
+
+    return count;
+  }, [reports]);
+
+  const inProgressActionsCount = useMemo(() => {
+    return reports.reduce((sum, report) => {
+      return sum + report.actions.filter(a => a.status === 'In Progress').length;
+    }, 0);
+  }, [reports]);
+
+  // Calculate risk level distribution from real reports (with percentages)
+  const riskLevelData = useMemo(() => {
+    const riskMap = {
+      'Low': { count: 0, color: '#4CAF50' },
+      'Medium': { count: 0, color: '#FF9800' },
+      'High': { count: 0, color: '#E53935' },
+    };
+
+    reports.forEach(report => {
+      if (riskMap[report.risk]) {
+        riskMap[report.risk].count += 1;
+      }
+    });
+
+    const total = reports.length || 1; // Avoid division by zero
+    
+    return [
+      { 
+        name: 'Low', 
+        value: Math.round((riskMap['Low'].count / total) * 100), 
+        color: riskMap['Low'].color 
+      },
+      { 
+        name: 'Medium', 
+        value: Math.round((riskMap['Medium'].count / total) * 100), 
+        color: riskMap['Medium'].color 
+      },
+      { 
+        name: 'High', 
+        value: Math.round((riskMap['High'].count / total) * 100), 
+        color: riskMap['High'].color 
+      },
+    ];
+  }, [reports]);
+
+  // Calculate top 5 locations by report count (filtered by time period)
+  const reportsByLocationData = useMemo(() => {
+    const colorPalette = ['#C24438', '#E8795A', '#F5C063', '#A8D5A2', '#E53935'];
+    const locationMap: { [key: string]: number } = {};
+    const now = new Date();
+
+    // Filter reports based on locationFilter
+    const filteredReports = reports.filter(report => {
+      const dateStr = report.dateReported.split('\n')[0];
+      const reportDate = new Date(dateStr);
+      const daysDiff = (now.getTime() - reportDate.getTime()) / (1000 * 60 * 60 * 24);
+
+      if (locationFilter === '12 months') return daysDiff <= 365;
+      if (locationFilter === '6 months') return daysDiff <= 180;
+      if (locationFilter === '30 days') return daysDiff <= 30;
+      if (locationFilter === '7 days') return daysDiff <= 7;
+      return true;
+    });
+
+    // Count reports by location
+    filteredReports.forEach(report => {
+      const loc = report.location;
+      if (loc) {
+        locationMap[loc] = (locationMap[loc] || 0) + 1;
+      }
+    });
+
+    // Sort by count descending and take top 5
+    const topLocations = Object.entries(locationMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    // Map to chart format with colors
+    return topLocations.map(([location, count], index) => ({
+      name: location,
+      reports: count,
+      color: colorPalette[index % colorPalette.length],
+    }));
+  }, [reports, locationFilter]);
+
+  // Calculate dynamic max for location scale
+  const locationMaxValue = useMemo(() => {
+    if (reportsByLocationData.length === 0) return 10;
+    const max = Math.max(...reportsByLocationData.map(item => item.reports));
+    return Math.ceil(max * 1.1); // Add 10% padding
+  }, [reportsByLocationData]);
+
+  // Calculate reports by category from real reports
+  const reportsByCategoryData = useMemo(() => {
+    const colorPalette = ['#C24438', '#E8795A', '#F5C063', '#A8D5A2', '#E53935'];
+    const categoryMap: { [key: string]: number } = {};
+
+    // Categorize each report and count
+    reports.forEach(report => {
+      const cat = categorizeReport(report.category);
+      categoryMap[cat] = (categoryMap[cat] || 0) + 1;
+    });
+
+    // Sort by count descending and take top 5
+    const topCategories = Object.entries(categoryMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    // Map to chart format with colors
+    return topCategories.map(([name, count], index) => ({
+      name,
+      value: count,
+      color: colorPalette[index % colorPalette.length],
+    }));
+  }, [reports]);
+
+  // Calculate report trends based on selected filter
+  const reportTrendsData = useMemo(() => {
+    const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    let timeData: { [key: string]: { hazard: number; incident: number } } = {};
+
+    if (trendsFilter === '12 months') {
+      // Create last 12 months
+      for (let i = 11; i >= 0; i--) {
+        const date = new Date();
+        date.setMonth(date.getMonth() - i);
+        const key = monthLabels[date.getMonth()];
+        if (!timeData[key]) {
+          timeData[key] = { hazard: 0, incident: 0 };
+        }
+      }
+    } else if (trendsFilter === '6 months') {
+      // Create last 6 months
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date();
+        date.setMonth(date.getMonth() - i);
+        const key = monthLabels[date.getMonth()];
+        if (!timeData[key]) {
+          timeData[key] = { hazard: 0, incident: 0 };
+        }
+      }
+    } else if (trendsFilter === '30 days') {
+      // Create last 30 days
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const key = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (!timeData[key]) {
+          timeData[key] = { hazard: 0, incident: 0 };
+        }
+      }
+    } else if (trendsFilter === '7 days') {
+      // Create last 7 days
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const key = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (!timeData[key]) {
+          timeData[key] = { hazard: 0, incident: 0 };
+        }
+      }
+    }
+
+    // Count reports by type and time period
+    reports.forEach(report => {
+      // Parse the dateReported which is formatted as "DD MMM, YYYY\nHH:MM AM/PM"
+      const dateStr = report.dateReported.split('\n')[0]; // Get just the date part
+      const date = new Date(dateStr);
+      
+      let key: string;
+      if (trendsFilter === '12 months' || trendsFilter === '6 months') {
+        key = monthLabels[date.getMonth()];
+      } else {
+        // 30 days or 7 days
+        key = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
+      
+      if (timeData[key]) {
+        if (report.type === 'Hazard') {
+          timeData[key].hazard += 1;
+        } else if (report.type === 'Incident') {
+          timeData[key].incident += 1;
+        }
+      }
+    });
+
+    return Object.entries(timeData).map(([label, data]) => ({
+      month: label,
+      hazard: data.hazard,
+      incident: data.incident,
+    }));
+  }, [reports, trendsFilter]);
+
+  const timeFilters: TimeFilter[] = ['12 months', '6 months', '30 days', '7 days'];
 
   useEffect(() => {
     const checkMobile = () => {
@@ -115,19 +322,19 @@ export const SupervisorAnalyticsPage: React.FC = () => {
             {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" data-aos="fade-up">
               {/* Total Reports */}
-              <div className="bg-white rounded-xl p-4 md:p-5 border border-gray-100">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-1">
+              <div className="bg-white rounded-xl p-4 md:p-5 border border-gray-100 flex flex-col">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-1 h-6">
                   <span className="text-sm text-gray-600">Total Reports</span>
-                  <span className="text-[#C24438] text-[10px] md:text-xs font-medium cursor-pointer hover:underline flex items-center gap-0.5">
+                  <span className="text-[#C24438] text-[10px] md:text-xs font-medium cursor-pointer hover:underline flex items-center gap-0.5 whitespace-nowrap">
                     View all reports
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17l9.2-9.2M17 17V7H7" />
                     </svg>
                   </span>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">248</div>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{totalReportsCount}</div>
                 <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                  +18 since last month
+                  +{reportsTrendCount} since last month
                   <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -135,14 +342,14 @@ export const SupervisorAnalyticsPage: React.FC = () => {
               </div>
 
               {/* Open Actions */}
-              <div className="bg-white rounded-xl p-4 md:p-5 border border-gray-100">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-1">
+              <div className="bg-white rounded-xl p-4 md:p-5 border border-gray-100 flex flex-col">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-1 h-6">
                   <span className="text-sm text-gray-600">Open Actions</span>
-                  <span className="text-green-600 bg-green-50 px-1.5 py-0.5 rounded text-[10px] md:text-xs w-fit">See high-risk items</span>
+                  <span className="text-green-600 bg-green-50 px-1.5 py-0.5 rounded text-[10px] md:text-xs w-fit whitespace-nowrap">See high-risk items</span>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">41</div>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{openActionsCount}</div>
                 <p className="text-xs mt-1 flex items-center gap-1">
-                  <span className="text-[#C24438]">12 actions overdue</span>
+                  <span className="text-[#C24438]">{overdueActionsCount} actions overdue</span>
                   <svg className="w-3 h-3 text-[#C24438]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
@@ -150,17 +357,17 @@ export const SupervisorAnalyticsPage: React.FC = () => {
               </div>
 
               {/* In-Progress Report */}
-              <div className="bg-white rounded-xl p-4 md:p-5 border border-gray-100">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-1">
+              <div className="bg-white rounded-xl p-4 md:p-5 border border-gray-100 flex flex-col">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-1 h-6">
                   <span className="text-sm text-gray-600">In-Progress Report</span>
-                  <span className="text-[#C24438] text-[10px] md:text-xs font-medium cursor-pointer hover:underline flex items-center gap-0.5">
+                  <span className="text-[#C24438] text-[10px] md:text-xs font-medium cursor-pointer hover:underline flex items-center gap-0.5 whitespace-nowrap">
                     View reports
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17l9.2-9.2M17 17V7H7" />
                     </svg>
                   </span>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">23</div>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{inProgressActionsCount}</div>
                 <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                   Actions underway
                   <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,12 +377,12 @@ export const SupervisorAnalyticsPage: React.FC = () => {
               </div>
 
               {/* Overdue Actions */}
-              <div className="bg-white rounded-xl p-4 md:p-5 border border-gray-100">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-1">
+              <div className="bg-white rounded-xl p-4 md:p-5 border border-gray-100 flex flex-col">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-1 h-6">
                   <span className="text-sm text-gray-600">Overdue Actions</span>
-                  <span className="text-[#C24438] text-[10px] md:text-xs font-medium cursor-pointer hover:underline">Review & Prioritize</span>
+                  <span className="text-[#C24438] text-[10px] md:text-xs font-medium cursor-pointer hover:underline whitespace-nowrap">Review & Prioritize</span>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">6</div>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{overdueActionsCount}</div>
                 <p className="text-xs text-gray-500 mt-1">Past due date</p>
               </div>
             </div>
@@ -259,7 +466,7 @@ export const SupervisorAnalyticsPage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex flex-wrap items-center gap-2">
-                    {['12 months', '30 days', '7 days', 'Custom range'].map((filter) => (
+                    {['12 months', '30 days', '7 days'].map((filter) => (
                       <button
                         key={filter}
                         onClick={() => setLocationFilter(filter as TimeFilter)}
@@ -280,39 +487,32 @@ export const SupervisorAnalyticsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="h-64 md:h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={reportsByLocationData}
-                    layout="vertical"
-                    margin={{ top: 0, right: 30, left: 10, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E5E7EB" />
-                    <XAxis
-                      type="number"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#6B7280', fontSize: 11 }}
-                      domain={[0, 100]}
-                      ticks={[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}
-                    />
-                    <YAxis
-                      type="category"
-                      dataKey="name"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: '#6B7280', fontSize: 11 }}
-                      width={100}
-                    />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: '#FFFEFB', border: '1px solid #E5E7EB', borderRadius: '8px' }}
-                    />
-                    <Bar dataKey="seg1" stackId="a" fill="#C24438" radius={[0, 0, 0, 0]} barSize={20} />
-                    <Bar dataKey="seg2" stackId="a" fill="#E8956A" radius={[0, 0, 0, 0]} barSize={20} />
-                    <Bar dataKey="seg3" stackId="a" fill="#F5C4A8" radius={[0, 0, 0, 0]} barSize={20} />
-                    <Bar dataKey="seg4" stackId="a" fill="#FCDFD0" radius={[0, 4, 4, 0]} barSize={20} />
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="space-y-3">
+                {reportsByLocationData.map((item) => (
+                  <div key={item.name}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm text-gray-600">{item.name}</span>
+                      <span className="text-sm font-medium text-gray-900">{item.reports}</span>
+                    </div>
+                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${(item.reports / locationMaxValue) * 100}%`,
+                          backgroundColor: item.color,
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-1 mt-4 text-xs text-gray-400">
+                {Array.from({ length: 11 }, (_, i) => Math.round((locationMaxValue / 10) * i)).map((value, index) => (
+                  <React.Fragment key={index}>
+                    <span>{value}</span>
+                    {index < 10 && <span className="flex-1"></span>}
+                  </React.Fragment>
+                ))}
               </div>
             </div>
 

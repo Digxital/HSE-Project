@@ -13,6 +13,7 @@ export interface Action {
   assignedTo: string;
   dueDate: string;
   status: ActionStatus;
+  type?: 'Suggested' | 'User-Created';
 }
  
 export interface Comment {
@@ -65,448 +66,92 @@ export const useReports = () => {
   return context;
 };
 
-const initialReports: Report[] = [
-  {
-    id: 'HAZ-0001',
-    type: 'Hazard',
-    category: 'Slippery Floor in Main Entrance',
-    description: 'Water accumulation near the main entrance causing a slip hazard. Immediate attention required to prevent accidents.',
-    location: 'Head Office - Main Entrance - Lobby',
-    risk: 'High',
-    status: 'Open',
-    dateReported: '10 Mar 2026\n11:31 AM',
-    reportedBy: 'field@gmail.com',
-    equipmentInvolved: 'None',
-    actions: [],
-    comments: [],
-  },
-  {
-    id: 'HAZ-0002',
-    type: 'Hazard',
-    category: 'Missing Fire Extinguisher Sign',
-    description: 'Fire extinguisher location sign missing in corridor B. Staff having difficulty locating emergency equipment.',
-    location: 'Head Office - Corridor B',
-    risk: 'Medium',
-    status: 'Open',
-    dateReported: '10 Mar 2026\n11:35 AM',
-    reportedBy: 'field@gmail.com',
-    equipmentInvolved: 'Fire safety equipment',
-    actions: [],
-    comments: [],
-  },
-  {
-    id: 'HAZ-0003',
-    type: 'Hazard',
-    category: 'Oil Spill Near Generator Area',
-    description: 'Oil spill detected near generator unit A. Area has been cordoned off pending cleanup. Potential environmental contamination risk.',
-    location: 'Refinery Site A - Generator Room',
-    risk: 'High',
-    status: 'Open',
-    dateReported: '09 Mar 2026\n10:30 AM',
-    reportedBy: 'field@gmail.com',
-    equipmentInvolved: 'Generator Unit A',
-    actions: [],
-    comments: [],
-  },
-  {
-    id: 'INC-0004',
-    type: 'Incident',
-    category: 'Worker Slipped on Wet Surface',
-    description: 'A cafeteria staff member slipped on a wet surface near the kitchen entrance. No serious injuries, but minor bruising reported. First aid was administered on site.',
-    location: 'Head Office - Cafeteria',
-    risk: 'Medium',
-    status: 'In Progress',
-    dateReported: '09 Mar 2026\n12:45 PM',
-    reportedBy: 'supervisor@gmail.com',
-    equipmentInvolved: 'None',
-    actions: [
-      {
-        id: 'ACT-001',
-        action: 'Install wet floor signs',
-        assignedTo: 'Maintenance Supervisor',
-        dueDate: 'Mar 15, 2026',
-        status: 'In Progress',
-      },
-    ],
-    comments: [
-      {
-        id: 'CMT-001',
-        author: 'Peter Omorogbolahan',
-        role: 'Admin',
-        text: 'Wet floor signs have been ordered. Maintenance team is scheduled to install them by end of week.',
-        timestamp: '09 Mar 2026, 02:15 PM',
-      },
-    ],
-  },
-  {
-    id: 'HAZ-0005',
-    type: 'Hazard',
-    category: 'Exposed Electrical Wiring in Storage',
-    description: 'Exposed electrical wiring found in storage area 3 during routine inspection. Wire insulation has degraded, creating risk of electrical shock or fire.',
-    location: 'Warehouse B - Storage Area 3',
-    risk: 'High',
-    status: 'Open',
-    dateReported: '08 Mar 2026\n09:15 AM',
-    reportedBy: 'field@gmail.com',
-    equipmentInvolved: 'Electrical wiring system',
-    actions: [],
-    comments: [],
-  },
-  {
-    id: 'INC-0006',
-    type: 'Incident',
-    category: 'Minor Chemical Splash on Worker',
-    description: 'Lab technician experienced a minor chemical splash on forearm while handling solvents. PPE gloves were worn but did not extend to elbow. Area was decontaminated.',
-    location: 'Refinery Site A - Lab Section',
-    risk: 'Medium',
-    status: 'In Progress',
-    dateReported: '08 Mar 2026\n02:20 PM',
-    reportedBy: 'supervisor@gmail.com',
-    equipmentInvolved: 'Chemical solvents, Lab gloves',
-    actions: [
-      {
-        id: 'ACT-002',
-        action: 'Provide PPE refresher training',
-        assignedTo: 'Safety Officer',
-        dueDate: 'Mar 12, 2026',
-        status: 'Open',
-      },
-    ],
-    comments: [
-      {
-        id: 'CMT-002',
-        author: 'Peter Omorogbolahan',
-        role: 'Admin',
-        text: 'PPE audit completed. Longer chemical-resistant gloves have been procured for all lab staff.',
-        timestamp: '08 Mar 2026, 04:30 PM',
-      },
-      {
-        id: 'CMT-003',
-        author: 'John Matthew',
-        role: 'Supervisor',
-        text: 'Refresher training session scheduled for March 12. All lab technicians must attend.',
-        timestamp: '09 Mar 2026, 09:00 AM',
-      },
-    ],
-  },
-  {
-    id: 'HAZ-0007',
-    type: 'Hazard',
-    category: 'Broken Handrail on Staircase',
-    description: 'Handrail on staircase B (2nd floor) is broken and wobbling. Multiple staff have reported instability while using the stairs. Risk of fall from height.',
-    location: 'Head Office - Staircase B, 2nd Floor',
-    risk: 'Medium',
-    status: 'In Progress',
-    dateReported: '07 Mar 2026\n08:00 AM',
-    reportedBy: 'field@gmail.com',
-    equipmentInvolved: 'Staircase handrail',
-    actions: [
-      {
-        id: 'ACT-003',
-        action: 'Replace broken handrail section',
-        assignedTo: 'Maintenance Lead',
-        dueDate: 'Mar 10, 2026',
-        status: 'In Progress',
-      },
-    ],
-    comments: [],
-  },
-  {
-    id: 'HAZ-0008',
-    type: 'Hazard',
-    category: 'Obstructed Emergency Exit Door',
-    description: 'Emergency exit door in loading bay blocked by stacked pallets and boxes. Exit route completely inaccessible. Violates fire safety regulations.',
-    location: 'Warehouse B - Loading Bay',
-    risk: 'High',
-    status: 'Closed',
-    dateReported: '07 Mar 2026\n10:45 AM',
-    reportedBy: 'field@gmail.com',
-    equipmentInvolved: 'Emergency exit door',
-    actions: [
-      {
-        id: 'ACT-004',
-        action: 'Clear obstructions and post warning signs',
-        assignedTo: 'Warehouse Manager',
-        dueDate: 'Mar 08, 2026',
-        status: 'Completed',
-      },
-    ],
-    comments: [],
-  },
-  {
-    id: 'INC-0009',
-    type: 'Incident',
-    category: 'Forklift Collision with Racking',
-    description: 'Forklift operator collided with storage racking in aisle 5, causing partial collapse of upper shelf. No personnel were injured. Operator reported limited visibility due to high load.',
-    location: 'Warehouse B - Aisle 5',
-    risk: 'High',
-    status: 'In Progress',
-    dateReported: '06 Mar 2026\n03:30 PM',
-    reportedBy: 'supervisor@gmail.com',
-    equipmentInvolved: 'Forklift FL-203, Storage racking',
-    actions: [
-      {
-        id: 'ACT-005',
-        action: 'Review forklift operator certification',
-        assignedTo: 'Operations Manager',
-        dueDate: 'Mar 13, 2026',
-        status: 'Open',
-      },
-      {
-        id: 'ACT-006',
-        action: 'Repair damaged racking',
-        assignedTo: 'Maintenance Lead',
-        dueDate: 'Mar 10, 2026',
-        status: 'In Progress',
-      },
-    ],
-    comments: [],
-  },
-  {
-    id: 'HAZ-0010',
-    type: 'Hazard',
-    category: 'Gas Odour Detected Near Pipeline',
-    description: 'Strong gas odour detected near pipeline section 4 during morning inspection. Area evacuated as precaution. Leak detection equipment deployed.',
-    location: 'Refinery Site A - Pipeline Section 4',
-    risk: 'High',
-    status: 'Open',
-    dateReported: '06 Mar 2026\n07:50 AM',
-    reportedBy: 'field@gmail.com',
-    equipmentInvolved: 'Gas pipeline section 4',
-    actions: [],
-    comments: [],
-  },
-  {
-    id: 'INC-0011',
-    type: 'Incident',
-    category: 'Scaffolding Collapse During Maintenance',
-    description: 'Section of scaffolding collapsed during tank farm maintenance work. Two workers sustained minor injuries and were treated at the on-site medical facility. Work halted pending investigation.',
-    location: 'Refinery Site A - Tank Farm',
-    risk: 'High',
-    status: 'In Progress',
-    dateReported: '05 Mar 2026\n11:20 AM',
-    reportedBy: 'supervisor@gmail.com',
-    equipmentInvolved: 'Scaffolding structure',
-    actions: [
-      {
-        id: 'ACT-007',
-        action: 'Conduct scaffolding integrity inspection',
-        assignedTo: 'Safety Officer',
-        dueDate: 'Mar 08, 2026',
-        status: 'Completed',
-      },
-      {
-        id: 'ACT-008',
-        action: 'Retrain scaffolding erection team',
-        assignedTo: 'HSE Manager',
-        dueDate: 'Mar 15, 2026',
-        status: 'In Progress',
-      },
-    ],
-    comments: [],
-  },
-  {
-    id: 'HAZ-0012',
-    type: 'Hazard',
-    category: 'Unmarked Trip Hazard on Walkway',
-    description: 'Raised concrete section on walkway near parking lot entrance is unmarked. Several near-miss incidents reported by staff entering the building.',
-    location: 'Head Office - Parking Lot Entrance',
-    risk: 'Low',
-    status: 'Closed',
-    dateReported: '05 Mar 2026\n09:00 AM',
-    reportedBy: 'field@gmail.com',
-    equipmentInvolved: 'None',
-    actions: [
-      {
-        id: 'ACT-009',
-        action: 'Paint hazard markings on raised surface',
-        assignedTo: 'Facilities Team',
-        dueDate: 'Mar 06, 2026',
-        status: 'Completed',
-      },
-    ],
-    comments: [],
-  },
-  {
-    id: 'INC-0013',
-    type: 'Incident',
-    category: 'Heat Exhaustion Reported by Field Worker',
-    description: 'Field worker experienced dizziness and nausea while working outdoors in high temperatures. Worker was moved to shaded area and given fluids. Recovered after 30 minutes rest.',
-    location: 'Refinery Site A - Outdoor Processing Area',
-    risk: 'Medium',
-    status: 'Closed',
-    dateReported: '04 Mar 2026\n01:15 PM',
-    reportedBy: 'supervisor@gmail.com',
-    equipmentInvolved: 'None',
-    actions: [
-      {
-        id: 'ACT-010',
-        action: 'Implement mandatory hydration breaks',
-        assignedTo: 'Field Supervisor',
-        dueDate: 'Mar 05, 2026',
-        status: 'Completed',
-      },
-    ],
-    comments: [],
-  },
-  {
-    id: 'HAZ-0014',
-    type: 'Hazard',
-    category: 'Corroded Valve on Pressure Line',
-    description: 'Significant corrosion observed on pressure line valve at compressor station. Valve integrity compromised, risk of pressure leak under high load conditions.',
-    location: 'Refinery Site A - Compressor Station',
-    risk: 'High',
-    status: 'In Progress',
-    dateReported: '04 Mar 2026\n08:30 AM',
-    reportedBy: 'field@gmail.com',
-    equipmentInvolved: 'Pressure line valve PV-112',
-    actions: [
-      {
-        id: 'ACT-011',
-        action: 'Schedule valve replacement',
-        assignedTo: 'Maintenance Lead',
-        dueDate: 'Mar 11, 2026',
-        status: 'In Progress',
-      },
-    ],
-    comments: [],
-  },
-  {
-    id: 'HAZ-0015',
-    type: 'Hazard',
-    category: 'Poor Lighting in Underground Parking',
-    description: 'Multiple light fixtures not functioning in basement parking area. Low visibility creating risk for pedestrians and vehicles. Three light panels completely out.',
-    location: 'Head Office - Basement Parking',
-    risk: 'Low',
-    status: 'Open',
-    dateReported: '03 Mar 2026\n04:00 PM',
-    reportedBy: 'field@gmail.com',
-    equipmentInvolved: 'Parking lot lighting system',
-    actions: [],
-    comments: [],
-  },
-  {
-    id: 'INC-0016',
-    type: 'Incident',
-    category: 'Vehicle Reversed into Safety Barrier',
-    description: 'Delivery truck reversed into safety barrier at gate entrance while manoeuvring. Barrier damaged but no personnel were in the area. Driver cited blind spot as cause.',
-    location: 'Warehouse B - Gate Entrance',
-    risk: 'Medium',
-    status: 'Closed',
-    dateReported: '03 Mar 2026\n10:10 AM',
-    reportedBy: 'supervisor@gmail.com',
-    equipmentInvolved: 'Delivery truck DT-045, Safety barrier',
-    actions: [
-      {
-        id: 'ACT-012',
-        action: 'Install reverse cameras on delivery vehicles',
-        assignedTo: 'Fleet Manager',
-        dueDate: 'Mar 10, 2026',
-        status: 'Completed',
-      },
-    ],
-    comments: [],
-  },
-  {
-    id: 'HAZ-0017',
-    type: 'Hazard',
-    category: 'Unsecured Gas Cylinders in Workshop',
-    description: 'Multiple gas cylinders found unsecured and without restraint chains in the maintenance workshop. Risk of cylinders falling over and causing injury or gas release.',
-    location: 'Refinery Site A - Maintenance Workshop',
-    risk: 'High',
-    status: 'Closed',
-    dateReported: '02 Mar 2026\n11:00 AM',
-    reportedBy: 'field@gmail.com',
-    equipmentInvolved: 'Gas cylinders (Oxygen, Acetylene)',
-    actions: [
-      {
-        id: 'ACT-013',
-        action: 'Install cylinder restraint chains',
-        assignedTo: 'Workshop Supervisor',
-        dueDate: 'Mar 04, 2026',
-        status: 'Completed',
-      },
-    ],
-    comments: [],
-  },
-  {
-    id: 'INC-0018',
-    type: 'Incident',
-    category: 'Electrical Short Circuit in Control Room',
-    description: 'Short circuit occurred in the main control room circuit breaker panel, causing a brief power outage. Backup systems activated. No injuries but operations disrupted for 45 minutes.',
-    location: 'Refinery Site A - Control Room',
-    risk: 'High',
-    status: 'In Progress',
-    dateReported: '02 Mar 2026\n02:45 PM',
-    reportedBy: 'supervisor@gmail.com',
-    equipmentInvolved: 'Circuit breaker panel CB-01',
-    actions: [
-      {
-        id: 'ACT-014',
-        action: 'Full electrical audit of control room',
-        assignedTo: 'Electrical Engineer',
-        dueDate: 'Mar 09, 2026',
-        status: 'In Progress',
-      },
-      {
-        id: 'ACT-015',
-        action: 'Replace faulty circuit breaker panel',
-        assignedTo: 'Maintenance Lead',
-        dueDate: 'Mar 07, 2026',
-        status: 'Completed',
-      },
-    ],
-    comments: [],
-  },
-  {
-    id: 'HAZ-0019',
-    type: 'Hazard',
-    category: 'Inadequate Ventilation in Confined Space',
-    description: 'Air quality tests in underground tank showed oxygen levels below safe threshold. Ventilation fans not operational. All confined space entry permits suspended until resolved.',
-    location: 'Refinery Site A - Underground Tank',
-    risk: 'High',
-    status: 'Open',
-    dateReported: '01 Mar 2026\n09:30 AM',
-    reportedBy: 'field@gmail.com',
-    equipmentInvolved: 'Ventilation fans, Air quality monitor',
-    actions: [],
-    comments: [],
-  },
-  {
-    id: 'INC-0020',
-    type: 'Incident',
-    category: 'PPE Failure During Welding Operation',
-    description: 'Welding helmet auto-darkening feature malfunctioned during welding operation. Welder experienced brief flash exposure. Examined by on-site medic, no permanent damage.',
-    location: 'Refinery Site A - Fabrication Bay',
-    risk: 'Medium',
-    status: 'Closed',
-    dateReported: '01 Mar 2026\n03:15 PM',
-    reportedBy: 'field@gmail.com',
-    equipmentInvolved: 'Welding helmet WH-18',
-    actions: [
-      {
-        id: 'ACT-016',
-        action: 'Replace defective welding helmets',
-        assignedTo: 'Safety Officer',
-        dueDate: 'Mar 03, 2026',
-        status: 'Completed',
-      },
-      {
-        id: 'ACT-017',
-        action: 'Audit all PPE inventory',
-        assignedTo: 'HSE Manager',
-        dueDate: 'Mar 08, 2026',
-        status: 'Completed',
-      },
-    ],
-    comments: [],
-  },
-];
+// Use only backend API data - no mock data
+const initialReports: Report[] = [];
 
 export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Helper to generate suggested actions from report attributes
+  const generateSuggestedActions = (report: Report): Action[] => {
+    const suggestedActions: Action[] = [];
+    const now = new Date();
+    const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    
+    const formatDate = (date: Date) => {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${months[date.getMonth()]} ${String(date.getDate()).padStart(2, '0')}, ${date.getFullYear()}`;
+    };
+
+    if (report.risk === 'High') {
+      suggestedActions.push({
+        id: `ACT-SUGG-${report.id}-001`,
+        action: 'Investigate and mitigate high-risk hazard',
+        assignedTo: 'Safety Officer',
+        dueDate: formatDate(nextWeek),
+        status: 'Open',
+        type: 'Suggested',
+      });
+    }
+
+    if (report.risk === 'Medium') {
+      suggestedActions.push({
+        id: `ACT-SUGG-${report.id}-002`,
+        action: 'Review and assess impact',
+        assignedTo: 'Supervisor',
+        dueDate: formatDate(nextWeek),
+        status: 'Open',
+        type: 'Suggested',
+      });
+    }
+
+    if (report.type === 'Incident') {
+      suggestedActions.push({
+        id: `ACT-SUGG-${report.id}-003`,
+        action: 'Review incident and document lessons learned',
+        assignedTo: 'HSE Manager',
+        dueDate: formatDate(nextWeek),
+        status: 'Open',
+        type: 'Suggested',
+      });
+    }
+
+    if (report.status === 'Open') {
+      suggestedActions.push({
+        id: `ACT-SUGG-${report.id}-004`,
+        action: 'Review and prioritize response',
+        assignedTo: 'Operations Manager',
+        dueDate: formatDate(nextWeek),
+        status: 'Open',
+        type: 'Suggested',
+      });
+    }
+
+    return suggestedActions;
+  };
+
+  // Helper to load saved user-created actions from localStorage
+  const loadSavedActions = (): Record<string, Action[]> => {
+    try {
+      const saved = localStorage.getItem('aegix_report_actions');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  };
+
+  // Helper to save user-created actions to localStorage
+  const saveActionsToStorage = (reportId: string, actions: Action[]) => {
+    try {
+      const saved = loadSavedActions();
+      saved[reportId] = actions.filter(a => a.type === 'User-Created');
+      localStorage.setItem('aegix_report_actions', JSON.stringify(saved));
+    } catch (err) {
+      console.error('Failed to save actions to localStorage:', err);
+    }
+  };
 
   // Helper to load saved comments from localStorage
   const loadSavedComments = (): Record<string, Comment[]> => {
@@ -529,18 +174,47 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  // Merge saved comments into fetched reports
-  const mergeWithSavedComments = (fetchedReports: Report[]): Report[] => {
-    const saved = loadSavedComments();
+  // Merge saved and suggested actions into fetched reports
+  const mergeWithActionsAndComments = (fetchedReports: Report[]): Report[] => {
+    const savedActions = loadSavedActions();
+    const savedComments = loadSavedComments();
+    const closedReportIds = loadClosedReports();
+    
     return fetchedReports.map(report => {
-      const savedComments = saved[report.id];
-      if (savedComments && savedComments.length > 0) {
-        // Merge: add saved comments that aren't already in the report
-        const existingIds = new Set(report.comments.map(c => c.id));
-        const newComments = savedComments.filter(c => !existingIds.has(c.id));
-        return { ...report, comments: [...newComments, ...report.comments] };
+      // Check if report is closed in localStorage
+      const isClosed = closedReportIds.includes(report.id);
+      
+      // Merge actions: suggested + API + user-created
+      const suggestedActions = generateSuggestedActions(report);
+      const userCreatedActions = (savedActions[report.id] || []).filter(a => a.type === 'User-Created');
+      
+      // Combine all actions
+      let allActions = [...suggestedActions, ...report.actions, ...userCreatedActions];
+      
+      // If report is closed, mark all actions as Completed
+      if (isClosed) {
+        allActions = allActions.map(action => ({
+          ...action,
+          status: 'Completed' as ActionStatus
+        }));
+        console.log(`🔒 Report ${report.id} is closed - marking ${allActions.length} actions as Completed`);
       }
-      return report;
+      
+      // Merge comments
+      const savedCommentsList = savedComments[report.id];
+      let finalComments = report.comments;
+      if (savedCommentsList && savedCommentsList.length > 0) {
+        const existingIds = new Set(report.comments.map(c => c.id));
+        const newComments = savedCommentsList.filter(c => !existingIds.has(c.id));
+        finalComments = [...newComments, ...report.comments];
+      }
+      
+      return {
+        ...report,
+        status: isClosed ? 'Closed' : report.status,
+        actions: allActions,
+        comments: finalComments,
+      };
     });
   };
 
@@ -549,12 +223,12 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setLoading(true);
       setError(null);
       const data = await reportService.getReports();
-      setReports(mergeWithSavedComments(data));
+      setReports(mergeWithActionsAndComments(data));
     } catch (err) {
       console.error('Failed to fetch reports from API, using fallback data:', err);
       setError('Failed to load reports from server');
       // Fallback to hardcoded data so the UI still works
-      setReports(mergeWithSavedComments(initialReports));
+      setReports(mergeWithActionsAndComments(initialReports));
     } finally {
       setLoading(false);
     }
@@ -568,12 +242,37 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [fetchReports]);
 
+  // Load closed reports from localStorage
+  const loadClosedReports = (): string[] => {
+    try {
+      const stored = localStorage.getItem('aegix_report_closed');
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      console.error('Failed to load closed reports:', e);
+      return [];
+    }
+  };
+
+  // Save closed reports to localStorage
+  const saveClosedReportsToStorage = (closedReportIds: string[]) => {
+    try {
+      localStorage.setItem('aegix_report_closed', JSON.stringify(closedReportIds));
+      // Emit storage event for cross-tab sync
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'aegix_report_closed',
+        newValue: JSON.stringify(closedReportIds),
+      }));
+    } catch (e) {
+      console.error('Failed to save closed reports:', e);
+    }
+  };
+
   // Listen for localStorage changes from other tabs (cross-tab sync)
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'aegix_report_comments') {
-        // Comments changed in another tab - refresh reports to pick up new comments
-        console.log('📢 Comments updated in another tab, syncing...');
+      if (e.key === 'aegix_report_comments' || e.key === 'aegix_report_actions' || e.key === 'aegix_report_closed') {
+        // Comments, actions, or closed status changed in another tab - refresh reports to pick up changes
+        console.log(`📢 ${e.key} updated in another tab, syncing...`);
         fetchReports();
       }
     };
@@ -590,20 +289,39 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const report = reports.find(r => r.id === reportId);
     const backendId = report?._id;
 
-    // Optimistic update
+    // Save to localStorage - this marks the report as closed
+    const closedReports = loadClosedReports();
+    if (!closedReports.includes(reportId)) {
+      closedReports.push(reportId);
+      saveClosedReportsToStorage(closedReports);
+      console.log(`💾 Report ${reportId} marked as closed in localStorage`);
+    }
+
+    // Optimistic update - close report and mark all actions as completed
     setReports(prev =>
       prev.map(r =>
-        r.id === reportId ? { ...r, status: 'Closed' as ReportStatus } : r
+        r.id === reportId 
+          ? { 
+              ...r, 
+              status: 'Closed' as ReportStatus,
+              // Mark all actions as completed when report is closed
+              actions: r.actions.map(action => ({
+                ...action,
+                status: 'Completed' as ActionStatus
+              }))
+            } 
+          : r
       )
     );
 
     if (backendId) {
       try {
         await reportService.closeReport(backendId);
+        console.log(`✅ Report ${reportId} closed on server`);
       } catch (err) {
         console.error('Failed to close report on server:', err);
-        // Revert on failure
-        fetchReports();
+        // Keep closed locally even if server fails
+        console.log(`⚠️ Report ${reportId} closed locally (server sync pending)`);
       }
     }
   };
@@ -678,14 +396,19 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       assignedTo: actionData.assignedTo,
       dueDate: formatDate(actionData.dueDate),
       status: 'Open',
+      type: 'User-Created',
     };
 
     setReports(prev =>
-      prev.map(r =>
-        r.id === reportId
-          ? { ...r, actions: [...r.actions, newAction] }
-          : r
-      )
+      prev.map(r => {
+        if (r.id === reportId) {
+          const updatedActions = [...r.actions, newAction];
+          // Persist user-created actions to localStorage
+          saveActionsToStorage(reportId, updatedActions);
+          return { ...r, actions: updatedActions };
+        }
+        return r;
+      })
     );
 
     if (backendId) {

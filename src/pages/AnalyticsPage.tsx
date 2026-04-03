@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
+import { useReports } from '@/services/ReportsContext';
 import {
   AreaChart,
   Area,
@@ -18,79 +19,18 @@ import {
   Line,
 } from 'recharts';
 
-type TimeFilter = '12 months' | '6 months' | '30 days' | '7 days' | 'Custom range';
+type TimeFilter = '12 months' | '6 months' | '30 days' | '7 days';
 
-// Mock data for charts
-const reportTrendsData = [
-  { month: 'Jan', hazard: 45, incident: 25 },
-  { month: 'Feb', hazard: 35, incident: 20 },
-  { month: 'Mar', hazard: 30, incident: 15 },
-  { month: 'Apr', hazard: 25, incident: 10 },
-  { month: 'May', hazard: 35, incident: 15 },
-  { month: 'Jun', hazard: 55, incident: 40 },
-  { month: 'Jul', hazard: 45, incident: 30 },
-  { month: 'Aug', hazard: 30, incident: 20 },
-  { month: 'Sep', hazard: 25, incident: 15 },
-  { month: 'Oct', hazard: 30, incident: 20 },
-  { month: 'Nov', hazard: 45, incident: 30 },
-  { month: 'Dec', hazard: 55, incident: 40 },
-];
-
-const actionsByStatusData = [
-  { name: 'Open', value: 40, color: '#FF3B30' },
-  { name: 'In Progress', value: 26, color: '#FF9500' },
-  { name: 'Completed', value: 18, color: '#34C759' },
-  { name: 'Closed', value: 9, color: '#8E8E93' },
-  { name: 'Overdue', value: 7, color: '#AF52DE' },
-];
-
-const reportsByLocationData = [
-  { name: 'North Sea Platform', reports: 95, color: '#C24438' },
-  { name: 'Gulf of Mexico', reports: 75, color: '#FF9500' },
-  { name: 'Houston Office', reports: 55, color: '#FFCC00' },
-  { name: 'Alaska Pipeline', reports: 40, color: '#34C759' },
-  { name: 'Singapore Refinery', reports: 25, color: '#007AFF' },
-];
-
-const reportsBySeverityData = [
-  { range: '1-5', count: 45, color: '#34C759' },
-  { range: '6-10', count: 65, color: '#A8D08D' },
-  { range: '11-15', count: 85, color: '#FFCC00' },
-  { range: '16-20', count: 55, color: '#FF9500' },
-  { range: '21-25', count: 35, color: '#FF3B30' },
-];
-
-const riskLevelData = [
-  { name: 'Low', value: 48, color: '#34C759' },
-  { name: 'Medium', value: 24, color: '#FF9500' },
-  { name: 'High', value: 8, color: '#FF3B30' },
-];
-
-const reportsByCategoryData = [
-  { name: 'Electrical', value: 46, color: '#C24438' },
-  { name: 'Fire', value: 24, color: '#FF9500' },
-  { name: 'Slips & Trips', value: 15, color: '#FFCC00' },
-  { name: 'Chemical', value: 8, color: '#34C759' },
-  { name: 'Machinery', value: 7, color: '#007AFF' },
-];
-
-const safetyImprovementData = [
-  { month: 'Jan', value: 10 },
-  { month: 'Feb', value: 15 },
-  { month: 'Mar', value: 12 },
-  { month: 'Apr', value: 18 },
-  { month: 'May', value: 22 },
-  { month: 'Jun', value: 25 },
-];
-
-const riskAlertData = [
-  { month: 'Jan', value: 5 },
-  { month: 'Feb', value: 8 },
-  { month: 'Mar', value: 6 },
-  { month: 'Apr', value: 10 },
-  { month: 'May', value: 12 },
-  { month: 'Jun', value: 15 },
-];
+// Helper function to categorize reports based on keywords
+const categorizeReport = (category: string): string => {
+  const lower = category.toLowerCase();
+  if (lower.includes('electrical') || lower.includes('wiring') || lower.includes('power')) return 'Electrical';
+  if (lower.includes('fire') || lower.includes('extinguisher') || lower.includes('emergency exit')) return 'Fire';
+  if (lower.includes('slip') || lower.includes('trip') || lower.includes('floor') || lower.includes('surface')) return 'Slips & Trips';
+  if (lower.includes('chemical') || lower.includes('oil') || lower.includes('spill') || lower.includes('gas')) return 'Chemical';
+  if (lower.includes('machinery') || lower.includes('forklift') || lower.includes('scaffolding') || lower.includes('equipment')) return 'Machinery';
+  return 'Other';
+};
 
 export const AnalyticsPage: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -98,7 +38,411 @@ export const AnalyticsPage: React.FC = () => {
   const [trendsFilter, setTrendsFilter] = useState<TimeFilter>('12 months');
   const [locationFilter, setLocationFilter] = useState<TimeFilter>('12 months');
 
-  const timeFilters: TimeFilter[] = ['12 months', '6 months', '30 days', '7 days', 'Custom range'];
+  // Get real reports data
+  const { reports } = useReports();
+
+  // Calculate stat card values from real data
+  const totalReportsCount = useMemo(() => reports.length, [reports]);
+
+  const reportsTrendPercentage = useMemo(() => {
+    const now = new Date();
+    const last30Start = new Date(now);
+    last30Start.setDate(last30Start.getDate() - 30);
+    const last60Start = new Date(now);
+    last60Start.setDate(last60Start.getDate() - 60);
+
+    const last30 = reports.filter(r => {
+      const dateStr = r.dateReported.split('\n')[0];
+      const reportDate = new Date(dateStr);
+      return reportDate >= last30Start && reportDate <= now;
+    }).length;
+
+    const previous30 = reports.filter(r => {
+      const dateStr = r.dateReported.split('\n')[0];
+      const reportDate = new Date(dateStr);
+      return reportDate >= last60Start && reportDate < last30Start;
+    }).length;
+
+    if (previous30 === 0) return 0;
+    return Math.round(((last30 - previous30) / previous30) * 100);
+  }, [reports]);
+
+  const totalActionsCount = useMemo(() => {
+    return reports.reduce((sum, report) => sum + report.actions.length, 0);
+  }, [reports]);
+
+  const newActionsThisWeek = useMemo(() => {
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    let count = 0;
+
+    reports.forEach(report => {
+      report.actions.forEach(action => {
+        try {
+          const dueDate = new Date(action.dueDate);
+          if (dueDate >= weekAgo) count++;
+        } catch (e) {
+          // Skip if date parsing fails
+        }
+      });
+    });
+
+    return count;
+  }, [reports]);
+
+  const openActionsCount = useMemo(() => {
+    return reports.reduce((sum, report) => {
+      return sum + report.actions.filter(a => a.status === 'Open').length;
+    }, 0);
+  }, [reports]);
+
+  const inProgressActionsCount = useMemo(() => {
+    return reports.reduce((sum, report) => {
+      return sum + report.actions.filter(a => a.status === 'In Progress').length;
+    }, 0);
+  }, [reports]);
+
+  const overdueActionsCount = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let count = 0;
+
+    reports.forEach(report => {
+      report.actions.forEach(action => {
+        if (action.status !== 'Completed') {
+          try {
+            const dueDate = new Date(action.dueDate);
+            dueDate.setHours(0, 0, 0, 0);
+            if (dueDate < today) count++;
+          } catch (e) {
+            // Skip if date parsing fails
+          }
+        }
+      });
+    });
+
+    return count;
+  }, [reports]);
+
+  // Calculate severity data from real reports
+  // Severity mapping: Low risk (1-2), Medium risk (3), High risk (4-5)
+  const reportsBySeverityData = useMemo(() => {
+    const severityMap = {
+      '1-2': { count: 0, color: '#34C759' },    // Low
+      '3': { count: 0, color: '#FFCC00' },      // Medium
+      '4-5': { count: 0, color: '#FF3B30' },    // High
+    };
+
+    reports.forEach(report => {
+      if (report.risk === 'Low') {
+        severityMap['1-2'].count += 1;
+      } else if (report.risk === 'Medium') {
+        severityMap['3'].count += 1;
+      } else if (report.risk === 'High') {
+        severityMap['4-5'].count += 1;
+      }
+    });
+
+    return [
+      { range: '1-2', count: severityMap['1-2'].count, color: severityMap['1-2'].color },
+      { range: '3', count: severityMap['3'].count, color: severityMap['3'].color },
+      { range: '4-5', count: severityMap['4-5'].count, color: severityMap['4-5'].color },
+    ];
+  }, [reports]);
+
+  // Calculate risk level distribution from real reports (with percentages)
+  const riskLevelData = useMemo(() => {
+    const riskMap = {
+      'Low': { count: 0, color: '#34C759' },
+      'Medium': { count: 0, color: '#FF9500' },
+      'High': { count: 0, color: '#FF3B30' },
+    };
+
+    reports.forEach(report => {
+      if (riskMap[report.risk]) {
+        riskMap[report.risk].count += 1;
+      }
+    });
+
+    const total = reports.length || 1; // Avoid division by zero
+    
+    return [
+      { 
+        name: 'Low', 
+        value: Math.round((riskMap['Low'].count / total) * 100), 
+        color: riskMap['Low'].color 
+      },
+      { 
+        name: 'Medium', 
+        value: Math.round((riskMap['Medium'].count / total) * 100), 
+        color: riskMap['Medium'].color 
+      },
+      { 
+        name: 'High', 
+        value: Math.round((riskMap['High'].count / total) * 100), 
+        color: riskMap['High'].color 
+      },
+    ];
+  }, [reports]);
+
+  // Calculate actions by status from real action data
+  const actionsByStatusData = useMemo(() => {
+    const statusMap = {
+      'Open': { count: 0, color: '#FF3B30' },
+      'In Progress': { count: 0, color: '#FF9500' },
+      'Completed': { count: 0, color: '#34C759' },
+    };
+
+    // Iterate through all reports and count actions by status
+    reports.forEach(report => {
+      report.actions.forEach(action => {
+        if (statusMap[action.status]) {
+          statusMap[action.status].count += 1;
+        }
+      });
+    });
+
+    const total = Object.values(statusMap).reduce((sum, item) => sum + item.count, 0) || 1; // Avoid division by zero
+
+    return [
+      { 
+        name: 'Open', 
+        value: Math.round((statusMap['Open'].count / total) * 100), 
+        color: statusMap['Open'].color 
+      },
+      { 
+        name: 'In Progress', 
+        value: Math.round((statusMap['In Progress'].count / total) * 100), 
+        color: statusMap['In Progress'].color 
+      },
+      { 
+        name: 'Completed', 
+        value: Math.round((statusMap['Completed'].count / total) * 100), 
+        color: statusMap['Completed'].color 
+      },
+    ];
+  }, [reports]);
+
+  // Calculate top 5 locations by report count (filtered by time period)
+  const reportsByLocationData = useMemo(() => {
+    const colorPalette = ['#C24438', '#FF9500', '#FFCC00', '#34C759', '#007AFF'];
+    const locationMap: { [key: string]: number } = {};
+    const now = new Date();
+
+    // Filter reports based on locationFilter
+    const filteredReports = reports.filter(report => {
+      const dateStr = report.dateReported.split('\n')[0];
+      const reportDate = new Date(dateStr);
+      const daysDiff = (now.getTime() - reportDate.getTime()) / (1000 * 60 * 60 * 24);
+
+      if (locationFilter === '12 months') return daysDiff <= 365;
+      if (locationFilter === '6 months') return daysDiff <= 180;
+      if (locationFilter === '30 days') return daysDiff <= 30;
+      if (locationFilter === '7 days') return daysDiff <= 7;
+      return true;
+    });
+
+    // Count reports by location
+    filteredReports.forEach(report => {
+      const loc = report.location;
+      if (loc) {
+        locationMap[loc] = (locationMap[loc] || 0) + 1;
+      }
+    });
+
+    // Sort by count descending and take top 5
+    const topLocations = Object.entries(locationMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    // Map to chart format with colors
+    return topLocations.map(([location, count], index) => ({
+      name: location,
+      reports: count,
+      color: colorPalette[index % colorPalette.length],
+    }));
+  }, [reports, locationFilter]);
+
+  // Calculate dynamic max for location scale
+  const locationMaxValue = useMemo(() => {
+    if (reportsByLocationData.length === 0) return 10;
+    const max = Math.max(...reportsByLocationData.map(item => item.reports));
+    return Math.ceil(max * 1.1); // Add 10% padding
+  }, [reportsByLocationData]);
+
+  // Calculate reports by category from real reports
+  const reportsByCategoryData = useMemo(() => {
+    const colorPalette = ['#C24438', '#FF9500', '#FFCC00', '#34C759', '#007AFF'];
+    const categoryMap: { [key: string]: number } = {};
+
+    // Categorize each report and count
+    reports.forEach(report => {
+      const cat = categorizeReport(report.category);
+      categoryMap[cat] = (categoryMap[cat] || 0) + 1;
+    });
+
+    // Sort by count descending and take top 5
+    const topCategories = Object.entries(categoryMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    // Map to chart format with colors
+    return topCategories.map(([name, count], index) => ({
+      name,
+      value: count,
+      color: colorPalette[index % colorPalette.length],
+    }));
+  }, [reports]);
+
+  // Calculate safety improvement (completed actions per month for last 12 months)
+  const safetyImprovementData = useMemo(() => {
+    const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthlyData: { [key: string]: number } = {};
+
+    // Initialize last 12 months
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const key = monthLabels[date.getMonth()];
+      if (!monthlyData[key]) monthlyData[key] = 0;
+    }
+
+    // Count completed actions per month
+    reports.forEach(report => {
+      report.actions.forEach(action => {
+        if (action.status === 'Completed') {
+          // Parse the dueDate to get month - format: "Mar 15, 2026"
+          try {
+            const dueDate = new Date(action.dueDate);
+            const key = monthLabels[dueDate.getMonth()];
+            if (key) monthlyData[key]++;
+          } catch (e) {
+            // Skip if date parsing fails
+          }
+        }
+      });
+    });
+
+    // Convert to array and return last 12 months
+    return Object.entries(monthlyData).map(([month, value]) => ({
+      month,
+      value,
+    }));
+  }, [reports]);
+
+  // Calculate risk alert (high-risk reports per month for last 12 months)
+  const riskAlertData = useMemo(() => {
+    const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthlyData: { [key: string]: number } = {};
+
+    // Initialize last 12 months
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const key = monthLabels[date.getMonth()];
+      if (!monthlyData[key]) monthlyData[key] = 0;
+    }
+
+    // Count high-risk reports per month
+    reports.forEach(report => {
+      if (report.risk === 'High') {
+        // Parse the dateReported to get month - format: "DD MMM, YYYY\nHH:MM AM/PM"
+        try {
+          const dateStr = report.dateReported.split('\n')[0];
+          const reportDate = new Date(dateStr);
+          const key = monthLabels[reportDate.getMonth()];
+          if (key) monthlyData[key]++;
+        } catch (e) {
+          // Skip if date parsing fails
+        }
+      }
+    });
+
+    // Convert to array and return last 12 months
+    return Object.entries(monthlyData).map(([month, value]) => ({
+      month,
+      value,
+    }));
+  }, [reports]);
+
+  // Calculate report trends based on selected filter
+  const reportTrendsData = useMemo(() => {
+    const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    let timeData: { [key: string]: { hazard: number; incident: number } } = {};
+
+    if (trendsFilter === '12 months') {
+      // Create last 12 months
+      for (let i = 11; i >= 0; i--) {
+        const date = new Date();
+        date.setMonth(date.getMonth() - i);
+        const key = monthLabels[date.getMonth()];
+        if (!timeData[key]) {
+          timeData[key] = { hazard: 0, incident: 0 };
+        }
+      }
+    } else if (trendsFilter === '6 months') {
+      // Create last 6 months
+      for (let i = 5; i >= 0; i--) {
+        const date = new Date();
+        date.setMonth(date.getMonth() - i);
+        const key = monthLabels[date.getMonth()];
+        if (!timeData[key]) {
+          timeData[key] = { hazard: 0, incident: 0 };
+        }
+      }
+    } else if (trendsFilter === '30 days') {
+      // Create last 30 days
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const key = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (!timeData[key]) {
+          timeData[key] = { hazard: 0, incident: 0 };
+        }
+      }
+    } else if (trendsFilter === '7 days') {
+      // Create last 7 days
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const key = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (!timeData[key]) {
+          timeData[key] = { hazard: 0, incident: 0 };
+        }
+      }
+    }
+
+    // Count reports by type and time period
+    reports.forEach(report => {
+      // Parse the dateReported which is formatted as "DD MMM, YYYY\nHH:MM AM/PM"
+      const dateStr = report.dateReported.split('\n')[0]; // Get just the date part
+      const date = new Date(dateStr);
+      
+      let key: string;
+      if (trendsFilter === '12 months' || trendsFilter === '6 months') {
+        key = monthLabels[date.getMonth()];
+      } else {
+        // 30 days or 7 days
+        key = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
+      
+      if (timeData[key]) {
+        if (report.type === 'Hazard') {
+          timeData[key].hazard += 1;
+        } else if (report.type === 'Incident') {
+          timeData[key].incident += 1;
+        }
+      }
+    });
+
+    return Object.entries(timeData).map(([label, data]) => ({
+      month: label,
+      hazard: data.hazard,
+      incident: data.incident,
+    }));
+  }, [reports, trendsFilter]);
+
+  const timeFilters: TimeFilter[] = ['12 months', '6 months', '30 days', '7 days'];
 
   return (
     <div className="min-h-screen bg-background-light">
@@ -128,42 +472,42 @@ export const AnalyticsPage: React.FC = () => {
             {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" data-aos="fade-up">
               {/* Total Reports */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100">
-                <div className="flex items-center justify-between mb-2">
+              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100 flex flex-col">
+                <div className="flex items-center justify-between mb-2 h-6">
                   <span className="text-sm text-gray-600">Total Reports</span>
-                  <span className="text-green-600 bg-green-50 px-2 py-1 rounded-full text-xs">+12% from last 30 days</span>
+                  <span className={`px-2 py-1 rounded-full text-xs whitespace-nowrap ${reportsTrendPercentage >= 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'}`}>{reportsTrendPercentage >= 0 ? '+' : ''}{reportsTrendPercentage}% from last 30 days</span>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">248</div>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{totalReportsCount}</div>
                 <p className="text-xs text-gray-500 mt-1">Hazard and Incident reported</p>
               </div>
 
               {/* Total Actions */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100">
-                <div className="flex items-center justify-between mb-2">
+              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100 flex flex-col">
+                <div className="flex items-center justify-between mb-2 h-6">
                   <span className="text-sm text-gray-600">Total Actions</span>
-                  <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">+8 new actions this week </span>
+                  <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full whitespace-nowrap">+{newActionsThisWeek} new actions this week </span>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">190</div>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{totalActionsCount}</div>
                 <p className="text-xs text-gray-500 mt-1">Corrective actions created</p>
               </div>
 
               {/* Open Actions */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100">
-                <div className="flex items-center justify-between mb-2">
+              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100 flex flex-col">
+                <div className="flex items-center justify-between mb-2 h-6">
                   <span className="text-sm text-gray-600">Open Actions</span>
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">12 in progress</span>
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full whitespace-nowrap">{inProgressActionsCount} in progress</span>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">34</div>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{openActionsCount}</div>
                 <p className="text-xs text-gray-500 mt-1">Actions not yet completed</p>
               </div>
 
               {/* Overdue Actions */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100">
-                <div className="flex items-center justify-between mb-2">
+              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100 flex flex-col">
+                <div className="flex items-center justify-between mb-2 h-6">
                   <span className="text-sm text-gray-600">Overdue Actions</span>
-                  <span className="text-xs text-[#C24438] bg-red-50 px-2 py-1 rounded-full">Requires attention</span>
+                  <span className="text-xs text-[#C24438] bg-red-50 px-2 py-1 rounded-full whitespace-nowrap">Requires attention</span>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">6</div>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900">{overdueActionsCount}</div>
                 <p className="text-xs text-gray-500 mt-1">Past due date</p>
               </div>
             </div>
@@ -289,7 +633,7 @@ export const AnalyticsPage: React.FC = () => {
                     <p className="text-sm text-gray-500">Locations with the highest number of reports</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    {['12 months', '30 days', '7 days', 'Custom range'].map((filter) => (
+                    {['12 months', '30 days', '7 days'].map((filter) => (
                       <button
                         key={filter}
                         onClick={() => setLocationFilter(filter as TimeFilter)}
@@ -315,7 +659,7 @@ export const AnalyticsPage: React.FC = () => {
                         <div
                           className="h-full rounded-full transition-all duration-500"
                           style={{
-                            width: `${(item.reports / 100) * 100}%`,
+                            width: `${(item.reports / locationMaxValue) * 100}%`,
                             backgroundColor: item.color,
                           }}
                         ></div>
@@ -324,27 +668,12 @@ export const AnalyticsPage: React.FC = () => {
                   ))}
                 </div>
                 <div className="flex items-center gap-1 mt-4 text-xs text-gray-400">
-                  <span>0</span>
-                  <span className="flex-1"></span>
-                  <span>10</span>
-                  <span className="flex-1"></span>
-                  <span>20</span>
-                  <span className="flex-1"></span>
-                  <span>30</span>
-                  <span className="flex-1"></span>
-                  <span>40</span>
-                  <span className="flex-1"></span>
-                  <span>50</span>
-                  <span className="flex-1"></span>
-                  <span>60</span>
-                  <span className="flex-1"></span>
-                  <span>70</span>
-                  <span className="flex-1"></span>
-                  <span>80</span>
-                  <span className="flex-1"></span>
-                  <span>90</span>
-                  <span className="flex-1"></span>
-                  <span>100</span>
+                  {Array.from({ length: 11 }, (_, i) => Math.round((locationMaxValue / 10) * i)).map((value, index) => (
+                    <React.Fragment key={index}>
+                      <span>{value}</span>
+                      {index < 10 && <span className="flex-1"></span>}
+                    </React.Fragment>
+                  ))}
                 </div>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import api from '@/lib/axios';
 import type { Report, Action, Comment } from '@/services/ReportsContext';
+import { generateDisplayId } from '@/services/idGenerator';
 
 // Backend API response types
 interface ApiLocation {
@@ -27,6 +28,7 @@ interface ApiReport {
     userId: { _id: string; email: string };
     role: string;
   };
+  displayId?: string; // Will be provided by backend in future
   actions?: ApiAction[];
   comments?: ApiComment[];
 }
@@ -45,17 +47,6 @@ interface ApiComment {
   role: string;
   text: string;
   createdAt: string;
-}
-
-// Generate stable ID from backend _id hash
-function generateReportId(recordType: string, backendId: string): string {
-  const prefix = recordType === 'hazard' ? 'HAZ' : 'INC';
-  // Generate a stable 4-digit number from the backend _id hash
-  const hash = backendId
-    .split('')
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const number = (hash % 9000) + 1000; // Generate 4-digit number between 1000-10000
-  return `${prefix}-${String(number).padStart(4, '0')}`;
 }
 
 function formatLocation(location: ApiLocation): string {
@@ -108,8 +99,9 @@ function mapActionStatus(status: string): 'Open' | 'In Progress' | 'Completed' {
 function mapApiReportToReport(apiReport: ApiReport): Report {
   const type = apiReport.recordType === 'hazard' ? 'Hazard' : 'Incident';
 
-  // Generate stable ID based on backend _id hash (not affected by order)
-  const displayId = generateReportId(apiReport.recordType, apiReport._id);
+  // Generate display ID using the idGenerator service
+  // When backend provides displayId field, this will automatically use it
+  const displayId = generateDisplayId(apiReport);
 
   const actions: Action[] = (apiReport.actions || []).map((a, i) => ({
     id: a._id || `ACT-${String(i + 1).padStart(3, '0')}`,
@@ -146,10 +138,6 @@ function mapApiReportToReport(apiReport: ApiReport): Report {
 
 export const reportService = {
   async getReports(): Promise<Report[]> {
-    // Reset counters for each fetch
-    hazardCounter = 0;
-    incidentCounter = 0;
-
     const response = await api.get('/api/reports');
     const apiReports: ApiReport[] = Array.isArray(response.data)
       ? response.data
