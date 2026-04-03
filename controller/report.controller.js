@@ -155,3 +155,50 @@ exports.getReportsByUser = async (req, res) => {
         });
     }
 };
+
+// Get reports summary/dashboard
+exports.getReportsSummary = async (req, res) => {
+    try {
+        // Count total reports
+        const total_reports = await Report.countDocuments();
+
+        // Count open reports
+        const open_reports = await Report.countDocuments({ status: "open" });
+
+        // Count high_risk reports (high or critical)
+        const high_risk_reports = await Report.countDocuments({ 
+            riskLevel: { $in: ["high", "critical"] } 
+        });
+
+        // Count action_required reports
+        const actions = await Report.countDocuments({ status: "action_required" });
+
+        // Count completed reports
+        const actions_completed = await Report.countDocuments({ status: "completed" });
+
+        // Count closed reports (same as completed)
+        const closed_reports = await Report.countDocuments({ status: "completed" });
+
+        // Count in_progress reports
+        const in_progress = await Report.countDocuments({ status: "in_progress" });
+
+        res.status(200).json({
+            success: true,
+            data: {
+                total_reports,
+                open_reports,
+                high_risk_reports,
+                actions,
+                actions_completed,
+                closed_reports,
+                in_progress
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error fetching reports summary",
+            error: error.message
+        });
+    }
+};

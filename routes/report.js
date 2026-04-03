@@ -7,8 +7,17 @@ const {
     createReport, 
     getReports, 
     getReportById,
-    getReportsByUser 
+    getReportsByUser,
+    getReportsSummary
 } = require("../controller/report.controller");
+
+// Get reports summary/dashboard
+router.get(
+    "/reports/summary",
+    auth,
+    authorize(["FIELD_USER", "SUPERVISOR", "HSE_OFFICER", "ADMIN"], ["mobile", "web"]),
+    getReportsSummary
+);
 
 // Get all reports with filtering and pagination
 router.get(

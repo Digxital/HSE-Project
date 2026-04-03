@@ -4,7 +4,7 @@ const User = require("../model/user.model");
 // ADMIN can create users with or without a role
 
 exports.createUser = async (req, res) => {
-    const { firstName, lastName, email, password, role } = req.body;
+    const { firstName, lastName, email, password, role, location } = req.body;
 
     const exists = await User.findOne({ email });
     if (exists) {
@@ -13,7 +13,7 @@ exports.createUser = async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const newUser = await User.create({
+    const userData = {
         tenantId: req.user.tenantId,
         firstName,
         lastName,
@@ -21,7 +21,14 @@ exports.createUser = async (req, res) => {
         passwordHash,
         role: role ? role.toUpperCase() : null,
         status: "PENDING"
-    });
+    };
+
+    // Add location if provided
+    if (location !== undefined) {
+        userData.location = location.trim();
+    }
+
+    const newUser = await User.create(userData);
 
     res.status(201).json({
         success: true,
@@ -78,7 +85,7 @@ exports.getUserById = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
     try {
-        let { firstName, lastName, role, status } = req.body;
+        let { firstName, lastName, role, status, location } = req.body;
 
         // Normalize to uppercase
         if (role) role = role.toUpperCase();
@@ -103,6 +110,7 @@ exports.updateUser = async (req, res) => {
         if (lastName !== undefined) updateData.lastName = lastName;
         if (role !== undefined) updateData.role = role;
         if (status !== undefined) updateData.status = status;
+        if (location !== undefined) updateData.location = location.trim();
 
         const user = await User.findByIdAndUpdate(
             req.params.id,

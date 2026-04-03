@@ -32,6 +32,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["PENDING", "ACTIVE", "DEACTIVATED"],
       default: "PENDING"
+    },
+    location: {
+      type: String,
+      default: ""
     }
   },
   { timestamps: true }

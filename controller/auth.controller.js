@@ -63,7 +63,7 @@ exports.login = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
     try {
-        const { firstName, lastName } = req.body;
+        const { firstName, lastName, location } = req.body;
         const userId = req.user.id;
 
         // Validate that firstName and lastName are provided
@@ -84,10 +84,17 @@ exports.updateProfile = async (req, res) => {
             });
         }
 
+        // Build update object
+        const updateData = { firstName, lastName };
+        if (location !== undefined) {
+            // Only set location if it's provided and not an empty string
+            updateData.location = location.trim();
+        }
+
         // Update user profile
         const updatedUser = await User.findByIdAndUpdate(
             userId,
-            { firstName, lastName },
+            updateData,
             { new: true, runValidators: true }
         ).select("-passwordHash");
 
