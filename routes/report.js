@@ -23,7 +23,7 @@ router.get(
 
 // Get reports summary for each user
 router.get(
-    "/reports/summary/by-user",
+    "/user/reports/summary",
     auth,
     authorize(["SUPERVISOR", "HSE_OFFICER", "ADMIN"], ["mobile", "web"]),
     getReportsSummaryByEachUser
