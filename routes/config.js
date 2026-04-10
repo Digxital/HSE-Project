@@ -40,6 +40,13 @@ const {
     deleteSystemSetting
 } = require("../controller/config/systemSetting.controller");
 
+const {
+    createJobType,
+    getJobTypes,
+    updateJobType,
+    deleteJobType
+} = require("../controller/config/jobType.controller");
+
 router.use(auth, platformWeb, authorize(["ADMIN"], ["web"]));
 
 // Incident Categories
@@ -71,5 +78,11 @@ router.post("/system-settings", createSystemSetting);
 router.get("/system-settings", getSystemSettings);
 router.put("/system-settings/:id", updateSystemSetting);
 router.delete("/system-settings/:id", deleteSystemSetting);
+
+// Job Types
+router.post("/job-types", createJobType);
+router.get("/job-types", getJobTypes);
+router.put("/job-types/:id", updateJobType);
+router.delete("/job-types/:id", deleteJobType);
 
 module.exports = router;
