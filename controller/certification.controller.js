@@ -74,6 +74,46 @@ exports.getUserCertifications = async (req, res) => {
   }
 };
 
+/**
+ * GET /admin/certifications
+ * Admin only - Return all certifications for all users
+ */
+exports.getAllCertifications = async (req, res) => {
+  try {
+    // Get all certifications sorted by createdAt descending
+    const certifications = await Certification.find()
+      .sort({ createdAt: -1 });
+
+    // Format response
+    const formattedCertifications = certifications.map(cert => ({
+      certificationId: cert._id.toString(),
+      referenceId: cert.externalId,
+      userId: cert.userId.toString(),
+      certificationName: cert.certificationName,
+      issuingAuthority: cert.issuingAuthority,
+      issueDate: cert.issueDate.toISOString().split('T')[0],
+      expiryDate: cert.expiryDate.toISOString().split('T')[0],
+      fileUrl: cert.fileUrl,
+      status: cert.status,
+      createdBy: cert.createdBy.toString(),
+      createdAt: cert.createdAt.toISOString()
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: "All certifications retrieved successfully",
+      data: formattedCertifications
+    });
+  } catch (err) {
+    console.error("Error fetching all certifications:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch certifications",
+      data: {}
+    });
+  }
+};
+
     // GET /job-types/:id/requirements
     // Return required certifications for a job type
 

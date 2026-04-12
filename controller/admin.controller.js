@@ -250,10 +250,25 @@ exports.getAllCertifications = async (req, res) => {
             .populate("createdBy", "firstName lastName")
             .sort({ createdAt: -1 });
 
+        // Format response to rename _id to certificationId
+        const formattedCertifications = certifications.map(cert => ({
+            certificationId: cert._id.toString(),
+            referenceId: cert.externalId,
+            userId: cert.userId,
+            certificationName: cert.certificationName,
+            issuingAuthority: cert.issuingAuthority,
+            issueDate: cert.issueDate.toISOString().split('T')[0],
+            expiryDate: cert.expiryDate.toISOString().split('T')[0],
+            fileUrl: cert.fileUrl,
+            status: cert.status,
+            createdBy: cert.createdBy,
+            createdAt: cert.createdAt.toISOString()
+        }));
+
         return res.json({
             success: true,
             message: "All certifications fetched successfully",
-            data: certifications
+            data: formattedCertifications
         });
     } catch (error) {
         return res.status(500).json({

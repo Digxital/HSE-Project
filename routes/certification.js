@@ -6,6 +6,7 @@ const authorize = require("../middleware/authorize");
 const validateObjectId = require("../middleware/validateObjectId");
 
 const {
+  getAllCertifications,
   getUserCertifications,
   getJobTypeRequirements,
   getUserComplianceStatus,
@@ -13,6 +14,18 @@ const {
   updateCertification,
   deleteCertification
 } = require("../controller/certification.controller");
+
+/**
+ * GET /admin/certifications
+ * Admin only - Return all certifications for all users
+ * Accessible by: ADMIN only
+ */
+router.get(
+  "/admin/certifications",
+  auth,
+  authorize(["ADMIN"]),
+  getAllCertifications
+);
 
 /**
  * GET /users/:id/certifications
