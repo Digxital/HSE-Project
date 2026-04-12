@@ -238,3 +238,28 @@ exports.activateUser = async (req, res) => {
         });
     }
 };
+
+// GET /api/admin/certifications
+// Returns all certifications from all users for admin overview
+exports.getAllCertifications = async (req, res) => {
+    try {
+        const Certification = require("../model/certification.model");
+        
+        const certifications = await Certification.find()
+            .populate("userId", "firstName lastName email role")
+            .populate("createdBy", "firstName lastName")
+            .sort({ createdAt: -1 });
+
+        return res.json({
+            success: true,
+            message: "All certifications fetched successfully",
+            data: certifications
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch certifications",
+            data: {}
+        });
+    }
+};

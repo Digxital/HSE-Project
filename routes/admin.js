@@ -11,7 +11,8 @@ const {
   updateUser,
   deleteUser,
   deactivateUser,
-  activateUser
+  activateUser,
+  getAllCertifications
 } = require("../controller/admin.controller");
 
 // Create user
@@ -68,6 +69,14 @@ router.patch(
   auth,
   authorize(["ADMIN"], ["web"]),
   activateUser
+);
+
+// Get all certifications
+router.get(
+  "/certifications",
+  auth,
+  authorize(["ADMIN"], ["web"]),
+  getAllCertifications
 );
 
 module.exports = router;
