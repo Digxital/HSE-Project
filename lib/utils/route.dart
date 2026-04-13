@@ -18,6 +18,7 @@ class AppRoutes {
 
   // ================= Profile Route paths =================
   static const String editProfile = '/edit-profile';
+  static const String certification = '/certification';
 
   // ================= Report Route paths =================
   static const String createReport = '/create-report';
@@ -52,6 +53,7 @@ class AppRoutes {
   static const String actionSuccessScreenName = 'action-success-screen';
   static const String profileName = 'profile';
   static const String editProfileName = 'edit-profile';
+  static const String certificationName = 'certification';
   static const String createReportName = 'create-report';
   static const String reportAgentName = '/report-agent';
   static const String newReportScreenName = '/new-report-screen';

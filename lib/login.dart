@@ -89,8 +89,8 @@ class _LoginState extends State<Login> {
                             color: Colors.transparent,
                             child: InkWell(
                               borderRadius: BorderRadius.circular(12),
-                              onTap: _isLoading ? null : _signInWithMicrosoft,
-                              // onTap: () => context.push(AppRoutes.bottomNav),
+                              // onTap: _isLoading ? null : _signInWithMicrosoft,
+                              onTap: () => context.push(AppRoutes.bottomNav),
                               child: Center(
                                 child: _isLoading
                                     ? const SizedBox(

@@ -65,4 +65,6 @@ class AppFilePaths {
   static const String filter = "assets/images/filter.png";
   static const String actionWhite = "assets/images/actions_white.png";
   static const String actionGrey = "assets/images/actions_grey.png";
+  static const String personalCard = "assets/images/personal_card.png";
+  static const String tickCircle = "assets/images/tick_circle.png";
 }

@@ -20,6 +20,12 @@ android {
         jvmTarget = JavaVersion.VERSION_1_8
     }
 
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.aegix.app"
@@ -33,6 +39,10 @@ android {
         // versionName = flutter.versionName
         versionName "1.0"
         manifestPlaceholders += ['appAuthRedirectScheme': 'msauth']
+
+        ndk {
+            abiFilters "arm64-v8a"
+        }
     }
 
     buildTypes {

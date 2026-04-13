@@ -18,43 +18,61 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const Header(),
-            addVerticalSpace(30),
-            const NotificationMessage(
-                icon: AppFilePaths.done2,
-                iconBgColor: AppColors.primaryColor,
-                title: "New Action Assigned",
-                description:
-                    "You have been assigned a corrective action.\nPlease review and start working on it.",
-                time: "3 mins ago"),
-            addVerticalSpace(30),
-            const NotificationMessage(
-                icon: AppFilePaths.smsNotification,
-                iconBgColor: AppColors.orange,
-                title: "Action Due Soon",
-                description:
-                    "This action is due tomorrow. Make sure it\nis completed on time.",
-                time: "3 mins ago"),
-            addVerticalSpace(30),
-            const NotificationMessage(
-                icon: AppFilePaths.notification2,
-                iconBgColor: AppColors.red2,
-                title: "Action Closed",
-                description:
-                    "Your completed action has been reviewed\nand officially closed.",
-                time: "3 mins ago"),
-            addVerticalSpace(30),
-            const NotificationMessage(
-                icon: AppFilePaths.star,
-                iconBgColor: AppColors.green2,
-                title: "Corrective Action Created",
-                description:
-                    "A corrective action has been created\nfrom your report.",
-                time: "3 mins ago"),
-          ],
+      body: SingleChildScrollView(
+        child: SafeArea(
+          child: Column(
+            children: [
+              const Header(),
+              addVerticalSpace(30),
+              const NotificationMessage(
+                  icon: AppFilePaths.done2,
+                  iconBgColor: AppColors.primaryColor,
+                  title: "New Certification Assigned",
+                  description:
+                      "You have been assigned a new certification.\nView details in your profile.",
+                  time: "Just now"),
+              addVerticalSpace(30),
+              const NotificationMessage(
+                  icon: AppFilePaths.done2,
+                  iconBgColor: AppColors.primaryColor,
+                  title: "Action Completed",
+                  description:
+                      "The assign corrective action has been\ncompleted. Review the update ad reassess\nthe risk level",
+                  time: "3 mins ago"),
+              addVerticalSpace(30),
+              const NotificationMessage(
+                  icon: AppFilePaths.done2,
+                  iconBgColor: AppColors.primaryColor,
+                  title: "New Action Assigned",
+                  description:
+                      "You have been assigned a corrective action.\nPlease review and start working on it.",
+                  time: "3 mins ago"),
+              addVerticalSpace(30),
+              const NotificationMessage(
+                  icon: AppFilePaths.smsNotification,
+                  iconBgColor: AppColors.orange,
+                  title: "Action Due Soon",
+                  description:
+                      "This action is due tomorrow. Make sure it\nis completed on time.",
+                  time: "3 mins ago"),
+              addVerticalSpace(30),
+              const NotificationMessage(
+                  icon: AppFilePaths.notification2,
+                  iconBgColor: AppColors.red2,
+                  title: "Action Closed",
+                  description:
+                      "Your completed action has been reviewed\nand officially closed.",
+                  time: "3 mins ago"),
+              addVerticalSpace(30),
+              const NotificationMessage(
+                  icon: AppFilePaths.star,
+                  iconBgColor: AppColors.green2,
+                  title: "Corrective Action Created",
+                  description:
+                      "A corrective action has been created\nfrom your report.",
+                  time: "3 mins ago"),
+            ],
+          ),
         ),
       ),
     );

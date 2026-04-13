@@ -11,6 +11,7 @@ import 'package:invera_hse/login.dart';
 import 'package:invera_hse/new_report_screen.dart';
 import 'package:invera_hse/notification_screen.dart';
 import 'package:invera_hse/onboarding_screen.dart';
+import 'package:invera_hse/profile/certification.dart';
 import 'package:invera_hse/profile/edit_profile.dart';
 import 'package:invera_hse/profile/profile_screen.dart';
 import 'package:invera_hse/report_agent.dart';
@@ -235,6 +236,15 @@ class AppRouter {
             name: AppRoutes.editProfileName,
             builder: (BuildContext context, GoRouterState state) {
               return const EditProfileScreen();
+            },
+          ),
+
+          // Certification route
+          GoRoute(
+            path: AppRoutes.certification,
+            name: AppRoutes.certificationName,
+            builder: (BuildContext context, GoRouterState state) {
+              return const CertificationScreen();
             },
           ),
         ],

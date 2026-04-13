@@ -55,6 +55,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       text: "My Profile"),
                   addVerticalSpace(10),
                   ProfileTile(
+                      onTap: () => context.push(AppRoutes.certification),
+                      icon: AppFilePaths.personalCard,
+                      text: "Certification"),
+                  addVerticalSpace(10),
+                  ProfileTile(
                       onTap: () {},
                       icon: AppFilePaths.notification3,
                       text: "Notifications",
