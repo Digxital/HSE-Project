@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import johnMatthewImg from '@/assets/images/avatar-profile-user.svg';
 import { DeactivateUserModal } from './DeactivateUserModal';
+import { AssignCertificationModal } from './AssignCertificationModal';
+import { CertificationCard } from './CertificationCard';
 import { userService } from '@/services/userService';
+import type { UserCertification } from '@/services/certificationAssignService';
 import { useToast } from '@/hooks/useToast';
 
 interface UserDetailsModalProps {
@@ -36,15 +39,51 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
   onUpdateUserStatus,
   onUserUpdated 
 }) => {
+  // IMPORTANT: Check user BEFORE any hooks!
+  if (!user) return null;
+
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState<Partial<any>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [showAssignCertificationModal, setShowAssignCertificationModal] = useState(false);
+  const [certifications, setCertifications] = useState<UserCertification[]>([]);
   const { showToast } = useToast();
-  
-  if (!user) return null;
 
   const [firstName, surname] = user.name.split(' ');
+
+  // Load certifications from localStorage when modal opens
+  useEffect(() => {
+    if (!isOpen || !user?.id) return;
+
+    try {
+      console.log('📋 Loading certifications from localStorage for user:', user.id);
+      const storageKey = `aegix_user_certifications_${user.id}`;
+      const cached = JSON.parse(localStorage.getItem(storageKey) || '[]') as UserCertification[];
+      
+      if (cached.length > 0) {
+        console.log('✅ Loaded certifications from localStorage:', cached);
+        setCertifications(cached);
+      } else {
+        console.log('📋 No certifications in localStorage');
+        setCertifications([]);
+      }
+    } catch (error) {
+      console.error('❌ Error loading from localStorage:', error);
+      setCertifications([]);
+    }
+  }, [isOpen, user?.id]);
+
+  const handleAssignCertificationSuccess = (newCertification: UserCertification) => {
+    console.log('✅ Certification assigned successfully:', newCertification);
+    // Add the new certification to state immediately
+    setCertifications(prev => [...prev, newCertification]);
+    setShowAssignCertificationModal(false);
+    showToast({
+      type: 'success',
+      message: 'Certification assigned successfully',
+    });
+  };
 
   const stats = user.stats || {
     reportsSubmitted: 15,
@@ -493,6 +532,73 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
               />
             </div>
           </div>
+
+          {/* Certifications Section */}
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Certifications</h3>
+                <p className="text-sm text-gray-600">Professional and Safety Certification</p>
+              </div>
+              <button
+                onClick={() => setShowAssignCertificationModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#C24438] hover:bg-[#a03830] text-white rounded-lg font-medium transition-colors"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Assign Certification
+              </button>
+            </div>
+
+            {/* Empty State */}
+            {certifications.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-8 px-4 rounded-lg bg-white border border-gray-100">
+                {/* Info Icon */}
+                <div className="mb-3">
+                  <svg
+                    className="w-12 h-12 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+
+                {/* Empty State Text */}
+                <p className="text-center text-gray-900 font-medium mb-2">No certifications assigned yet</p>
+                <p className="text-center text-sm text-gray-600">Assign certifications to track training and compliance.</p>
+              </div>
+            )}
+
+            {/* Certification Cards */}
+            {certifications.length > 0 && (
+              <div className="space-y-2">
+                {certifications.map(cert => (
+                  <CertificationCard
+                    key={cert.id || cert._id}
+                    certification={cert}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -501,6 +607,14 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
         isOpen={showDeactivateModal}
         onClose={() => setShowDeactivateModal(false)}
         onConfirm={confirmDeactivate}
+      />
+
+      {/* Assign Certification Modal */}
+      <AssignCertificationModal
+        isOpen={showAssignCertificationModal}
+        onClose={() => setShowAssignCertificationModal(false)}
+        userId={user?.id || ''}
+        onSuccess={handleAssignCertificationSuccess}
       />
     </>
   );
