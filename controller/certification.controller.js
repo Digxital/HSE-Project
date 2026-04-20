@@ -1,6 +1,7 @@
 const Certification = require("../model/certification.model");
 const User = require("../model/user.model");
 const JobType = require("../model/jobType.model");
+const Notification = require("../model/notification.model");
 const mongoose = require("mongoose");
 const { calculateComplianceStatus } = require("../utils/compliance");
 
@@ -335,6 +336,26 @@ exports.createCertification = async (req, res) => {
       createdBy: req.user.id
     });
 
+    // Create notification for the user
+    try {
+      console.log("Creating certificate_added notification for userId:", userId);
+      const notification = await Notification.create({
+        user: userId,
+        type: "certificate_added",
+        title: "New Certificate Added",
+        description: `A new certificate "${certificationName.trim()}" has been added to your profile by an admin.`,
+        data: {
+          certificationId: certification._id.toString(),
+          certificationName: certification.certificationName,
+          expiryDate: certification.expiryDate.toISOString().split('T')[0]
+        }
+      });
+      console.log("Certificate notification created successfully:", notification._id);
+    } catch (notificationErr) {
+      console.error("Error creating certificate_added notification:", notificationErr.message);
+      console.error("Stack:", notificationErr.stack);
+    }
+
     // Format response to match API contract
     return res.status(201).json({
       success: true,
@@ -471,6 +492,26 @@ exports.updateCertification = async (req, res) => {
       updateData,
       { new: true, runValidators: true }
     );
+
+    // Create notification for the user about the update
+    try {
+      console.log("Creating certificate_updated notification for userId:", updatedCertification.userId);
+      const notification = await Notification.create({
+        user: updatedCertification.userId,
+        type: "certificate_updated",
+        title: "Certificate Updated",
+        description: `Your certificate "${updatedCertification.certificationName}" has been updated by an admin.`,
+        data: {
+          certificationId: updatedCertification._id.toString(),
+          certificationName: updatedCertification.certificationName,
+          expiryDate: updatedCertification.expiryDate.toISOString().split('T')[0]
+        }
+      });
+      console.log("Certificate update notification created successfully:", notification._id);
+    } catch (notificationErr) {
+      console.error("Error creating certificate_updated notification:", notificationErr.message);
+      console.error("Stack:", notificationErr.stack);
+    }
 
     return res.status(200).json({
       success: true,

@@ -17,7 +17,9 @@ exports.createNotification = async (req, res) => {
             "user_added",
             "report_submitted",
             "action_closed",
-            "action_progress"
+            "action_progress",
+            "certificate_added",
+            "certificate_updated"
         ];
 
         if (!validTypes.includes(type)) {
