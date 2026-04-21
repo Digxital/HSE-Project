@@ -540,25 +540,27 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                 <h3 className="text-lg font-semibold text-gray-900 mb-1">Certifications</h3>
                 <p className="text-sm text-gray-600">Professional and Safety Certification</p>
               </div>
-              <button
-                onClick={() => setShowAssignCertificationModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#C24438] hover:bg-[#a03830] text-white rounded-lg font-medium transition-colors"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              {user.role === 'FIELD_USER' && user.status === 'Active' && (
+                <button
+                  onClick={() => setShowAssignCertificationModal(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#C24438] hover:bg-[#a03830] text-white rounded-lg font-medium transition-colors"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                Assign Certification
-              </button>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  Assign Certification
+                </button>
+              )}
             </div>
 
             {/* Empty State */}
@@ -614,6 +616,7 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
         isOpen={showAssignCertificationModal}
         onClose={() => setShowAssignCertificationModal(false)}
         userId={user?.id || ''}
+        userEmail={user?.email || ''}
         onSuccess={handleAssignCertificationSuccess}
       />
     </>

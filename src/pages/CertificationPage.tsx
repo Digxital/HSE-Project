@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
-import { certificationService, type Certification } from '@/services/certificationService';
-import { authService } from '@/services/authService';
+import type { Certification } from '@/services/certificationService';
 
 interface CertificationPageProps {
   role?: 'admin' | 'supervisor';
@@ -22,48 +21,32 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
         setLoading(true);
         setError(null);
 
-        // Check authentication
-        if (!authService.isAuthenticated()) {
-          console.warn('⚠️ User not authenticated');
-          setError('Please log in to view certifications');
-          setLoading(false);
-          return;
+        console.log('📋 Loading certifications from master list in localStorage...');
+
+        // Load from master certifications list in localStorage
+        const masterKey = 'aegix_all_certifications';
+        const masterList = JSON.parse(localStorage.getItem(masterKey) || '[]') as any[];
+
+        if (masterList.length > 0) {
+          console.log(`✅ Loaded ${masterList.length} certifications from master list`);
+          console.log('🔍 Raw master list data:', masterList);
+          // Transform master list to Certification format
+          const certs: any[] = masterList.map(cert => ({
+            id: cert.id,
+            name: cert.name,
+            issuedBy: cert.issuingBody,
+            issueDate: cert.issuedDate,
+            expiryDate: cert.expiryDate,
+            status: cert.status as 'Active' | 'Valid' | 'Expired',
+            fileUrl: cert.fileUrl,
+            userEmail: cert.userEmail, // Include user email
+          }));
+          console.log('🔍 Transformed certs:', certs);
+          setCertifications(certs);
+        } else {
+          console.log('📋 No certifications found in master list');
+          setCertifications([]);
         }
-
-        // Get current user ID from auth service
-        const userData = localStorage.getItem('user_data');
-        if (!userData) {
-          console.error('❌ No user data found in localStorage');
-          setError('User data not found. Please log in again.');
-          setLoading(false);
-          return;
-        }
-
-        let user;
-        try {
-          user = JSON.parse(userData);
-        } catch (parseErr) {
-          console.error('❌ Failed to parse user data:', parseErr);
-          setError('Invalid user data format');
-          setLoading(false);
-          return;
-        }
-
-        // TODO: Remove this hardcoded user ID after testing
-        // For admin overview, fetch ALL certifications from admin endpoint
-        const adminToken = localStorage.getItem('auth_token');
-        if (!adminToken) {
-          setError('Admin token not found. Please log in again.');
-          setLoading(false);
-          return;
-        }
-
-        console.log('🔑 Admin token found, fetching all certifications...');
-
-        // Fetch all certifications from admin endpoint
-        const data = await certificationService.getAllCertifications();
-        console.log(`✅ Successfully loaded ${data.length} certifications for admin overview`);
-        setCertifications(data);
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Unknown error occurred';
         console.error('❌ Error loading certifications:', err);
@@ -190,6 +173,7 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
                           {/* Info */}
                           <div className="flex-1 min-w-0">
                             <h3 className="text-base font-semibold text-gray-900">{cert.name}</h3>
+                            <p className="text-sm text-gray-600 mb-1">Assigned to: <span className="font-medium">{cert.userEmail || 'Unknown User'}</span></p>
                             <p className="text-sm text-gray-500">Issued by: {cert.issuedBy}</p>
                             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-1">
                               <p className="text-sm text-gray-500">Issued Date: {cert.issueDate}</p>

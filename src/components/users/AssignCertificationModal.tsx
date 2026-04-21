@@ -7,6 +7,7 @@ interface AssignCertificationModalProps {
   isOpen: boolean;
   onClose: () => void;
   userId: string;
+  userEmail: string;
   onSuccess?: (certification: UserCertification) => void;
 }
 
@@ -14,6 +15,7 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
   isOpen,
   onClose,
   userId,
+  userEmail,
   onSuccess,
 }) => {
   const [formData, setFormData] = useState({
@@ -120,12 +122,21 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
 
       console.log('📦 Created certification object:', createdCert);
 
-      // Save to localStorage (will sync to backend later)
+      // Save to user-specific localStorage
       const storageKey = `aegix_user_certifications_${userId}`;
       const existing = JSON.parse(localStorage.getItem(storageKey) || '[]') as UserCertification[];
       const updated = [...existing, createdCert];
       localStorage.setItem(storageKey, JSON.stringify(updated));
-      console.log('💾 Saved to localStorage');
+      console.log('💾 Saved to user-specific localStorage:', storageKey);
+
+      // Also save to master certifications list
+      const masterKey = 'aegix_all_certifications';
+      const masterList = JSON.parse(localStorage.getItem(masterKey) || '[]') as Array<UserCertification & { userId: string; userEmail: string }>;
+      const certWithUserInfo = { ...createdCert, userId, userEmail };
+      console.log('🔍 Cert with user info being saved:', { certWithUserInfo, userId, userEmail });
+      const masterUpdated = [...masterList, certWithUserInfo];
+      localStorage.setItem(masterKey, JSON.stringify(masterUpdated));
+      console.log('💾 Saved to master certifications list:', masterKey);
 
       console.log('✅ Certification created successfully');
       setIsSubmitted(true);
