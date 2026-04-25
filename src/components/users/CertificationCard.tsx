@@ -1,8 +1,8 @@
 import React from 'react';
-import type { UserCertification } from '@/services/certificationAssignService';
+import type { Certification } from '@/services/certificationService';
 
 interface CertificationCardProps {
-  certification: UserCertification;
+  certification: Certification;
 }
 
 export const CertificationCard: React.FC<CertificationCardProps> = ({
@@ -10,10 +10,8 @@ export const CertificationCard: React.FC<CertificationCardProps> = ({
 }) => {
   const getStatusBadgeStyle = (status?: string) => {
     switch (status) {
-      case 'Active':
-        return 'bg-green-100 text-green-800';
       case 'Valid':
-        return 'bg-amber-100 text-amber-800';
+        return 'bg-green-100 text-green-800';
       case 'Expired':
         return 'bg-red-100 text-red-800';
       default:
@@ -59,12 +57,12 @@ export const CertificationCard: React.FC<CertificationCardProps> = ({
 
         {/* Issued by */}
         <p className="text-xs text-gray-600 mb-2">
-          Issued by: <span className="font-medium">{certification.issuingBody}</span>
+          Issued by: <span className="font-medium">{certification.issuedBy}</span>
         </p>
 
         {/* Dates */}
         <div className="text-xs text-gray-600 flex flex-wrap gap-3">
-          <span>Issued Date: {formatDate(certification.issuedDate)}</span>
+          <span>Issued Date: {formatDate(certification.issueDate)}</span>
           <span className={`${
             certification.status === 'Expired'
               ? 'text-red-600 font-medium'
@@ -82,7 +80,7 @@ export const CertificationCard: React.FC<CertificationCardProps> = ({
             certification.status
           )}`}
         >
-          {certification.status || 'Active'}
+          {certification.status || 'Valid'}
         </span>
       </div>
     </div>

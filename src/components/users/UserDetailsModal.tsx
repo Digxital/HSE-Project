@@ -4,7 +4,8 @@ import { DeactivateUserModal } from './DeactivateUserModal';
 import { AssignCertificationModal } from './AssignCertificationModal';
 import { CertificationCard } from './CertificationCard';
 import { userService } from '@/services/userService';
-import type { UserCertification } from '@/services/certificationAssignService';
+import { certificationService } from '@/services/certificationService';
+import type { Certification } from '@/services/certificationService';
 import { useToast } from '@/hooks/useToast';
 
 interface UserDetailsModalProps {
@@ -47,34 +48,31 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
   const [editedUser, setEditedUser] = useState<Partial<any>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [showAssignCertificationModal, setShowAssignCertificationModal] = useState(false);
-  const [certifications, setCertifications] = useState<UserCertification[]>([]);
+  const [certifications, setCertifications] = useState<Certification[]>([]);
   const { showToast } = useToast();
 
   const [firstName, surname] = user.name.split(' ');
 
-  // Load certifications from localStorage when modal opens
+  // Load certifications from backend when modal opens
   useEffect(() => {
     if (!isOpen || !user?.id) return;
 
-    try {
-      console.log('📋 Loading certifications from localStorage for user:', user.id);
-      const storageKey = `aegix_user_certifications_${user.id}`;
-      const cached = JSON.parse(localStorage.getItem(storageKey) || '[]') as UserCertification[];
-      
-      if (cached.length > 0) {
-        console.log('✅ Loaded certifications from localStorage:', cached);
-        setCertifications(cached);
-      } else {
-        console.log('📋 No certifications in localStorage');
+    const loadCertifications = async () => {
+      try {
+        console.log('📋 Loading certifications from backend for user:', user.id);
+        const certs = await certificationService.getUserCertifications(user.id);
+        console.log('✅ Loaded certifications from backend:', certs);
+        setCertifications(certs);
+      } catch (error) {
+        console.error('❌ Error loading certifications:', error);
         setCertifications([]);
       }
-    } catch (error) {
-      console.error('❌ Error loading from localStorage:', error);
-      setCertifications([]);
-    }
+    };
+
+    loadCertifications();
   }, [isOpen, user?.id]);
 
-  const handleAssignCertificationSuccess = (newCertification: UserCertification) => {
+  const handleAssignCertificationSuccess = (newCertification: Certification) => {
     console.log('✅ Certification assigned successfully:', newCertification);
     // Add the new certification to state immediately
     setCertifications(prev => [...prev, newCertification]);
@@ -85,11 +83,11 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
     });
   };
 
-  const stats = user.stats || {
-    reportsSubmitted: 15,
-    actionsAssigned: 0,
-    validCertifications: 4,
-    expiredCertifications: user.status === 'Deactivated' ? 1 : 0,
+  const stats = {
+    reportsSubmitted: user.stats?.reportsSubmitted || 15,
+    actionsAssigned: user.stats?.actionsAssigned || 0,
+    validCertifications: certifications.filter(c => c.status === 'Valid').length,
+    expiredCertifications: certifications.filter(c => c.status === 'Expired').length,
   };
 
   const handleReactivate = () => {
@@ -594,7 +592,7 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
               <div className="space-y-2">
                 {certifications.map(cert => (
                   <CertificationCard
-                    key={cert.id || cert._id}
+                    key={cert.id}
                     certification={cert}
                   />
                 ))}
@@ -616,7 +614,6 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
         isOpen={showAssignCertificationModal}
         onClose={() => setShowAssignCertificationModal(false)}
         userId={user?.id || ''}
-        userEmail={user?.email || ''}
         onSuccess={handleAssignCertificationSuccess}
       />
     </>

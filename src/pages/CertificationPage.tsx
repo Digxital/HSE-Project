@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import type { Certification } from '@/services/certificationService';
+import { certificationService } from '@/services/certificationService';
 
 interface CertificationPageProps {
   role?: 'admin' | 'supervisor';
@@ -21,32 +22,13 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
         setLoading(true);
         setError(null);
 
-        console.log('📋 Loading certifications from master list in localStorage...');
+        console.log('📋 Loading certifications from API...');
 
-        // Load from master certifications list in localStorage
-        const masterKey = 'aegix_all_certifications';
-        const masterList = JSON.parse(localStorage.getItem(masterKey) || '[]') as any[];
-
-        if (masterList.length > 0) {
-          console.log(`✅ Loaded ${masterList.length} certifications from master list`);
-          console.log('🔍 Raw master list data:', masterList);
-          // Transform master list to Certification format
-          const certs: any[] = masterList.map(cert => ({
-            id: cert.id,
-            name: cert.name,
-            issuedBy: cert.issuingBody,
-            issueDate: cert.issuedDate,
-            expiryDate: cert.expiryDate,
-            status: cert.status as 'Active' | 'Valid' | 'Expired',
-            fileUrl: cert.fileUrl,
-            userEmail: cert.userEmail, // Include user email
-          }));
-          console.log('🔍 Transformed certs:', certs);
-          setCertifications(certs);
-        } else {
-          console.log('📋 No certifications found in master list');
-          setCertifications([]);
-        }
+        // Fetch from the API endpoint
+        const certs = await certificationService.getAllCertifications();
+        
+        console.log(`✅ Loaded ${certs.length} certifications from API`);
+        setCertifications(certs);
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Unknown error occurred';
         console.error('❌ Error loading certifications:', err);
@@ -61,10 +43,8 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
 
   const getStatusStyles = (status: Certification['status']) => {
     switch (status) {
-      case 'Active':
-        return 'bg-green-50 text-green-700 border-green-200';
       case 'Valid':
-        return 'bg-orange-50 text-orange-600 border-orange-200';
+        return 'bg-green-50 text-green-700 border-green-200';
       case 'Expired':
         return 'bg-red-50 text-red-600 border-red-200';
       default:
@@ -189,8 +169,8 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
                           </span>
                         </div>
 
-                        {/* File Link */}
-                        {cert.fileUrl && (
+                        {/* File Link - TODO: Uncomment when Cloudinary/file storage is ready */}
+                        {/* {cert.fileUrl && (
                           <div className="flex-shrink-0">
                             <a
                               href={cert.fileUrl}
@@ -204,7 +184,7 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
                               View
                             </a>
                           </div>
-                        )}
+                        )} */}
                       </div>
                     );
                   })}

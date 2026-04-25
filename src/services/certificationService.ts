@@ -2,23 +2,30 @@ import api from '@/lib/axios';
 
 // API Response Types
 export interface ApiCertification {
-  certificationId: string;
-  referenceId: string;
-  userId: string;
+  _id: string;
+  certificationId?: string;
+  referralId: string;
+  userId: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+  };
   certificationName: string;
   issuingAuthority: string;
   issueDate: string;
   expiryDate: string;
-  fileUrl: string;
+  fileUrl?: string;
   status: 'VALID' | 'EXPIRED';
-  createdBy: string;
+  createdBy?: string;
   createdAt: string;
 }
 
 export interface ApiCertificationResponse {
   success: boolean;
   message: string;
-  data: ApiCertification[];
+  data: ApiCertification | ApiCertification[];
 }
 
 // Frontend Display Type
@@ -30,8 +37,10 @@ export interface Certification {
   issueDate: string;
   expiryDate: string;
   fileUrl: string;
-  status: 'Active' | 'Valid' | 'Expired';
+  status: 'Valid' | 'Expired';
   createdAt: string;
+  userEmail?: string; // Email of the user assigned this certification
+  userId?: string; // ID of the user assigned this certification
 }
 
 export const certificationService = {
@@ -51,16 +60,20 @@ export const certificationService = {
         throw new Error(response.data.message || 'Failed to fetch admin certifications');
       }
 
-      console.log(`✅ Fetched ${response.data.data.length} certifications from admin endpoint`);
+      // Handle both single object and array responses
+      const dataArray = Array.isArray(response.data.data) 
+        ? response.data.data 
+        : [response.data.data];
+
+      console.log(`✅ Fetched ${dataArray.length} certifications from admin endpoint`);
 
       // Map API response to frontend format
-      const certs = response.data.data.map((cert) => mapApiCertToCertification(cert));
+      const certs = dataArray.map((cert) => mapApiCertToCertification(cert));
       
       // Log status breakdown
-      const activeCount = certs.filter(c => c.status === 'Active').length;
-      const validCount = certs.filter(c => c.status === 'Valid').length;
-      const expiredCount = certs.filter(c => c.status === 'Expired').length;
-      console.log(`📊 Breakdown - Active: ${activeCount}, Valid: ${validCount}, Expired: ${expiredCount}`);
+      const validCount = certs.filter((c) => c.status === 'Valid').length;
+      const expiredCount = certs.filter((c) => c.status === 'Expired').length;
+      console.log(`📊 Breakdown - Valid: ${validCount}, Expired: ${expiredCount}`);
       
       return certs;
     } catch (error) {
@@ -87,21 +100,78 @@ export const certificationService = {
         throw new Error(response.data.message || 'Failed to fetch certifications');
       }
 
-      console.log(`✅ Fetched ${response.data.data.length} certifications successfully`);
+      // Handle both single object and array responses
+      const dataArray = Array.isArray(response.data.data) 
+        ? response.data.data 
+        : [response.data.data];
+
+      console.log(`✅ Fetched ${dataArray.length} certifications successfully`);
 
       // Map API response to frontend format
-      const certs = response.data.data.map((cert) => mapApiCertToCertification(cert));
+      const certs = dataArray.map((cert) => mapApiCertToCertification(cert));
       
       // Log status breakdown
-      const activeCount = certs.filter(c => c.status === 'Active').length;
-      const validCount = certs.filter(c => c.status === 'Valid').length;
-      const expiredCount = certs.filter(c => c.status === 'Expired').length;
-      console.log(`📊 Breakdown - Active: ${activeCount}, Valid: ${validCount}, Expired: ${expiredCount}`);
+      const validCount = certs.filter((c) => c.status === 'Valid').length;
+      const expiredCount = certs.filter((c) => c.status === 'Expired').length;
+      console.log(`📊 Breakdown - Valid: ${validCount}, Expired: ${expiredCount}`);
       
       return certs;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error(`❌ Failed to fetch user certifications: ${errorMessage}`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Create a certification for a user
+   * @param userId - The user ID to assign certification to
+   * @param payload - The certification data
+   * @returns The created certification
+   */
+  async createUserCertification(
+    userId: string,
+    payload: {
+      certificationName: string;
+      issuingAuthority: string;
+      issueDate: string;
+      expiryDate: string;
+      status?: string;
+      fileUrl?: string;
+    }
+  ): Promise<Certification> {
+    try {
+      console.log(`📝 Creating certification for user: ${userId}`);
+      console.log(`📝 Full Payload:`, JSON.stringify(payload, null, 2));
+      
+      const response = await api.post<ApiCertificationResponse>(
+        `/api/admin/users/${userId}/certifications`,
+        payload
+      );
+
+      if (!response.data.success || !response.data.data) {
+        throw new Error(response.data.message || 'Failed to create certification');
+      }
+
+      console.log(`✅ Certification created successfully`);
+      console.log(`✅ Response:`, response.data);
+      
+      // Handle both single object and array responses
+      const apiCert = Array.isArray(response.data.data) 
+        ? response.data.data[0] 
+        : response.data.data;
+      
+      // Map response to frontend format
+      const cert = mapApiCertToCertification(apiCert);
+      console.log(`✅ Mapped certification:`, cert);
+      
+      return cert;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`❌ Failed to create certification: ${errorMessage}`, error);
+      if (error instanceof Error && 'response' in error) {
+        console.error(`❌ Backend error response:`, (error as any).response?.data);
+      }
       throw error;
     }
   },
@@ -112,40 +182,45 @@ export const certificationService = {
  */
 function mapApiCertToCertification(apiCert: ApiCertification): Certification {
   try {
-    const today = new Date();
     const expiryDate = new Date(apiCert.expiryDate);
     
     // Validate expiry date
     if (isNaN(expiryDate.getTime())) {
-      console.warn(`⚠️ Invalid expiry date for cert ${apiCert.certificationId}: ${apiCert.expiryDate}`);
+      console.warn(`⚠️ Invalid expiry date for cert ${apiCert._id}: ${apiCert.expiryDate}`);
     }
 
-    const thirtyDaysFromNow = new Date();
-    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-
-    // Determine status based on expiry date
-    let displayStatus: 'Active' | 'Valid' | 'Expired';
-    if (expiryDate < today) {
+    // Determine status based on API response (VALID or EXPIRED)
+    let displayStatus: 'Valid' | 'Expired';
+    if (apiCert.status === 'EXPIRED') {
       displayStatus = 'Expired';
-    } else if (expiryDate < thirtyDaysFromNow) {
-      displayStatus = 'Valid'; // Expiring soon
     } else {
-      displayStatus = 'Active';
+      displayStatus = 'Valid'; // Default to Valid if not explicitly expired
     }
+
+    // Extract email and userId from nested userId object
+    const userEmail = typeof apiCert.userId === 'object' && apiCert.userId
+      ? apiCert.userId.email 
+      : '';
+    
+    const userId = typeof apiCert.userId === 'object' && apiCert.userId
+      ? apiCert.userId._id 
+      : '';
 
     return {
-      id: apiCert.certificationId,
-      referenceId: apiCert.referenceId,
+      id: apiCert._id || apiCert.certificationId || '',
+      referenceId: apiCert.referralId,
       name: apiCert.certificationName,
       issuedBy: apiCert.issuingAuthority,
       issueDate: formatDate(apiCert.issueDate),
       expiryDate: formatDate(apiCert.expiryDate),
-      fileUrl: apiCert.fileUrl,
+      fileUrl: apiCert.fileUrl || '',
       status: displayStatus,
       createdAt: apiCert.createdAt,
+      userEmail: userEmail,
+      userId: userId,
     };
   } catch (err) {
-    console.error(`❌ Error mapping certification ${apiCert.certificationId}:`, err);
+    console.error(`❌ Error mapping certification ${apiCert._id}:`, err);
     throw err;
   }
 }

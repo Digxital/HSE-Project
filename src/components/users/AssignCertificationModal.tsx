@@ -1,21 +1,19 @@
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/useToast';
-import { certificationAssignService } from '@/services/certificationAssignService';
-import type { UserCertification } from '@/services/certificationAssignService';
+import { certificationService } from '@/services/certificationService';
+import type { Certification } from '@/services/certificationService';
 
 interface AssignCertificationModalProps {
   isOpen: boolean;
   onClose: () => void;
   userId: string;
-  userEmail: string;
-  onSuccess?: (certification: UserCertification) => void;
+  onSuccess?: (certification: Certification) => void;
 }
 
 export const AssignCertificationModal: React.FC<AssignCertificationModalProps> = ({
   isOpen,
   onClose,
   userId,
-  userEmail,
   onSuccess,
 }) => {
   const [formData, setFormData] = useState({
@@ -23,7 +21,7 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
     issuedDate: new Date().toISOString().split('T')[0],
     issuingBody: '',
     validityPeriod: '1 year',
-    status: 'Active',
+    status: 'Valid',
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -103,47 +101,37 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
     console.log('📝 Creating certification for user:', userId);
 
     try {
-      // Calculate expiry date
-      const expiryDate = certificationAssignService.calculateExpiryDate(
-        formData.issuedDate,
-        formData.validityPeriod
-      );
+      // Calculate expiry date based on validity period
+      const issueDate = new Date(formData.issuedDate);
+      const expiryDate = new Date(issueDate);
+      
+      const periodValue = parseInt(formData.validityPeriod.split(' ')[0]);
+      const periodUnit = formData.validityPeriod.split(' ')[1].toLowerCase();
+      
+      console.log(`📝 Period: ${periodValue} ${periodUnit}`);
+      
+      if (periodUnit.includes('month')) {
+        expiryDate.setMonth(expiryDate.getMonth() + periodValue);
+      } else if (periodUnit.includes('year')) {
+        expiryDate.setFullYear(expiryDate.getFullYear() + periodValue);
+      }
+      // If lifetime, expiry date stays far in future (already set above)
 
-      // Create certification object
-      const createdCert: UserCertification = {
-        id: Date.now().toString(), // Temporary ID
-        name: formData.certificationName,
-        issuedDate: formData.issuedDate,
-        issuingBody: formData.issuingBody,
-        validityPeriod: formData.validityPeriod,
-        status: formData.status as 'Active' | 'Valid' | 'Expired',
-        expiryDate,
-      };
+      const expiryDateStr = expiryDate.toISOString().split('T')[0];
 
-      console.log('📦 Created certification object:', createdCert);
+      console.log(`📝 Issue Date: ${formData.issuedDate}, Expiry Date: ${expiryDateStr}`);
 
-      // Save to user-specific localStorage
-      const storageKey = `aegix_user_certifications_${userId}`;
-      const existing = JSON.parse(localStorage.getItem(storageKey) || '[]') as UserCertification[];
-      const updated = [...existing, createdCert];
-      localStorage.setItem(storageKey, JSON.stringify(updated));
-      console.log('💾 Saved to user-specific localStorage:', storageKey);
-
-      // Also save to master certifications list
-      const masterKey = 'aegix_all_certifications';
-      const masterList = JSON.parse(localStorage.getItem(masterKey) || '[]') as Array<UserCertification & { userId: string; userEmail: string }>;
-      const certWithUserInfo = { ...createdCert, userId, userEmail };
-      console.log('🔍 Cert with user info being saved:', { certWithUserInfo, userId, userEmail });
-      const masterUpdated = [...masterList, certWithUserInfo];
-      localStorage.setItem(masterKey, JSON.stringify(masterUpdated));
-      console.log('💾 Saved to master certifications list:', masterKey);
-
-      console.log('✅ Certification created successfully');
-      setIsSubmitted(true);
-      showToast({
-        type: 'success',
-        message: 'Certification assigned successfully',
+      // Create certification via backend API
+      const createdCert = await certificationService.createUserCertification(userId, {
+        certificationName: formData.certificationName,
+        issuingAuthority: formData.issuingBody,
+        issueDate: formData.issuedDate,
+        expiryDate: expiryDateStr,
+        status: formData.status.toUpperCase(),
       });
+
+      console.log('✅ Certification created successfully:', createdCert);
+      setIsSubmitted(true);
 
       // Call onSuccess callback with the created certification
       if (onSuccess) {
@@ -166,7 +154,7 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
       issuedDate: new Date().toISOString().split('T')[0],
       issuingBody: '',
       validityPeriod: '1 year',
-      status: 'Active',
+      status: 'Valid',
     });
     setErrors({});
     setIsSubmitted(false);
@@ -317,7 +305,6 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
                     paddingRight: '36px',
                   }}
                 >
-                  <option value="Active">Active</option>
                   <option value="Valid">Valid</option>
                   <option value="Expired">Expired</option>
                 </select>
