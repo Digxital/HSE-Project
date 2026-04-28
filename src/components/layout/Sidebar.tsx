@@ -149,14 +149,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
   <>
     <aside
-      className={`fixed left-0 top-0 h-screen bg-white border-r border-gray-100 transition-all duration-300 z-30 flex flex-col ${
+      className={`fixed left-0 top-0 h-screen bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 transition-all duration-300 z-30 flex flex-col ${
         isCollapsed ? 'w-20' : 'w-64'
       } ${
         isMobileOpen ? 'translate-x-0' : '-translate-x-full'
       } lg:translate-x-0`}
     >
       {/* Logo Section */}
-      <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+      <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800">
         {!isCollapsed && (
           <div className="flex items-center space-x-2">
             <img 
@@ -164,7 +164,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               alt="Aegix Logo" 
               className="w-8 h-8"
             />
-            <span className="text-xl font-bold text-gray-900">Aegix</span>
+            <span className="text-xl font-bold text-gray-900 dark:text-white">Aegix</span>
           </div>
         )}
         
@@ -194,7 +194,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Mobile close button */}
         <button
           onClick={onMobileClose}
-          className="lg:hidden p-1.5 text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors"
+          className="lg:hidden p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -214,8 +214,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 isCollapsed ? 'justify-center px-3' : 'justify-start px-4'
               } py-3 rounded-lg transition-all ${
                 isActive
-                  ? 'bg-primary-50 text-primary-600'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200'
               }`}
             >
               <span className="flex-shrink-0">{item.icon}</span>
@@ -229,17 +229,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Feedback Section */}
       {!isCollapsed && (
-        <div className="px-4 py-4 border-t border-gray-100">
+        <div className="px-4 py-4 border-t border-gray-100 dark:border-gray-800">
           <div 
-            className="bg-yellow-50 rounded-lg p-4 mb-4 cursor-pointer hover:bg-yellow-100 transition-colors"
+            className="bg-yellow-50 dark:bg-yellow-900/30 rounded-lg p-4 mb-4 cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition-colors"
             onClick={() => setShowFeedbackModal(true)}
           >
             <div className="flex items-start space-x-3">
               <span className="text-2xl">👍</span>
               <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900 mb-1">Tell us what's working and what's not</p>
-                <p className="text-xs text-gray-600 mb-3">We're building Aegix for you.</p>
-                <div className="text-xs font-medium text-primary-600 hover:text-primary-700 flex items-center space-x-1">
+                <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Tell us what's working and what's not</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">We're building Aegix for you.</p>
+                <div className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 flex items-center space-x-1 transition-colors">
                   <span>Give Feedback</span>
                   <span className="w-2 h-2 bg-red-500 rounded-full"></span>
                 </div>
@@ -250,12 +250,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       {/* Logout Button */}
-      <div className="px-4 py-4 border-t border-gray-100">
+      <div className="px-4 py-4 border-t border-gray-100 dark:border-gray-800">
         <button
           onClick={() => navigate('/')}
           className={`w-full flex items-center ${
             isCollapsed ? 'justify-center px-3' : 'justify-start px-4'
-          } py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all`}
+          } py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-all`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path

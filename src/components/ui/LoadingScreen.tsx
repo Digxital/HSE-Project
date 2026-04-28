@@ -1,13 +1,41 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import logoImage from '@/assets/images/aegix-logo.png';
+import darkLogoImage from '@/assets/images/aegix-darkmode-logo.png';
 
 interface LoadingScreenProps {
   message?: string;
 }
 
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme) {
+      setIsDark(savedTheme === 'dark');
+    } else {
+      // Check system preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setIsDark(prefersDark);
+    }
+
+    // Listen for theme changes
+    const htmlElement = document.documentElement;
+    const observer = new MutationObserver(() => {
+      setIsDark(htmlElement.classList.contains('dark'));
+    });
+    
+    observer.observe(htmlElement, { attributes: true, attributeFilter: ['class'] });
+    
+    return () => observer.disconnect();
+  }, []);
+  
   return (
-    <div className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center">
+    <div className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-colors ${
+      isDark ? 'bg-gray-950' : 'bg-white'
+    }`}>
       <div className="relative w-40 h-40 flex items-center justify-center">
         <svg 
           className="absolute inset-0 w-full h-full"
@@ -33,18 +61,22 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ message }) => {
         </svg>
         
         <img 
-          src={logoImage} 
+          src={isDark ? darkLogoImage : logoImage} 
           alt="Aegix Logo" 
           className="w-32 h-32 relative z-10"
         />
       </div>
 
-      <h1 className="mt-6 text-3xl font-bold text-gray-900">
+      <h1 className={`mt-6 text-3xl font-bold transition-colors ${
+        isDark ? 'text-white' : 'text-gray-900'
+      }`}>
         Aegix
       </h1>
       
       {message && (
-        <p className="mt-2 text-gray-600 text-sm">{message}</p>
+        <p className={`mt-2 text-sm transition-colors ${
+          isDark ? 'text-gray-400' : 'text-gray-600'
+        }`}>{message}</p>
       )}
 
       <style>{`

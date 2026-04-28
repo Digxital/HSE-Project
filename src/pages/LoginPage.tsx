@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/useToast';
 import { authService } from '@/services/authService';
 import { setAuthToken, setRefreshToken, setUserData } from '@/utils/authStorage';
 import engineerImage from '@/assets/images/engineer-cooperation-img.png';
+import darkLogo from '@/assets/images/aegix-darkmode-logo.png';
 import type { LoginResponse } from '@/types/auth';
 
 
@@ -79,8 +80,16 @@ export const LoginPage: React.FC = () => {
       message: 'Login successful! Redirecting to dashboard...',
     });
 
-    // Navigate to dashboard
-    navigate('/dashboard', { replace: true });
+    // Navigate based on user role
+    console.log(`👤 User role: ${response.user.role}`);
+    if (response.user.role === 'ADMIN') {
+      navigate('/dashboard', { replace: true });
+    } else if (response.user.role === 'SUPERVISOR') {
+      navigate('/supervisor/dashboard', { replace: true });
+    } else {
+      // Fallback to admin dashboard
+      navigate('/dashboard', { replace: true });
+    }
   };
 
   const handleLoginError = (error: LoginError) => {
@@ -140,23 +149,31 @@ export const LoginPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen" style={{ backgroundColor: '#121212' }}>
       {/* Navigation Bar */}
-      <nav className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-200">
+      <nav className="shadow-sm" style={{ backgroundColor: '#121212' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center space-x-3">
-            <Logo size="md" />
-            <span className="text-xl font-semibold text-gray-900">Aegix</span>
+            <img src={darkLogo} alt="Aegix Logo" className="w-10 h-10" />
+            <span className="text-xl font-semibold text-white">Aegix</span>
           </div>
         </div>
       </nav>
 
       {/* Main Content */}
       <div className="flex items-center justify-center px-4 py-8 md:py-12">
-        <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <div
+          className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden"
+          data-aos="zoom-in"
+          data-aos-delay="100"
+        >
           <div className="flex flex-col md:flex-row">
             {/* Left Side - Image with Overlay */}
-            <div className="md:w-1/2 h-64 md:h-auto relative overflow-hidden bg-primary-900">
+            <div
+              className="md:w-1/2 h-64 md:h-auto relative overflow-hidden bg-primary-900"
+              data-aos="fade-right"
+              data-aos-delay="300"
+            >
               <img
                 src={engineerImage}
                 alt="Engineering team collaborating"
@@ -172,7 +189,11 @@ export const LoginPage: React.FC = () => {
             </div>
 
             {/* Right Side - Login Form */}
-            <div className="md:w-1/2 p-8 md:p-10">
+            <div
+              className="md:w-1/2 p-8 md:p-10"
+              data-aos="fade-left"
+              data-aos-delay="300"
+            >
               <div className="w-full">
                 {/* Header */}
                 <div className="mb-8">

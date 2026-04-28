@@ -11,12 +11,12 @@ import { CertificationPage } from '@/pages/CertificationPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { ToastProvider } from '@/contexts/ToastContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { authService } from '@/services/authService';
-import { getAuthToken } from '@/utils/authStorage';
+import { getAuthToken, getUserData } from '@/utils/authStorage';
 import { NotificationProvider } from '@/contexts/NotificationContext';
  
 import AOS from 'aos';
-import { RoleSelectionPage } from '@/pages/RoleSelectionPage';
 import { SupervisorLoginPage } from '@/pages/SupervisorLoginPage';
 import { SupervisorActionsPage } from '@/pages/supervisor/SupervisorActionsPage';
 import { SupervisorAnalyticsPage } from '@/pages/supervisor/SupervisorAnalyticsPage';
@@ -42,7 +42,7 @@ const AppRoutes = () => {
           // Token exists but is expired
           console.log('🔐 Token expired. Logging out...');
           authService.logout();
-          navigate('/');
+          navigate('/admin/login');
         }
       }
     };
@@ -58,7 +58,13 @@ const AppRoutes = () => {
   return (
     <ReportsProvider>
       <Routes> 
-        <Route path="/" element={<RoleSelectionPage />} />
+        {/* Root route - redirect based on auth status and role */}
+        <Route 
+          path="/" 
+          element={
+            <RootRedirect />
+          } 
+        />
 
         {/* Admin routes */}
         <Route path="/admin/login" element={<LoginPage />} />
@@ -87,6 +93,18 @@ const AppRoutes = () => {
   );
 };
 
+// Component to handle root redirect
+const RootRedirect = () => {
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Always redirect to admin login first
+    navigate('/admin/login', { replace: true });
+  }, [navigate]);
+
+  return <LoadingScreen />;
+};
+
 function App() {
   const [isLoading, setIsLoading] = useState(true);
 
@@ -111,13 +129,15 @@ function App() {
   }
 
   return (
-    <ToastProvider>
-      <NotificationProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
-      </NotificationProvider>
-    </ToastProvider>
+    <ThemeProvider>
+      <ToastProvider>
+        <NotificationProvider>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </NotificationProvider>
+      </ToastProvider>
+    </ThemeProvider>
   );
 }
 

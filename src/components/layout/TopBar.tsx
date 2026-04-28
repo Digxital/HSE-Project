@@ -4,6 +4,7 @@ import { authService } from '@/services/authService';
 import { removeAuthToken, removeRefreshToken, removeUserData } from '@/utils/authStorage';
 import { useToast } from '@/hooks/useToast';
 import { useNotifications } from '@/contexts/NotificationContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface TopBarProps {
   pageTitle: string;
@@ -34,6 +35,9 @@ export const TopBar: React.FC<TopBarProps> = ({
   
   // Use notification context
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  
+  // Use theme context
+  const { isDark, toggleDarkMode } = useTheme();
 
   const handleLogout = async () => {
     try {
@@ -202,7 +206,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   };
 
   return (
-    <div className="bg-white border-b border-gray-100 px-4 md:px-6 lg:px-8 py-4">
+    <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 md:px-6 lg:px-8 py-4 transition-colors">
       <div className="flex items-center justify-between">
         {/* Left Section */}
         <div className="flex items-center space-x-3 md:space-x-4">
@@ -210,7 +214,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           {showMenuButton && (
             <button
               onClick={onMenuClick}
-              className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="lg:hidden p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -219,14 +223,30 @@ export const TopBar: React.FC<TopBarProps> = ({
           )}
 
           {/* Page Title */}
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900">{pageTitle}</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white transition-colors">{pageTitle}</h1>
         </div>
 
         {/* Right Section */}
         <div className="flex items-center space-x-2 md:space-x-4">
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {isDark ? (
+              <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 3v1m0 16v1m9-9h-1m-16 0H1m15.364 1.636l.707-.707M6.343 17.657l-.707-.707m12.728 0l-.707.707M6.343 6.343l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            )}
+          </button>
           {/* Sync Status - Hidden on mobile */}
           <div
-            className={`hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-full ${syncConfig.bgColor}`}
+            className={`hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-full ${syncConfig.bgColor} dark:opacity-80 transition-colors`}
           >
             <span className={syncConfig.iconColor}>{syncConfig.icon}</span>
             <span className={`text-sm font-medium ${syncConfig.textColor}`}>{syncConfig.text}</span>
@@ -236,7 +256,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="relative p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
               <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -310,7 +330,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center space-x-2 md:space-x-3 p-1 md:p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="flex items-center space-x-2 md:space-x-3 p-1 md:p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
               <div className="w-8 h-8 md:w-10 md:h-10 bg-primary-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-semibold text-sm md:text-base">

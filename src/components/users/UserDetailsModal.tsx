@@ -49,6 +49,9 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [showAssignCertificationModal, setShowAssignCertificationModal] = useState(false);
   const [certifications, setCertifications] = useState<Certification[]>([]);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [certToDelete, setCertToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isDeletingCert, setIsDeletingCert] = useState(false);
   const { showToast } = useToast();
 
   const [firstName, surname] = user.name.split(' ');
@@ -81,6 +84,44 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
       type: 'success',
       message: 'Certification assigned successfully',
     });
+  };
+
+  const handleDeleteCertification = async (certificationId: string) => {
+    try {
+      console.log('🗑️ Deleting certification:', certificationId);
+      setIsDeletingCert(true);
+      await certificationService.deleteCertification(certificationId);
+      console.log('✅ Certification deleted successfully');
+      
+      // Remove from local state
+      setCertifications(prev => prev.filter(cert => cert.id !== certificationId));
+      
+      showToast({
+        type: 'success',
+        message: 'Certification deleted successfully',
+      });
+    } catch (error: any) {
+      console.error('❌ Failed to delete certification:', error);
+      showToast({
+        type: 'error',
+        message: error.message || 'Failed to delete certification',
+      });
+    } finally {
+      setIsDeletingCert(false);
+      setShowDeleteConfirmModal(false);
+      setCertToDelete(null);
+    }
+  };
+
+  const handleShowDeleteConfirm = (certificationId: string, certificationName: string) => {
+    setCertToDelete({ id: certificationId, name: certificationName });
+    setShowDeleteConfirmModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (certToDelete) {
+      await handleDeleteCertification(certToDelete.id);
+    }
   };
 
   const stats = {
@@ -594,6 +635,7 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                   <CertificationCard
                     key={cert.id}
                     certification={cert}
+                    onDeleteClick={handleShowDeleteConfirm}
                   />
                 ))}
               </div>
@@ -616,6 +658,60 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
         userId={user?.id || ''}
         onSuccess={handleAssignCertificationSuccess}
       />
+
+      {/* Delete Certification Confirmation Modal */}
+      {showDeleteConfirmModal && certToDelete && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[100] flex items-center justify-center transition-opacity duration-300 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 md:p-8 relative transform transition-all duration-300 scale-100 opacity-100">
+            {/* Icon */}
+            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+
+            {/* Title */}
+            <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+              Delete Certification?
+            </h3>
+
+            {/* Message */}
+            <p className="text-sm text-gray-600 text-center mb-6">
+              Are you sure you want to delete <span className="font-medium">{certToDelete.name}</span>? This action cannot be undone.
+            </p>
+
+            {/* Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirmModal(false);
+                  setCertToDelete(null);
+                }}
+                disabled={isDeletingCert}
+                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={isDeletingCert}
+                className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                {isDeletingCert ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

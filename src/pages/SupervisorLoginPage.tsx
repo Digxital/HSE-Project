@@ -4,10 +4,18 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Logo } from '@/components/ui/Logo';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
-import engineerImage from '@/assets/images/engineer-cooperation-img.png';
+import { useToast } from '@/hooks/useToast';
+import engineerImage from '@/assets/images/engineer-technician-male-female.png';
+import darkLogo from '@/assets/images/aegix-darkmode-logo.png';
+
+interface LoginError {
+    message: string;
+    errors?: Record<string, string[]>;
+  }
 
 export const SupervisorLoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -16,12 +24,16 @@ export const SupervisorLoginPage: React.FC = () => {
     password: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    if (apiError) {
+      setApiError(null);
     }
   };
 
@@ -30,12 +42,14 @@ export const SupervisorLoginPage: React.FC = () => {
 
     if (!formData.email) {
       newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
     }
 
     if (!formData.password) {
       newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
     }
 
     setErrors(newErrors);
@@ -45,29 +59,41 @@ export const SupervisorLoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    // Clear previous error
+    setApiError(null);
+
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
 
     setIsLoading(true);
 
-    // Simulate API call
+    // Mock login - just simulate a delay then navigate
     setTimeout(() => {
+      showToast({
+        type: 'success',
+        message: 'Login successful! Redirecting to dashboard...',
+      });
+
+      // Navigate to supervisor dashboard
+      navigate('/supervisor/dashboard', { replace: true });
       setIsLoading(false);
-      navigate('/supervisor/dashboard'); // Navigate to supervisor dashboard after login
-    }, 2000);
+    }, 1500);
   };
 
   if (isLoading) {
-    return <LoadingScreen />;
+    return <LoadingScreen message="Authenticating..." />;
   }
 
   return (
-    <div className="min-h-screen bg-background-light">
+    <div className="min-h-screen" style={{ backgroundColor: '#121212' }}>
       {/* Navbar */}
-      <nav className="bg-background-navbar shadow-sm">
+      <nav className="shadow-sm" style={{ backgroundColor: '#121212' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center space-x-3">
-            <Logo size="md" />
-            <span className="text-xl font-bold text-gray-900">Aegix</span>
+            <img src={darkLogo} alt="Aegix Logo" className="w-10 h-10" />
+            <span className="text-xl font-bold text-white">Aegix</span>
           </div>
         </div>
       </nav>
@@ -89,7 +115,7 @@ export const SupervisorLoginPage: React.FC = () => {
               <img
                 src={engineerImage}
                 alt="Engineers"
-                className="w-full h-full object-cover object-left"
+                className="w-full h-full object-cover object-center"
               />
             </div>
 
@@ -112,6 +138,16 @@ export const SupervisorLoginPage: React.FC = () => {
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-5">
+                  {/* API Error Message */}
+                  {apiError && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+                      <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <p className="text-sm text-red-700">{apiError}</p>
+                    </div>
+                  )}
+
                   {/* Email Input */}
                   <Input
                     label="Email Address"
@@ -135,12 +171,16 @@ export const SupervisorLoginPage: React.FC = () => {
                         value={formData.password}
                         onChange={handleInputChange}
                         placeholder="Enter password"
-                        className="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+                        className={`block w-full rounded-lg border px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors ${
+                          errors.password 
+                            ? 'border-red-500 focus:ring-red-500' 
+                            : 'border-gray-300 focus:ring-primary-500 focus:border-transparent'
+                        }`}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                       >
                         {showPassword ? (
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -155,12 +195,12 @@ export const SupervisorLoginPage: React.FC = () => {
                       </button>
                     </div>
                     {errors.password && (
-                      <p className="mt-1 text-sm text-error-600">{errors.password}</p>
+                      <p className="mt-1 text-sm text-red-600">{errors.password}</p>
                     )}
                   </div>
 
-                  {/* Remember Me */}
-                  <div className="flex items-center">
+                  {/* Remember Me & Forgot Password */}
+                  <div className="flex items-center justify-between">
                     <label className="flex items-center cursor-pointer">
                       <input
                         type="checkbox"
@@ -170,6 +210,9 @@ export const SupervisorLoginPage: React.FC = () => {
                       />
                       <span className="ml-2 text-sm text-gray-700">Remember Me</span>
                     </label>
+                    <a href="#" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+                      Forgot Password?
+                    </a>
                   </div>
 
                   {/* Proceed Button */}
@@ -178,9 +221,10 @@ export const SupervisorLoginPage: React.FC = () => {
                     variant="primary"
                     className="w-full"
                     isLoading={isLoading}
+                    disabled={isLoading}
                   >
                     <span className="flex items-center justify-center">
-                      Sign In
+                      Proceed
                       <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>

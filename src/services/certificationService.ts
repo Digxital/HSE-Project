@@ -175,6 +175,34 @@ export const certificationService = {
       throw error;
     }
   },
+
+  /**
+   * Delete a certification
+   * @param certificationId - The certification ID to delete
+   * @returns Success message
+   */
+  async deleteCertification(certificationId: string): Promise<void> {
+    try {
+      console.log(`🗑️ Deleting certification: ${certificationId}`);
+      
+      const response = await api.delete<ApiCertificationResponse>(
+        `/api/certifications/${certificationId}`
+      );
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to delete certification');
+      }
+
+      console.log(`✅ Certification deleted successfully`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`❌ Failed to delete certification: ${errorMessage}`, error);
+      if (error instanceof Error && 'response' in error) {
+        console.error(`❌ Backend error response:`, (error as any).response?.data);
+      }
+      throw error;
+    }
+  },
 };
 
 /**

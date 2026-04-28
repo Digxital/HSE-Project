@@ -37,7 +37,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ role = 'admin' }) 
   };
 
   return (
-    <div className="min-h-screen bg-background-light">
+    <div className="min-h-screen bg-background-light dark:bg-gray-900 transition-colors">
       {/* Backdrop for mobile sidebar */}
       {isMobile && isMobileSidebarOpen && (
         <div
@@ -73,7 +73,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ role = 'admin' }) 
         />
 
         {/* Page Content */}
-        <div className="p-4 md:p-6 lg:p-8">
+        <div className="p-4 md:p-6 lg:p-8 bg-background-light dark:bg-gray-900 transition-colors min-h-screen">
           <StatsOverview hasData={hasData} />
           <AIInsights hasData={hasData} />
           <RecentReportsTable hasData={hasData} />
