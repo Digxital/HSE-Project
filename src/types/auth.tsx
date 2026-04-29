@@ -1,11 +1,18 @@
 export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    id: string;
-    email: string;
-    name: string;
+  success: boolean;
+  message: string;
+  data: {
+    token: string;
     role: string;
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      role?: string;
+      firstName?: string;
+      lastName?: string;
+      tenantId?: string;
+    };
   };
 }
 

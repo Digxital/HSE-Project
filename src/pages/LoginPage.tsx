@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Logo } from '@/components/ui/Logo';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { useToast } from '@/hooks/useToast';
 import { authService } from '@/services/authService';
-import { setAuthToken, setRefreshToken, setUserData } from '@/utils/authStorage';
+import { setAuthToken, setUserData } from '@/utils/authStorage';
 import engineerImage from '@/assets/images/engineer-cooperation-img.png';
 import darkLogo from '@/assets/images/aegix-darkmode-logo.png';
 import type { LoginResponse } from '@/types/auth';
@@ -66,13 +65,14 @@ export const LoginPage: React.FC = () => {
  
   const handleLoginSuccess = (response: LoginResponse) => {
     // Store tokens based on "Remember Me" preference
-    setAuthToken(response.accessToken, rememberMe);
-    if (response.refreshToken) {
-      setRefreshToken(response.refreshToken, rememberMe);
-    }
+    setAuthToken(response.data.token, rememberMe);
     
-    // Store user data (non-sensitive information)
-    setUserData(response.user, rememberMe);
+    // Store user data with role (non-sensitive information)
+    const userData = {
+      ...response.data.user,
+      role: response.data.role
+    } as any;
+    setUserData(userData, rememberMe);
 
     // Show success message
     showToast({
@@ -81,10 +81,10 @@ export const LoginPage: React.FC = () => {
     });
 
     // Navigate based on user role
-    console.log(`👤 User role: ${response.user.role}`);
-    if (response.user.role === 'ADMIN') {
+    console.log(`👤 User role: ${response.data.role}`);
+    if (response.data.role === 'ADMIN') {
       navigate('/dashboard', { replace: true });
-    } else if (response.user.role === 'SUPERVISOR') {
+    } else if (response.data.role === 'SUPERVISOR') {
       navigate('/supervisor/dashboard', { replace: true });
     } else {
       // Fallback to admin dashboard

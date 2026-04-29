@@ -1,36 +1,23 @@
 import api from '@/lib/axios';
-import { setAuthToken, setRefreshToken, setUserData, getAuthToken } from '@/utils/authStorage';
+import { setAuthToken, setUserData, getAuthToken } from '@/utils/authStorage';
+import type { LoginResponse } from '@/types/auth';
 
 interface LoginCredentials {
   email: string;
   password: string;
 }
  
-interface LoginResponse {
-  token: string;
-  refreshToken: string;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-  };
-}
- 
 export const authService = {
 
   async adminLogin(credentials: LoginCredentials): Promise<LoginResponse> {
-    const response = await api.post('/api/admin/auth/login', credentials);
+    const response = await api.post('/api/auth/login', credentials);
 
     // Store tokens immediately after login
-    if (response.data.accessToken || response.data.token) {
-      setAuthToken(response.data.accessToken || response.data.token, true); // true for localStorage
+    if (response.data.data.token) {
+      setAuthToken(response.data.data.token, true); // true for localStorage
     }
-    if (response.data.refreshToken) {
-      setRefreshToken(response.data.refreshToken, true);
-    }
-    if (response.data.user) {
-      setUserData(response.data.user, true);
+    if (response.data.data.user) {
+      setUserData(response.data.data.user, true);
     }
 
     return response.data; 
@@ -39,14 +26,11 @@ export const authService = {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     const response = await api.post('/api/auth/login', credentials);
     // Store tokens immediately after login
-    if (response.data.accessToken || response.data.token) {
-      setAuthToken(response.data.accessToken || response.data.token, true);
+    if (response.data.data.token) {
+      setAuthToken(response.data.data.token, true);
     }
-    if (response.data.refreshToken) {
-      setRefreshToken(response.data.refreshToken, true);
-    }
-    if (response.data.user) {
-      setUserData(response.data.user, true);
+    if (response.data.data.user) {
+      setUserData(response.data.data.user, true);
     }
     return response.data;
   },
