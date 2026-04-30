@@ -14,6 +14,7 @@ const incidentRoutes = require("./routes/incident")
 const inspectionRoutes = require("./routes/inspection");
 const notificationRoutes = require("./routes/notification.routes");
 const certificationRoutes = require("./routes/certification");
+const auditLogRoutes = require("./routes/auditLog");
 
 
 
@@ -40,6 +41,7 @@ app.use("/api/inspections", inspectionRoutes);
 app.use("/api/feedback", require("./routes/feedback.routes"));
 app.use("/api/notifications", notificationRoutes);
 app.use("/api", certificationRoutes);
+app.use("/api/auditlogs", auditLogRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

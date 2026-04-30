@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../model/user.model");
+const { logLogin, logProfileUpdate, getClientIp, getUserAgent } = require("../utils/auditLog");
 
 exports.login = async (req, res) => {
     const { email, password } = req.body;
@@ -8,6 +9,15 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
+        // Log failed login attempt
+        await logLogin({
+            tenantId: null,
+            userId: null,
+            userEmail: email,
+            success: false,
+            req,
+            statusMessage: "User not found"
+        });
         return res.status(401).json({
             success: false,
             message: "Invalid credentials",
@@ -16,6 +26,15 @@ exports.login = async (req, res) => {
     }
 
     if (user.status.toUpperCase() !== "ACTIVE") {
+        // Log failed login attempt
+        await logLogin({
+            tenantId: user.tenantId,
+            userId: user._id,
+            userEmail: email,
+            success: false,
+            req,
+            statusMessage: `Account is ${user.status}`
+        });
         return res.status(403).json({
             success: false,
             message: `Account is ${user.status}. Contact admin.`,
@@ -24,6 +43,15 @@ exports.login = async (req, res) => {
     }
 
     if (!user.role) {
+        // Log failed login attempt
+        await logLogin({
+            tenantId: user.tenantId,
+            userId: user._id,
+            userEmail: email,
+            success: false,
+            req,
+            statusMessage: "Account not fully configured"
+        });
         return res.status(403).json({
             success: false,
             message: "Account not fully configured. Contact admin.",
@@ -34,6 +62,15 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.passwordHash);
 
     if (!isMatch) {
+        // Log failed login attempt
+        await logLogin({
+            tenantId: user.tenantId,
+            userId: user._id,
+            userEmail: email,
+            success: false,
+            req,
+            statusMessage: "Invalid password"
+        });
         return res.status(401).json({
             success: false,
             message: "Invalid credentials",
@@ -44,12 +81,22 @@ exports.login = async (req, res) => {
     const token = jwt.sign(
         {
             id: user._id,
+            email: user.email,
             role: user.role,
             tenantId: user.tenantId
         },
         process.env.JWT_SECRET,
         { expiresIn: "8h" }
     );
+
+    // Log successful login
+    await logLogin({
+        tenantId: user.tenantId,
+        userId: user._id,
+        userEmail: email,
+        success: true,
+        req
+    });
 
     res.json({
         success: true,
@@ -84,6 +131,9 @@ exports.updateProfile = async (req, res) => {
             });
         }
 
+        // Get current user data before update
+        const currentUser = await User.findById(userId).select("-passwordHash");
+
         // Build update object
         const updateData = { firstName, lastName };
         if (location !== undefined) {
@@ -97,6 +147,24 @@ exports.updateProfile = async (req, res) => {
             updateData,
             { new: true, runValidators: true }
         ).select("-passwordHash");
+
+        // Log profile update
+        await logProfileUpdate({
+            tenantId: req.user.tenantId,
+            userId,
+            userEmail: req.user.email || currentUser.email,
+            before: {
+                firstName: currentUser.firstName,
+                lastName: currentUser.lastName,
+                location: currentUser.location
+            },
+            after: {
+                firstName: updatedUser.firstName,
+                lastName: updatedUser.lastName,
+                location: updatedUser.location
+            },
+            req
+        });
 
         res.json({
             success: true,

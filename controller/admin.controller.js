@@ -1,5 +1,11 @@
 const bcrypt = require("bcryptjs");
 const User = require("../model/user.model");
+const {
+    logUserCreation,
+    logUserUpdate,
+    logRoleChange,
+    logRecordDeletion
+} = require("../utils/auditLog");
 
 // ADMIN can create users with or without a role
 
@@ -29,6 +35,24 @@ exports.createUser = async (req, res) => {
     }
 
     const newUser = await User.create(userData);
+
+    // Log user creation
+    // Get admin email from token or from database
+    let adminEmail = req.user.email;
+    if (!adminEmail) {
+        const adminUser = await User.findById(req.user.id);
+        adminEmail = adminUser?.email || "system@admin.com";
+    }
+
+    await logUserCreation({
+        tenantId: req.user.tenantId,
+        createdBy: req.user.id,
+        createdByEmail: adminEmail,
+        userId: newUser._id,
+        userEmail: email,
+        userData,
+        req
+    });
 
     res.status(201).json({
         success: true,
@@ -104,7 +128,9 @@ exports.updateUser = async (req, res) => {
             }
         }
 
-    
+        // Get current user data before update
+        const currentUser = await User.findById(req.params.id).select("-passwordHash");
+
         const updateData = {};
         if (firstName !== undefined) updateData.firstName = firstName;
         if (lastName !== undefined) updateData.lastName = lastName;
@@ -125,6 +151,51 @@ exports.updateUser = async (req, res) => {
                 data: {}
             });
         }
+
+        // Get admin email from token or from database
+        let adminEmail = req.user.email;
+        if (!adminEmail) {
+            const adminUser = await User.findById(req.user.id);
+            adminEmail = adminUser?.email || "system@admin.com";
+        }
+
+        // Log role change if role was updated
+        if (role && role !== currentUser.role) {
+            await logRoleChange({
+                tenantId: req.user.tenantId,
+                changedBy: req.user.id,
+                changedByEmail: adminEmail,
+                userId: user._id,
+                userEmail: user.email,
+                oldRole: currentUser.role,
+                newRole: role,
+                req
+            });
+        }
+
+        // Log user update
+        await logUserUpdate({
+            tenantId: req.user.tenantId,
+            updatedBy: req.user.id,
+            updatedByEmail: adminEmail,
+            userId: user._id,
+            userEmail: user.email,
+            before: {
+                firstName: currentUser.firstName,
+                lastName: currentUser.lastName,
+                role: currentUser.role,
+                status: currentUser.status,
+                location: currentUser.location
+            },
+            after: {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                role: user.role,
+                status: user.status,
+                location: user.location
+            },
+            req
+        });
 
         return res.json({
             success: true,
@@ -151,6 +222,31 @@ exports.deleteUser = async (req, res) => {
                 data: {}
             });
         }
+
+        // Get admin email from token or from database
+        let adminEmail = req.user.email;
+        if (!adminEmail) {
+            const adminUser = await User.findById(req.user.id);
+            adminEmail = adminUser?.email || "system@admin.com";
+        }
+
+        // Log user deletion
+        await logRecordDeletion({
+            tenantId: req.user.tenantId,
+            deletedBy: req.user.id,
+            deletedByEmail: adminEmail,
+            recordId: user._id,
+            recordType: "USER",
+            recordName: user.email,
+            recordData: {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                role: user.role,
+                status: user.status
+            },
+            req
+        });
 
         return res.json({
             success: true,

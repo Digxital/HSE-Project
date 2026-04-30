@@ -4,6 +4,7 @@ const JobType = require("../model/jobType.model");
 const Notification = require("../model/notification.model");
 const mongoose = require("mongoose");
 const { calculateComplianceStatus } = require("../utils/compliance");
+const { logCertificationUpload, logRecordDeletion } = require("../utils/auditLog");
 
 
 //    GET /users/:id/certifications
@@ -336,6 +337,24 @@ exports.createCertification = async (req, res) => {
       createdBy: req.user.id
     });
 
+    // Log certification upload
+    let adminEmail = req.user.email;
+    if (!adminEmail) {
+        const adminUser = await User.findById(req.user.id);
+        adminEmail = adminUser?.email || "system@admin.com";
+    }
+
+    await logCertificationUpload({
+      tenantId: req.user.tenantId,
+      uploadedBy: req.user.id,
+      uploadedByEmail: adminEmail,
+      certificationId: certification._id,
+      userId,
+      certificationName: certification.certificationName,
+      fileUrl: certification.fileUrl,
+      req
+    });
+
     // Create notification for the user
     try {
       console.log("Creating certificate_added notification for userId:", userId);
@@ -578,6 +597,32 @@ exports.deleteCertification = async (req, res) => {
     }
 
     await Certification.findByIdAndDelete(certificationId);
+
+    // Get admin email from token or from database
+    let adminEmail = req.user.email;
+    if (!adminEmail) {
+        const adminUser = await User.findById(req.user.id);
+        adminEmail = adminUser?.email || "system@admin.com";
+    }
+
+    // Log certification deletion
+    await logRecordDeletion({
+      tenantId: req.user.tenantId,
+      deletedBy: req.user.id,
+      deletedByEmail: adminEmail,
+      recordId: certification._id,
+      recordType: "CERTIFICATION",
+      recordName: certification.certificationName,
+      recordData: {
+        certificationName: certification.certificationName,
+        userId: certification.userId.toString(),
+        issuingAuthority: certification.issuingAuthority,
+        issueDate: certification.issueDate,
+        expiryDate: certification.expiryDate,
+        status: certification.status
+      },
+      req
+    });
 
     return res.status(200).json({
       success: true,
