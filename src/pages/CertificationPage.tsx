@@ -44,19 +44,19 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
   const getStatusStyles = (status: Certification['status']) => {
     switch (status) {
       case 'Valid':
-        return 'bg-green-50 text-green-700 border-green-200';
+        return 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900/50';
       case 'Expired':
-        return 'bg-red-50 text-red-600 border-red-200';
+        return 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50';
       default:
-        return 'bg-gray-50 text-gray-600 border-gray-200';
+        return 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700';
     }
   };
 
   const getIconStyles = (status: Certification['status']) => {
     if (status === 'Expired') {
       return {
-        bgColor: 'bg-red-100',
-        iconColor: 'text-red-500',
+        bgColor: 'bg-red-100 dark:bg-red-900/30',
+        iconColor: 'text-red-500 dark:text-red-400',
         icon: (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -65,8 +65,8 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
       };
     }
     return {
-      bgColor: 'bg-green-100',
-      iconColor: 'text-green-500',
+      bgColor: 'bg-green-100 dark:bg-green-900/30',
+      iconColor: 'text-green-500 dark:text-green-400',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -76,7 +76,7 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
   };
 
   return (
-    <div className="min-h-screen bg-background-light">
+    <div className="min-h-screen bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors">
       {/* Sidebar */}
       <Sidebar
         isCollapsed={sidebarCollapsed}
@@ -99,14 +99,14 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
         />
 
         {/* Main Content Area */}
-        <main className="p-4 md:p-6 lg:p-8">
+        <main className="p-4 md:p-6 lg:p-8 bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors min-h-screen">
           <div className="max-w-4xl mx-auto">
             {/* Certification Container */}
-            <div className="bg-[#FFFAF5] rounded-xl p-6 md:p-8 border border-gray-100">
+            <div className="bg-[#FFFAF5] dark:bg-[#121212] rounded-xl p-6 md:p-8 border border-gray-100 dark:border-gray-700">
               {/* Header */}
               <div className="mb-6">
-                <h2 className="text-xl md:text-2xl font-bold text-black-900">Certification</h2>
-                <p className="text-sm text-black-500 mt-1 font-bold">Professional and Safety Certification</p>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Certification</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 font-bold">Professional and Safety Certification</p>
               </div>
 
               {/* Loading State */}
@@ -114,22 +114,22 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
                 <div className="flex justify-center items-center py-12">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-8 h-8 border-4 border-[#C24438] border-t-transparent rounded-full animate-spin" />
-                    <p className="text-gray-500 text-sm">Loading certifications...</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Loading certifications...</p>
                   </div>
                 </div>
               )}
 
               {/* Error State */}
               {error && !loading && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                  <p className="text-red-600 text-sm">{error}</p>
+                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-900/50 rounded-lg p-4 mb-4">
+                  <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
                 </div>
               )}
 
               {/* Empty State */}
               {!loading && !error && certifications.length === 0 && (
                 <div className="text-center py-12">
-                  <p className="text-gray-500 text-sm">No certifications found</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">No certifications found</p>
                 </div>
               )}
 
@@ -141,7 +141,7 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
                     return (
                       <div
                         key={cert.id}
-                        className="bg-white rounded-xl p-4 md:p-6 border border-gray-100 flex flex-col md:flex-row md:items-center gap-4"
+                        className="bg-white dark:bg-[#0D0D0D] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700 flex flex-col md:flex-row md:items-center gap-4"
                       >
                         {/* Left: Icon + Info */}
                         <div className="flex items-start gap-4 flex-1">
@@ -152,12 +152,12 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
 
                           {/* Info */}
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-base font-semibold text-gray-900">{cert.name}</h3>
-                            <p className="text-sm text-gray-600 mb-1">Assigned to: <span className="font-medium">{cert.userEmail || 'Unknown User'}</span></p>
-                            <p className="text-sm text-gray-500">Issued by: {cert.issuedBy}</p>
+                            <h3 className="text-base font-semibold text-gray-900 dark:text-white">{cert.name}</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Assigned to: <span className="font-medium">{cert.userEmail || 'Unknown User'}</span></p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Issued by: {cert.issuedBy}</p>
                             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-1">
-                              <p className="text-sm text-gray-500">Issued Date: {cert.issueDate}</p>
-                              <p className="text-sm text-[#C24438]">Expiry Date: {cert.expiryDate}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">Issued Date: {cert.issueDate}</p>
+                              <p className="text-sm text-[#C24438] dark:text-red-400">Expiry Date: {cert.expiryDate}</p>
                             </div>
                           </div>
                         </div>

@@ -80,9 +80,9 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
 
   const getRiskBadge = (risk: RiskLevel) => {
     const styles = {
-      High: 'bg-red-500 text-white',
-      Medium: 'bg-orange-500 text-white',
-      Low: 'bg-green-500 text-white',
+      High: 'bg-red-500 dark:bg-red-900/30 text-white dark:text-red-400',
+      Medium: 'bg-orange-500 dark:bg-orange-900/30 text-white dark:text-orange-400',
+      Low: 'bg-green-500 dark:bg-green-900/30 text-white dark:text-green-400',
     };
 
     return (
@@ -94,16 +94,16 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
 
   const getStatusText = (status: ReportStatus) => {
     const styles = {
-      Open: 'text-[#FF3B30] font-medium',
-      'In Progress': 'text-[#FF9500] font-medium',
-      Closed: 'text-gray-500 font-medium',
+      Open: 'text-[#FF3B30] dark:text-red-400 font-medium',
+      'In Progress': 'text-[#FF9500] dark:text-orange-400 font-medium',
+      Closed: 'text-gray-500 dark:text-gray-400 font-medium',
     };
 
     return <span className={styles[status]}>{status}</span>;
   };
 
   return (
-    <div className="min-h-screen bg-background-light">
+    <div className="min-h-screen bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors">
       {/* Sidebar */}
       <Sidebar
         isCollapsed={sidebarCollapsed}
@@ -126,12 +126,12 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
         />
 
         {/* Main Content Area */}
-        <main className="p-4 md:p-6 lg:p-8">
+        <main className="p-4 md:p-6 lg:p-8 bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors min-h-screen">
           <div>
             {/* Page Header */}
             <div className="flex items-center justify-between mb-6" data-aos="fade-down">
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-semibold text-gray-900">Reports List</h1>
+                <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Reports List</h1>
                 <div 
                   className="relative"
                   onMouseEnter={() => setShowHeaderTooltip(true)}
@@ -139,9 +139,9 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
                 >
                   <button 
                     onClick={() => setShowHeaderTooltip(!showHeaderTooltip)}
-                    className="p-1 hover:bg-gray-100 rounded-full"
+                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
                   >
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -153,10 +153,10 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
                   
                   {/* Tooltip */}
                   {showHeaderTooltip && (
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900/90 text-white text-xs rounded-lg whitespace-nowrap z-50 shadow-lg">
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900/90 dark:bg-gray-800/90 text-white text-xs rounded-lg whitespace-nowrap z-50 shadow-lg transition-colors">
                       View and manage all submitted reports
                       {/* Arrow */}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900/90"></div>
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900/90 dark:border-t-gray-800/90"></div>
                     </div>
                   )}
                 </div>
@@ -171,16 +171,16 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
                   onClick={() => setSelectedType(type.label)}
                   className={`px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${
                     selectedType === type.label
-                      ? 'bg-orange-50 text-[#C24438] border border-[#C24438]'
-                      : 'bg-[#FFF9F5] text-gray-600 hover:bg-[#FFFEFB]'
+                      ? 'bg-orange-50 dark:bg-orange-900/30 text-[#C24438] dark:text-orange-400 border border-[#C24438] dark:border-orange-600'
+                      : 'bg-[#FFF9F5] dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-[#FFFEFB] dark:hover:bg-gray-700 transition-colors'
                   }`}
                 >
                   {type.label}
                   <span
                     className={`ml-1 px-1.5 md:px-2 py-0.5 rounded-full text-xs ${
                       selectedType === type.label
-                        ? 'bg-[#C24438] text-white'
-                        : 'bg-gray-200 text-gray-600'
+                        ? 'bg-[#C24438] dark:bg-orange-600 text-white'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                     }`}
                   >
                     {type.count}
@@ -193,7 +193,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
             <div className="flex flex-row gap-3 mb-6" data-aos="fade-up" data-aos-delay="100">
               <div className="flex-1 relative">
                 <svg
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -210,10 +210,10 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
                   placeholder="Search by incident, hazard, Risk level, status..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-[#FFF9F5] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-sm"
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#FFF9F5] dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] dark:focus:ring-orange-500 focus:border-transparent text-sm placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
                 />
               </div>
-              <button className="px-4 py-2.5 bg-[#FFF9F5] border border-gray-200 rounded-lg hover:bg-[#FFFEFB] transition-colors flex items-center gap-2 text-sm font-medium text-gray-700 justify-center whitespace-nowrap">
+              <button className="px-4 py-2.5 bg-[#FFF9F5] dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-[#FFFEFB] dark:hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm font-medium justify-center whitespace-nowrap">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -230,20 +230,20 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
             <div className="overflow-x-auto -mx-3 md:mx-0" data-aos="fade-up" data-aos-delay="150">
               <table className="min-w-full">
                 <thead>
-                  <tr className="bg-[#FFF9F5] border-b border-gray-200">
-                      <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Report ID</th>
-                      <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500 hidden md:table-cell">
+                  <tr className="bg-[#FFF9F5] dark:bg-[#0D0D0D] border-b border-gray-200 dark:border-gray-700">
+                      <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Report ID</th>
+                      <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400 hidden md:table-cell">
                         Type
                       </th>
-                      <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Category</th>
-                      <th className="hidden lg:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500">
+                      <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Category</th>
+                      <th className="hidden lg:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
                         Location
                       </th>
-                      <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Risk</th>
-                      <th className="hidden md:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500">
+                      <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Risk</th>
+                      <th className="hidden md:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
                         Status
                       </th>
-                      <th className="hidden lg:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500">
+                      <th className="hidden lg:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
                         Date Reported
                       </th>
                     </tr>
@@ -254,20 +254,20 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
                         <td colSpan={7} className="py-12 text-center">
                           <div className="flex flex-col items-center gap-3">
                             <div className="w-8 h-8 border-4 border-[#C24438] border-t-transparent rounded-full animate-spin" />
-                            <p className="text-gray-500 text-sm">Loading reports...</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">Loading reports...</p>
                           </div>
                         </td>
                       </tr>
                     ) : error && reports.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="py-12 text-center">
-                          <p className="text-red-500 text-sm">{error}</p>
+                          <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>
                         </td>
                       </tr>
                     ) : filteredReports.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="py-12 text-center">
-                          <p className="text-gray-500 text-sm">No reports found</p>
+                          <p className="text-gray-500 dark:text-gray-400 text-sm">No reports found</p>
                         </td>
                       </tr>
                     ) : (
@@ -275,24 +275,24 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
                       <tr
                         key={report.id}
                         onClick={() => setSelectedReport(report)}
-                        className="bg-[#FFFAF5] hover:bg-[#FFFEFB] transition-colors border-l-4 border-l-[#C24438] border-b border-b-gray-200 cursor-pointer"
+                        className="bg-[#FFFAF5] dark:bg-[#121212] hover:bg-[#FFFEFB] dark:hover:bg-gray-800 transition-colors border-l-4 border-l-[#C24438] dark:border-l-orange-500 border-b border-b-gray-200 dark:border-b-gray-700 cursor-pointer"
                       >
                         <td className="py-3 md:py-4 px-3 md:px-4">
-                          <div className="font-medium text-gray-900 text-xs md:text-sm">{report.id}</div>
+                          <div className="font-medium text-gray-900 dark:text-white text-xs md:text-sm">{report.id}</div>
                         </td>
                         <td className="py-3 md:py-4 px-3 md:px-4 hidden md:table-cell">
-                          <div className="text-gray-900 text-sm">{report.type}</div>
+                          <div className="text-gray-900 dark:text-gray-100 text-sm">{report.type}</div>
                         </td>
                         <td className="py-3 md:py-4 px-3 md:px-4">
-                          <div className="text-gray-600 text-xs md:text-sm">{report.category}</div>
+                          <div className="text-gray-600 dark:text-gray-300 text-xs md:text-sm">{report.category}</div>
                         </td>
                         <td className="hidden lg:table-cell py-4 px-4">
-                          <div className="text-gray-600 text-sm">{report.location}</div>
+                          <div className="text-gray-600 dark:text-gray-300 text-sm">{report.location}</div>
                         </td>
                         <td className="py-3 md:py-4 px-3 md:px-4">{getRiskBadge(report.risk)}</td>
                         <td className="hidden md:table-cell py-4 px-4">{getStatusText(report.status)}</td>
                         <td className="hidden lg:table-cell py-4 px-4">
-                          <div className="text-gray-600 text-sm whitespace-pre-line">{report.dateReported}</div>
+                          <div className="text-gray-600 dark:text-gray-300 text-sm whitespace-pre-line">{report.dateReported}</div>
                         </td>
                       </tr>
                     ))

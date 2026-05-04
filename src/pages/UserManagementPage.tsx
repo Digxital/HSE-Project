@@ -49,26 +49,26 @@ const Pagination: React.FC<{
   onPageChange: (page: number) => void;
 }> = ({ currentPage, totalPages, onPageChange }) => {
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+    <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-[#121212] border-t border-gray-200 dark:border-gray-700 sm:px-6">
       <div className="flex justify-between flex-1 sm:hidden">
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Previous
         </button>
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Next
         </button>
       </div>
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm text-gray-700">
+          <p className="text-sm text-gray-700 dark:text-gray-300">
             Showing page <span className="font-medium">{currentPage}</span> of{' '}
             <span className="font-medium">{totalPages}</span>
           </p>
@@ -78,7 +78,7 @@ const Pagination: React.FC<{
             <button
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="relative inline-flex items-center px-2 py-2 text-gray-400 rounded-l-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="relative inline-flex items-center px-2 py-2 text-gray-400 dark:text-gray-600 rounded-l-md ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="sr-only">Previous</span>
               <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -92,8 +92,8 @@ const Pagination: React.FC<{
                 onClick={() => onPageChange(i + 1)}
                 className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
                   currentPage === i + 1
-                    ? 'z-10 bg-[#C24438] text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C24438]'
-                    : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                    ? 'z-10 bg-[#FC4926] text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FC4926]'
+                    : 'text-gray-900 dark:text-gray-300 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 focus:z-20 focus:outline-offset-0'
                 }`}
               >
                 {i + 1}
@@ -103,7 +103,7 @@ const Pagination: React.FC<{
             <button
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="relative inline-flex items-center px-2 py-2 text-gray-400 rounded-r-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="relative inline-flex items-center px-2 py-2 text-gray-400 dark:text-gray-600 rounded-r-md ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="sr-only">Next</span>
               <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -643,7 +643,7 @@ export const UserManagementPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background-light">
+    <div className="min-h-screen bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors">
       <Sidebar
         isCollapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -663,7 +663,7 @@ export const UserManagementPage: React.FC = () => {
           onLogout={handleLogout}
         />
 
-        <main className="p-4 md:p-6 lg:p-8">
+        <main className="p-4 md:p-6 lg:p-8 bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors">
           {/* Header */}
           <div className="flex items-center justify-between gap-3 mb-6" data-aos="fade-down">
             <div className="flex items-center gap-2">
@@ -711,7 +711,7 @@ export const UserManagementPage: React.FC = () => {
           </div>
 
           {/* Management Overview Section */}
-          <div className="bg-[#FFFAF5] rounded-xl shadow-sm border border-gray-100 overflow-hidden" data-aos="fade-up">
+          <div className="bg-[#FFFAF5] dark:bg-[#121212] rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden" data-aos="fade-up">
             <div className="p-3 md:p-6">
               {/* Role Filter Tabs - Only show for Platform tab */}
               {activeTab === 'platform' && (
@@ -726,14 +726,14 @@ export const UserManagementPage: React.FC = () => {
                         }}
                         className={`px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
                           selectedRole === role.label
-                            ? 'bg-orange-50 text-[#C24438] border border-[#C24438]'
-                            : 'bg-[#FFF9F5] text-gray-600 hover:bg-[#FFFEFB]'
+                            ? 'bg-orange-50 dark:bg-orange-900/30 text-[#C24438] dark:text-orange-400 border border-[#C24438] dark:border-orange-600'
+                            : 'bg-[#FFF9F5] dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-[#FFFEFB] dark:hover:bg-gray-700'
                         }`}
                       >
                         {role.label === 'PENDING' ? 'Pending' : role.label.replace('_', ' ')}{' '}
                         <span
                           className={`ml-1 px-1.5 md:px-2 py-0.5 rounded-full text-xs ${
-                            selectedRole === role.label ? 'bg-[#C24438] text-white' : 'bg-gray-200 text-gray-600'
+                            selectedRole === role.label ? 'bg-[#FC4926] dark:bg-orange-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                           }`}
                         >
                           {role.count}
@@ -748,7 +748,7 @@ export const UserManagementPage: React.FC = () => {
               <div className="flex flex-row gap-3 mb-6" data-aos="fade-up" data-aos-delay="100">
                 <div className="flex-1 relative">
                   <svg
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -770,7 +770,7 @@ export const UserManagementPage: React.FC = () => {
                       setSearchQuery(e.target.value);
                       setCurrentPage(1);
                     }}
-                    className="w-full pl-10 pr-4 py-2.5 bg-[#FFF9F5] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 bg-[#FFF9F5] dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-sm dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   />
                 </div>
               </div>
@@ -789,14 +789,14 @@ export const UserManagementPage: React.FC = () => {
                   <div className="overflow-x-auto -mx-3 md:mx-0" data-aos="fade-up" data-aos-delay="150">
                     <table className="min-w-full">
                       <thead>
-                        <tr className="bg-[#FFF9F5] border-b border-gray-200">
-                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">#</th>
-                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Name</th>
-                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Email</th>
-                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Role</th>
-                          <th className="hidden lg:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500">Status</th>
-                          <th className="hidden lg:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500">Created</th>
-                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Actions</th>
+                        <tr className="bg-[#FFF9F5] dark:bg-[#121212] border-b border-gray-200 dark:border-gray-700">
+                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">#</th>
+                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Name</th>
+                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Email</th>
+                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Role</th>
+                          <th className="hidden lg:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Status</th>
+                          <th className="hidden lg:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Created</th>
+                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -811,20 +811,20 @@ export const UserManagementPage: React.FC = () => {
                             <tr 
                               key={user.id} 
                               onClick={() => setSelectedUser(user)}
-                              className="bg-[#FFFAF5] hover:bg-[#FFFEFB] transition-colors border-l-4 border-l-[#C24438] border-b border-b-gray-200 cursor-pointer"
+                              className="bg-white dark:bg-[#121212] hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-l-4 border-l-[#FC4926] border-b border-b-gray-200 dark:border-b-gray-700 cursor-pointer"
                             >
                               <td className="py-3 md:py-4 px-3 md:px-4">
-                                <div className="text-gray-500 text-xs md:text-sm">
+                                <div className="text-gray-500 dark:text-gray-400 text-xs md:text-sm">
                                   {startIndex + index + 1}
                                 </div>
                               </td>
                               <td className="py-3 md:py-4 px-3 md:px-4">
-                                <div className="font-medium text-gray-900 text-xs md:text-sm">
+                                <div className="font-medium text-gray-900 dark:text-white text-xs md:text-sm">
                                   {user.firstName} {user.lastName}
                                 </div>
                               </td>
                               <td className="py-3 md:py-4 px-3 md:px-4">
-                                <div className="text-gray-600 text-xs md:text-sm">{user.email}</div>
+                                <div className="text-gray-600 dark:text-gray-300 text-xs md:text-sm">{user.email}</div>
                               </td>
                               <td className="py-3 md:py-4 px-3 md:px-4">
                                 {user.role ? getRoleBadge(user.role) : (
@@ -837,7 +837,7 @@ export const UserManagementPage: React.FC = () => {
                                 {getStatusBadge(user.status)}
                               </td>
                               <td className="hidden lg:table-cell py-4 px-4">
-                                <div className="text-gray-600 text-sm">
+                                <div className="text-gray-600 dark:text-gray-300 text-sm">
                                   {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                                 </div>
                               </td>
@@ -847,9 +847,9 @@ export const UserManagementPage: React.FC = () => {
                                     e.stopPropagation();
                                     setOpenMenuId(openMenuId === user.id ? null : user.id);
                                   }}
-                                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                                 >
-                                  <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="currentColor" viewBox="0 0 24 24">
                                     <circle cx="12" cy="5" r="2" />
                                     <circle cx="12" cy="12" r="2" />
                                     <circle cx="12" cy="19" r="2" />
@@ -864,14 +864,14 @@ export const UserManagementPage: React.FC = () => {
                                       onClick={() => setOpenMenuId(null)}
                                     />
                                     
-                                    <div className="absolute right-0 mt-2 w-56 bg-[#FFFEFB] rounded-lg shadow-lg border border-gray-200 py-2 z-40">
+                                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#121212] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-40">
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           setSelectedUser(user);
                                           setOpenMenuId(null);
                                         }}
-                                        className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-[#FFF9F5] flex items-center gap-3 transition-colors"
+                                        className="w-full px-4 py-3 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-3 transition-colors"
                                       >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -884,7 +884,7 @@ export const UserManagementPage: React.FC = () => {
                                           e.stopPropagation();
                                           handleToggleUserStatus(user);
                                         }}
-                                        className="w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-[#FFF9F5] flex items-center gap-3 transition-colors"
+                                        className="w-full px-4 py-3 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-3 transition-colors"
                                       > 
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           {user.status === 'Active' ? (
@@ -896,14 +896,14 @@ export const UserManagementPage: React.FC = () => {
                                         {user.status === 'Active' ? 'Deactivate' : 'Activate'}
                                       </button>
                                       
-                                      <div className="border-t border-gray-200 my-2"></div>
+                                      <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
                                       
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleDeleteUser(user.id);
                                         }}
-                                        className="w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors"
+                                        className="w-full px-4 py-3 text-left text-sm text-[#FC4926] dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-3 transition-colors"
                                       >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -934,17 +934,17 @@ export const UserManagementPage: React.FC = () => {
 
               {/* Microsoft Users Table */}
               {!isLoading && activeTab === 'microsoft' && (
-                <div className="user-table-container">
+                <div className="bg-white dark:bg-[#121212] rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 p-4 md:p-6">
                   <div className="overflow-x-auto -mx-3 md:mx-0" data-aos="fade-up" data-aos-delay="150">
                     <table className="min-w-full">
                       <thead>
-                        <tr className="bg-[#FFF9F5] border-b border-gray-200">
-                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">#</th>
-                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Name</th>
-                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Email</th>
-                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Job Title</th>
-                          <th className="hidden lg:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500">Department</th>
-                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">Status</th>
+                        <tr className="bg-[#FFF9F5] dark:bg-[#121212] border-b border-gray-200 dark:border-gray-700">
+                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">#</th>
+                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Name</th>
+                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Email</th>
+                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Job Title</th>
+                          <th className="hidden lg:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Department</th>
+                          <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Status</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -958,26 +958,26 @@ export const UserManagementPage: React.FC = () => {
                           currentMicrosoftUsers.map((user, index) => (
                             <tr 
                               key={user.id} 
-                              className="bg-[#FFFAF5] hover:bg-[#FFFEFB] transition-colors border-l-4 border-l-blue-500 border-b border-b-gray-200"
+                              className="bg-white dark:bg-[#121212] hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-l-4 border-l-blue-500 border-b border-b-gray-200 dark:border-b-gray-700"
                             >
                               <td className="py-3 md:py-4 px-3 md:px-4">
-                                <div className="text-gray-500 text-xs md:text-sm">
+                                <div className="text-gray-500 dark:text-gray-400 text-xs md:text-sm">
                                   {startIndex + index + 1}
                                 </div>
                               </td>
                               <td className="py-3 md:py-4 px-3 md:px-4">
-                                <div className="font-medium text-gray-900 text-xs md:text-sm">
+                                <div className="font-medium text-gray-900 dark:text-white text-xs md:text-sm">
                                   {user.displayName}
                                 </div>
                               </td>
                               <td className="py-3 md:py-4 px-3 md:px-4">
-                                <div className="text-gray-600 text-xs md:text-sm">{user.email}</div>
+                                <div className="text-gray-600 dark:text-gray-300 text-xs md:text-sm">{user.email}</div>
                               </td>
                               <td className="py-3 md:py-4 px-3 md:px-4">
-                                <div className="text-gray-600 text-xs md:text-sm">{user.jobTitle}</div>
+                                <div className="text-gray-600 dark:text-gray-300 text-xs md:text-sm">{user.jobTitle}</div>
                               </td>
                               <td className="hidden lg:table-cell py-4 px-4">
-                                <div className="text-gray-600 text-sm">{user.department}</div>
+                                <div className="text-gray-600 dark:text-gray-300 text-sm">{user.department}</div>
                               </td>
                               <td className="py-3 md:py-4 px-3 md:px-4">
                                 {getSyncBadge(user.synced)}

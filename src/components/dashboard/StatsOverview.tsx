@@ -47,7 +47,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) 
     <div className="mb-8">
       {/* Section Header */}
       <div className="flex items-center space-x-2 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">HSE Management Overview</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">HSE Management Overview</h2>
         <div  
           className="relative"
           onMouseEnter={() => setShowHeaderTooltip(true)}
@@ -55,7 +55,7 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) 
         >
           <button 
             onClick={() => setShowHeaderTooltip(!showHeaderTooltip)}
-            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -64,10 +64,10 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) 
           
           {/* Tooltip */}
           {showHeaderTooltip && (
-            <div className={`absolute bottom-full ${isMobile ? 'left-0' : 'left-1/2 -translate-x-1/2'} mb-2 px-3 py-2 bg-gray-900/90 text-white text-xs rounded-lg whitespace-nowrap z-50 shadow-lg`}>
+            <div className={`absolute bottom-full ${isMobile ? 'left-0' : 'left-1/2 -translate-x-1/2'} mb-2 px-3 py-2 bg-gray-900/90 dark:bg-gray-800/90 text-white text-xs rounded-lg whitespace-nowrap z-50 shadow-lg`}>
               Overview of all HSE reports, risks, and actions
               {/* Arrow */}
-              <div className={`absolute top-full ${isMobile ? 'left-3' : 'left-1/2 -translate-x-1/2'} border-4 border-transparent border-t-gray-900/90`}></div>
+              <div className={`absolute top-full ${isMobile ? 'left-3' : 'left-1/2 -translate-x-1/2'} border-4 border-transparent border-t-gray-900/90 dark:border-t-gray-800/90`}></div>
             </div>
           )}
         </div>
@@ -132,18 +132,18 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) 
 
         {/* Monthly Trend Card */}
         <div data-aos="fade-up" data-aos-delay="300">
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow h-full flex flex-col">
+          <div className="bg-white dark:bg-[#121212] rounded-xl p-6 shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-800 hover:shadow-md dark:hover:shadow-lg transition-all duration-200 h-full flex flex-col">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-baseline space-x-2">
-                <h2 className="text-4xl font-bold text-gray-900">{stats.monthlyTrend}%</h2>
+                <h2 className="text-4xl font-bold text-gray-900 dark:text-white">{stats.monthlyTrend}%</h2>
                 {hasData && (
-                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
                   </svg>
                 )}
               </div>
             </div>
-            <p className="text-sm text-gray-600 mb-4 flex-grow-0">Monthly Trend</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 flex-grow-0">Monthly Trend</p>
             
             {/* Simple Trend Graph */}
             {hasData ? (
@@ -173,8 +173,8 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) 
                 </svg>
               </div>
             ) : (
-              <div className="h-20 flex items-center justify-center bg-gray-50 rounded">
-                <p className="text-xs text-gray-400">No data available</p>
+              <div className="h-20 flex items-center justify-center bg-gray-50 dark:bg-gray-900/50 rounded">
+                <p className="text-xs text-gray-400 dark:text-gray-500">No data available</p>
               </div>
             )}
           </div>

@@ -445,7 +445,7 @@ export const AnalyticsPage: React.FC = () => {
   const timeFilters: TimeFilter[] = ['12 months', '6 months', '30 days', '7 days'];
 
   return (
-    <div className="min-h-screen bg-background-light">
+    <div className="min-h-screen bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors">
       {/* Sidebar */}
       <Sidebar
         isCollapsed={sidebarCollapsed}
@@ -467,54 +467,54 @@ export const AnalyticsPage: React.FC = () => {
         />
 
         {/* Main Content Area */}
-        <main className="p-4 md:p-6 lg:p-8">
+        <main className="p-4 md:p-6 lg:p-8 bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors">
           <div className="max-w-[1600px] mx-auto space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" data-aos="fade-up">
               {/* Total Reports */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100 flex flex-col">
-                <div className="flex items-center justify-between mb-2 h-6">
-                  <span className="text-sm text-gray-600">Total Reports</span>
-                  <span className={`px-2 py-1 rounded-full text-xs whitespace-nowrap ${reportsTrendPercentage >= 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'}`}>{reportsTrendPercentage >= 0 ? '+' : ''}{reportsTrendPercentage}% from last 30 days</span>
+              <div className="bg-[#fffaf5] dark:bg-[#121212] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700 flex flex-col">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Total Reports</span>
+                  <span className={`px-2 py-1 rounded-full text-xs whitespace-nowrap ${reportsTrendPercentage >= 0 ? 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/30' : 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/30'}`}>{reportsTrendPercentage >= 0 ? '+' : ''}{reportsTrendPercentage}% from last 30 days</span>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{totalReportsCount}</div>
-                <p className="text-xs text-gray-500 mt-1">Hazard and Incident reported</p>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{totalReportsCount}</div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Hazard and Incident reported</p>
               </div>
 
               {/* Total Actions */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100 flex flex-col">
-                <div className="flex items-center justify-between mb-2 h-6">
-                  <span className="text-sm text-gray-600">Total Actions</span>
-                  <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full whitespace-nowrap">+{newActionsThisWeek} new actions this week </span>
+              <div className="bg-[#fffaf5] dark:bg-[#121212] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700 flex flex-col">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Total Actions</span>
+                  <span className="text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-full whitespace-nowrap">+{newActionsThisWeek} new actions this week</span>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{totalActionsCount}</div>
-                <p className="text-xs text-gray-500 mt-1">Corrective actions created</p>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{totalActionsCount}</div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Corrective actions created</p>
               </div>
 
               {/* Open Actions */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100 flex flex-col">
-                <div className="flex items-center justify-between mb-2 h-6">
-                  <span className="text-sm text-gray-600">Open Actions</span>
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full whitespace-nowrap">{inProgressActionsCount} in progress</span>
+              <div className="bg-[#fffaf5] dark:bg-[#121212] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700 flex flex-col">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Open Actions</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full whitespace-nowrap">{inProgressActionsCount} in progress</span>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{openActionsCount}</div>
-                <p className="text-xs text-gray-500 mt-1">Actions not yet completed</p>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{openActionsCount}</div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Actions not yet completed</p>
               </div>
 
               {/* Overdue Actions */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100 flex flex-col">
-                <div className="flex items-center justify-between mb-2 h-6">
-                  <span className="text-sm text-gray-600">Overdue Actions</span>
-                  <span className="text-xs text-[#C24438] bg-red-50 px-2 py-1 rounded-full whitespace-nowrap">Requires attention</span>
+              <div className="bg-[#fffaf5] dark:bg-[#121212] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700 flex flex-col">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Overdue Actions</span>
+                  <span className="text-xs text-[#C24438] dark:text-red-400 bg-red-50 dark:bg-red-900/30 px-2 py-1 rounded-full whitespace-nowrap">Requires attention</span>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{overdueActionsCount}</div>
-                <p className="text-xs text-gray-500 mt-1">Past due date</p>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{overdueActionsCount}</div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Past due date</p>
               </div>
             </div>
 
             {/* Report Trends */}
-            <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100" data-aos="fade-up" data-aos-delay="100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Report Trends</h3>
+            <div className="bg-[#fffaf5] dark:bg-[#121212] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700" data-aos="fade-up" data-aos-delay="100">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Report Trends</h3>
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                 <div className="flex flex-wrap items-center gap-2">
                   {timeFilters.map((filter) => (
@@ -523,8 +523,8 @@ export const AnalyticsPage: React.FC = () => {
                       onClick={() => setTrendsFilter(filter)}
                       className={`px-3 py-1.5 text-xs md:text-sm rounded-lg transition-colors ${
                         trendsFilter === filter
-                          ? 'bg-[#C24438] text-white'
-                          : 'bg-white text-gray-600 hover:bg-gray-100'
+                          ? 'bg-[#f87171] dark:bg-[#9f1212] text-white'
+                          : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                       }`}
                     >
                       {filter}
@@ -534,11 +534,11 @@ export const AnalyticsPage: React.FC = () => {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-[#C24438]"></div>
-                    <span className="text-sm text-gray-600">Hazard</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Hazard</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-[#FF9500]"></div>
-                    <span className="text-sm text-gray-600">Incident</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">Incident</span>
                   </div>
                 </div>
               </div>
@@ -556,10 +556,10 @@ export const AnalyticsPage: React.FC = () => {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} ticks={[0, 10, 20, 30, 40, 50, 60]} domain={[0, 60]} />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 12 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 12 }} ticks={[0, 10, 20, 30, 40, 50, 60]} domain={[0, 60]} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#FFFEFB', border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                      contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px', color: '#FFFFFF' }}
                     />
                     <Area
                       type="monotone"
@@ -585,9 +585,9 @@ export const AnalyticsPage: React.FC = () => {
             {/* Actions by Status & Reports by Location */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Actions by Status */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100" data-aos="fade-up" data-aos-delay="150">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Actions by Status</h3>
-                <p className="text-sm text-gray-500 mb-4">Current progress of all actions</p>
+              <div className="bg-[#fffaf5] dark:bg-[#121212] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700" data-aos="fade-up" data-aos-delay="150">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Actions by Status</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Current progress of all actions</p>
                 <div className="flex flex-col md:flex-row items-center gap-6">
                   <div className="w-48 h-48">
                     <ResponsiveContainer width="100%" height="100%">
@@ -626,11 +626,11 @@ export const AnalyticsPage: React.FC = () => {
               </div>
 
               {/* Reports by Location */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100" data-aos="fade-up" data-aos-delay="200">
+              <div className="bg-[#fffaf5] dark:bg-[#121212] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700" data-aos="fade-up" data-aos-delay="200">
                 <div className="flex flex-col gap-4 mb-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Reports by Location</h3>
-                    <p className="text-sm text-gray-500">Locations with the highest number of reports</p>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Reports by Location</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Locations with the highest number of reports</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     {['12 months', '30 days', '7 days'].map((filter) => (
@@ -639,8 +639,8 @@ export const AnalyticsPage: React.FC = () => {
                         onClick={() => setLocationFilter(filter as TimeFilter)}
                         className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
                           locationFilter === filter
-                            ? 'bg-[#C24438] text-white'
-                            : 'bg-white text-gray-600 hover:bg-gray-100'
+                            ? 'bg-[#f87171] dark:bg-[#9f1212] text-white'
+                            : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                         }`}
                       >
                         {filter}
@@ -652,10 +652,10 @@ export const AnalyticsPage: React.FC = () => {
                   {reportsByLocationData.map((item) => (
                     <div key={item.name}>
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm text-gray-600">{item.name}</span>
-                        <span className="text-sm font-medium text-gray-900">{item.reports}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-300">{item.name}</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{item.reports}</span>
                       </div>
-                      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-500"
                           style={{
@@ -667,7 +667,7 @@ export const AnalyticsPage: React.FC = () => {
                     </div>
                   ))}
                 </div>
-                <div className="flex items-center gap-1 mt-4 text-xs text-gray-400">
+                <div className="flex items-center gap-1 mt-4 text-xs text-gray-400 dark:text-gray-500">
                   {Array.from({ length: 11 }, (_, i) => Math.round((locationMaxValue / 10) * i)).map((value, index) => (
                     <React.Fragment key={index}>
                       <span>{value}</span>
@@ -681,16 +681,16 @@ export const AnalyticsPage: React.FC = () => {
             {/* Reports by Severity, Risk Distribution, Reports by Category */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Reports by Severity */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100" data-aos="fade-up" data-aos-delay="250">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Reports by Severity</h3>
-                <p className="text-sm text-gray-500 mb-4">Breakdown of reports by severity level</p>
+              <div className="bg-[#fffaf5] dark:bg-[#121212] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700" data-aos="fade-up" data-aos-delay="250">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Reports by Severity</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Breakdown of reports by severity level</p>
                 <div className="h-48">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={reportsBySeverityData}>
-                      <XAxis dataKey="range" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 10 }} />
+                      <XAxis dataKey="range" axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF', fontSize: 10 }} />
                       <YAxis hide />
                       <Tooltip
-                        contentStyle={{ backgroundColor: '#FFFEFB', border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                        contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px', color: '#FFFFFF' }}
                       />
                       <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                         {reportsBySeverityData.map((entry, index) => (
@@ -700,16 +700,16 @@ export const AnalyticsPage: React.FC = () => {
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-                <p className="text-xs text-[#C24438] mt-2 flex items-center gap-1">
+                <p className="text-xs text-[#C24438] dark:text-red-400 mt-2 flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-[#C24438]"></span>
                   Higher severity levels require urgent review
                 </p>
               </div>
 
               {/* Risk Level Distribution */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100" data-aos="fade-up" data-aos-delay="300">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Risk Level Distribution</h3>
-                <p className="text-sm text-gray-500 mb-4">Percentage of reports by risk level</p>
+              <div className="bg-[#fffaf5] dark:bg-[#121212] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700" data-aos="fade-up" data-aos-delay="300">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Risk Level Distribution</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Percentage of reports by risk level</p>
                 <div className="flex items-center gap-6">
                   <div className="w-32 h-32">
                     <ResponsiveContainer width="100%" height="100%">
@@ -728,7 +728,7 @@ export const AnalyticsPage: React.FC = () => {
                           ))}
                         </Pie>
                         <Tooltip
-                          contentStyle={{ backgroundColor: '#FFFEFB', border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                          contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px', color: '#FFFFFF' }}
                         />
                       </PieChart>
                     </ResponsiveContainer>
@@ -738,9 +738,9 @@ export const AnalyticsPage: React.FC = () => {
                       <div key={item.name} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                          <span className="text-sm text-gray-600">{item.name}</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-300">{item.name}</span>
                         </div>
-                        <span className="text-sm font-medium text-gray-900">{item.value}%</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{item.value}%</span>
                       </div>
                     ))}
                   </div>
@@ -748,9 +748,9 @@ export const AnalyticsPage: React.FC = () => {
               </div>
 
               {/* Reports by Category */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100" data-aos="fade-up" data-aos-delay="350">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Reports by Category</h3>
-                <p className="text-sm text-gray-500 mb-4">Types of reported issues</p>
+              <div className="bg-[#fffaf5] dark:bg-[#121212] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700" data-aos="fade-up" data-aos-delay="350">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Reports by Category</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Types of reported issues</p>
                 <div className="flex items-center gap-6">
                   <div className="w-32 h-32">
                     <ResponsiveContainer width="100%" height="100%">
@@ -769,7 +769,7 @@ export const AnalyticsPage: React.FC = () => {
                           ))}
                         </Pie>
                         <Tooltip
-                          contentStyle={{ backgroundColor: '#FFFEFB', border: '1px solid #E5E7EB', borderRadius: '8px' }}
+                          contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px', color: '#FFFFFF' }}
                         />
                       </PieChart>
                     </ResponsiveContainer>
@@ -779,9 +779,9 @@ export const AnalyticsPage: React.FC = () => {
                       <div key={item.name} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                          <span className="text-sm text-gray-600">{item.name}</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-300">{item.name}</span>
                         </div>
-                        <span className="text-sm font-medium text-gray-900">{item.value}%</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{item.value}%</span>
                       </div>
                     ))}
                   </div>
@@ -792,10 +792,10 @@ export const AnalyticsPage: React.FC = () => {
             {/* Safety Improvement & Risk Alert */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Safety Improvement */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100" data-aos="fade-up" data-aos-delay="400">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">Safety Improvement</h3>
-                <p className="text-sm text-gray-500 mb-2">Report submissions increased</p>
-                <p className="text-sm text-green-600 font-medium mb-4">by 12% compared to last month</p>
+              <div className="bg-[#fffaf5] dark:bg-[#121212] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700" data-aos="fade-up" data-aos-delay="400">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Safety Improvement</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Report submissions increased</p>
+                <p className="text-sm text-green-600 dark:text-green-400 font-medium mb-4">by 12% compared to last month</p>
                 <div className="h-24">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={safetyImprovementData}>
@@ -819,10 +819,10 @@ export const AnalyticsPage: React.FC = () => {
               </div>
 
               {/* Risk Alert */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100" data-aos="fade-up" data-aos-delay="450">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">Risk Alert</h3>
-                <p className="text-sm text-gray-500 mb-2">Closed actions increased by</p>
-                <p className="text-sm text-[#C24438] font-medium mb-4">8% this month</p>
+              <div className="bg-[#fffaf5] dark:bg-[#121212] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700" data-aos="fade-up" data-aos-delay="450">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Risk Alert</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Closed actions increased by</p>
+                <p className="text-sm text-[#C24438] dark:text-red-400 font-medium mb-4">8% this month</p>
                 <div className="h-24">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={riskAlertData}>

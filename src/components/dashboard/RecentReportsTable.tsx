@@ -15,26 +15,26 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
   const getRiskBadgeColor = (risk: string) => {
     switch (risk) {
       case 'High':
-        return 'text-red-600 bg-red-50';
+        return 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30';
       case 'Medium':
-        return 'text-orange-600 bg-orange-50';
+        return 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30';
       case 'Low':
-        return 'text-yellow-600 bg-yellow-50';
+        return 'text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/30';
       default:
-        return 'text-gray-600 bg-gray-50';
+        return 'text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/30';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Open':
-        return 'text-gray-700';
+        return 'text-gray-700 dark:text-gray-300';
       case 'Progress':
-        return 'text-blue-700';
+        return 'text-blue-700 dark:text-blue-400';
       case 'Closed':
-        return 'text-gray-500';
+        return 'text-gray-500 dark:text-gray-500';
       default:
-        return 'text-gray-600';
+        return 'text-gray-600 dark:text-gray-400';
     }
   };
 
@@ -42,8 +42,8 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
     <div className="mb-8">
       {/* Section Header */}
       <div className="flex items-center space-x-2 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">Recent Reports</h2>
-        <button className="p-1 text-gray-400 hover:text-gray-600 transition-colors">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Reports</h2>
+        <button className="p-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
@@ -51,7 +51,7 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
       </div>
 
       {/* Table or Empty State */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+      <div className="bg-white dark:bg-[#121212] rounded-xl shadow-sm dark:shadow-lg border border-gray-100 dark:border-gray-800 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
@@ -75,42 +75,42 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-[#FFF9F5] border-b border-gray-100">
-                  <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <tr className="bg-[#FFF9F5] dark:bg-[#0D0D0D] border-b border-gray-100 dark:border-gray-700">
+                  <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Report ID
                   </th>
-                  <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Category
                   </th>
-                  <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Location
                   </th>
-                  <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Risk
                   </th>
-                  <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left py-4 px-6 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Date
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {reports.map((report, index) => (
                   <tr
                     key={report.id}
-                    className="bg-[#FFFAF5] hover:bg-[#FFFEFB] transition-colors cursor-pointer"
+                    className="bg-[#FFFAF5] dark:bg-[#121212] hover:bg-[#FFFEFB] dark:hover:bg-gray-800 transition-colors cursor-pointer"
                   >
                     {/* Red indicator line for first row */}
-                    <td className="py-4 px-6 text-sm font-medium text-gray-900 relative">
+                    <td className="py-4 px-6 text-sm font-medium text-gray-900 dark:text-white relative">
                       {index === 0 && (
                         <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500"></div>
                       )}
                       <span className={index === 0 ? 'ml-2' : ''}>{report.id}</span>
                     </td>
-                    <td className="py-4 px-6 text-sm text-gray-700">{report.category}</td>
-                    <td className="py-4 px-6 text-sm text-gray-700">{report.location}</td>
+                    <td className="py-4 px-6 text-sm text-gray-700 dark:text-gray-300">{report.category}</td>
+                    <td className="py-4 px-6 text-sm text-gray-700 dark:text-gray-300">{report.location}</td>
                     <td className="py-4 px-6">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRiskBadgeColor(
@@ -123,7 +123,7 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
                     <td className={`py-4 px-6 text-sm font-medium ${getStatusColor(report.status)}`}>
                       {report.status}
                     </td>
-                    <td className="py-4 px-6 text-sm text-gray-500">{report.dateReported}</td>
+                    <td className="py-4 px-6 text-sm text-gray-500 dark:text-gray-400">{report.dateReported}</td>
                   </tr>
                 ))}
               </tbody>

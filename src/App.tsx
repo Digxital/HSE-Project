@@ -9,11 +9,13 @@ import { AnalyticsPage } from '@/pages/AnalyticsPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { CertificationPage } from '@/pages/CertificationPage';
 import { SettingsPage } from '@/pages/SettingsPage';
+import { NotificationsPage } from '@/pages/NotificationsPage';
+import { AuditLogPage } from '@/pages/AuditLogPage';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { authService } from '@/services/authService';
-import { getAuthToken, getUserData } from '@/utils/authStorage';
+import { getAuthToken } from '@/utils/authStorage';
 import { NotificationProvider } from '@/contexts/NotificationContext';
  
 import AOS from 'aos';
@@ -77,6 +79,8 @@ const AppRoutes = () => {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/certification" element={<CertificationPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/audit-log" element={<AuditLogPage />} />
 
         {/* Supervisor routes */}
         <Route path="/supervisor/login" element={<SupervisorLoginPage />} />

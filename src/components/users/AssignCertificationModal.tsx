@@ -299,15 +299,15 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
       onClick={handleClose}
     >
       <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 md:p-8 relative transform transition-all duration-300 scale-100 opacity-100 max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-[#121212] rounded-lg shadow-xl w-full max-w-2xl p-6 md:p-8 relative transform transition-all duration-300 scale-100 opacity-100 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full transition-colors"
+          className="absolute top-4 right-4 p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
         >
-          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -315,7 +315,7 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
         {!isSubmitted ? (
           <>
             {/* Title */}
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Create Certification</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Create Certification</h2>
 
             {/* Form Fields */}
             <div className="space-y-5">
@@ -323,7 +323,7 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Certification Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Certification Name
                   </label>
                   <input
@@ -331,7 +331,7 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
                     value={formData.certificationName}
                     onChange={(e) => handleInputChange('certificationName', e.target.value)}
                     placeholder=""
-                    className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 transition-colors ${
+                    className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-500 dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-2 transition-colors ${
                       errors.certificationName
                         ? 'border-red-500 focus:ring-red-500'
                         : 'border-gray-300 focus:ring-[#C24438] focus:border-transparent'
@@ -344,14 +344,14 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
 
                 {/* Issued Date */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Issue Date
                   </label>
                   <input
                     type="date"
                     value={formData.issuedDate}
                     onChange={(e) => handleInputChange('issuedDate', e.target.value)}
-                    className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 focus:outline-none focus:ring-2 transition-colors ${
+                    className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 dark:text-white dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-2 transition-colors ${
                       errors.issuedDate
                         ? 'border-red-500 focus:ring-red-500'
                         : 'border-gray-300 focus:ring-[#C24438] focus:border-transparent'
@@ -367,13 +367,13 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Issuing Body */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Issuing Body
                   </label>
                   <select
                     value={formData.issuingBody}
                     onChange={(e) => handleInputChange('issuingBody', e.target.value)}
-                    className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 focus:outline-none focus:ring-2 transition-colors appearance-none bg-white cursor-pointer ${
+                    className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 dark:text-white dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-2 transition-colors appearance-none bg-white cursor-pointer ${
                       errors.issuingBody
                         ? 'border-red-500 focus:ring-red-500'
                         : 'border-gray-300 focus:ring-[#C24438] focus:border-transparent'
@@ -398,13 +398,13 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
 
                 {/* Validity Period */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Validity Period
                   </label>
                   <select
                     value={formData.validityPeriod}
                     onChange={(e) => handleInputChange('validityPeriod', e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent appearance-none bg-white cursor-pointer transition-colors"
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent appearance-none bg-white cursor-pointer transition-colors"
                     style={{
                       backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
                       backgroundRepeat: 'no-repeat',
@@ -423,13 +423,13 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
 
               {/* Status */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Status
                 </label>
                 <select
                   value={formData.status}
                   onChange={(e) => handleInputChange('status', e.target.value)}
-                  className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent appearance-none bg-white cursor-pointer transition-colors ${
+                  className={`w-full px-4 py-2.5 border rounded-lg text-gray-900 dark:text-white dark:bg-gray-800 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent appearance-none bg-white cursor-pointer transition-colors ${
                     statusMismatch ? 'border-red-500' : 'border-gray-300'
                   }`}
                   style={{
@@ -444,18 +444,18 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
                 </select>
 
                 {/* Date Info and Warning */}
-                <div className="mt-2 text-xs text-gray-600">
+                <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
                   <p>Expiry Date: <span className="font-medium">{expiryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span></p>
                 </div>
 
                 {statusMismatch && (
-                  <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                    <svg className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <div className="mt-2 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-900/50 rounded-lg flex items-start gap-2">
+                    <svg className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                     <div>
-                      <p className="font-medium text-red-800">Status mismatch detected</p>
-                      <p className="text-red-700 mt-1">Based on the expiry date, this certificate should be marked as <span className="font-semibold">{correctStatus}</span>.</p>
+                      <p className="font-medium text-red-800 dark:text-red-300">Status mismatch detected</p>
+                      <p className="text-red-700 dark:text-red-200 mt-1">Based on the expiry date, this certificate should be marked as <span className="font-semibold">{correctStatus}</span>.</p>
                     </div>
                   </div>
                 )}
@@ -463,9 +463,9 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
 
               {/* File Upload Section */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Certification Image/Document
-                  <span className="text-gray-500 font-normal"> (Optional)</span>
+                  <span className="text-gray-500 dark:text-gray-400 font-normal"> (Optional)</span>
                 </label>
 
                 <div
@@ -475,9 +475,9 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
                   onDrop={handleDrop}
                   className={`relative border-2 border-dashed rounded-lg p-6 transition-colors cursor-pointer ${
                     dragActive
-                      ? 'border-[#C24438] bg-red-50'
-                      : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
-                  } ${errors.file ? 'border-red-500 bg-red-50' : ''}`}
+                      ? 'border-[#C24438] bg-red-50 dark:bg-red-900/30'
+                      : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  } ${errors.file ? 'border-red-500 bg-red-50 dark:bg-red-900/30' : ''}`}
                 >
                   <input
                     type="file"
@@ -491,7 +491,7 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
                     <label htmlFor="file-input" className="flex flex-col items-center justify-center cursor-pointer">
                       <svg
                         className={`w-10 h-10 mb-2 transition-colors ${
-                          dragActive ? 'text-[#C24438]' : 'text-gray-400'
+                          dragActive ? 'text-[#C24438]' : 'text-gray-400 dark:text-gray-600'
                         }`}
                         fill="none"
                         stroke="currentColor"
@@ -504,13 +504,13 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
                           d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
                         />
                       </svg>
-                      <p className="text-sm font-medium text-gray-700">
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         {dragActive ? 'Drop file here' : 'Drag and drop your file'}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         or click to select
                       </p>
-                      <p className="text-xs text-gray-400 mt-2">
+                      <p className="text-xs text-gray-400 dark:text-gray-600 mt-2">
                         JPG, PNG, GIF or PDF (Max 10MB)
                       </p>
                     </label>
@@ -521,12 +521,12 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
                         <img
                           src={filePreview}
                           alt="Preview"
-                          className="w-16 h-16 object-cover rounded border border-gray-200"
+                          className="w-16 h-16 object-cover rounded border border-gray-200 dark:border-gray-700"
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded border border-gray-200 flex items-center justify-center bg-white">
+                        <div className="w-16 h-16 rounded border border-gray-200 dark:border-gray-700 flex items-center justify-center bg-white dark:bg-gray-800">
                           <svg
-                            className="w-8 h-8 text-gray-400"
+                            className="w-8 h-8 text-gray-400 dark:text-gray-600"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -543,10 +543,10 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
 
                       {/* File Info */}
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                           {selectedFile.name}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           {cloudinaryService.getFileTypeLabel(selectedFile)} •{' '}
                           {(selectedFile.size / 1024 / 1024).toFixed(2)}MB
                         </p>
@@ -555,7 +555,7 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
                             setSelectedFile(null);
                             setFilePreview(null);
                           }}
-                          className="text-xs text-[#C24438] hover:text-[#a03830] font-medium mt-2 transition-colors"
+                          className="text-xs text-[#C24438] hover:text-[#a03830] dark:text-red-400 dark:hover:text-red-300 font-medium mt-2 transition-colors"
                         >
                           Remove
                         </button>
@@ -565,7 +565,7 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
                 </div>
 
                 {errors.file && (
-                  <p className="mt-1 text-xs text-red-600">{errors.file}</p>
+                  <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.file}</p>
                 )}
               </div>
             </div>
@@ -574,7 +574,7 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
             <button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="w-full mt-8 py-3 bg-[#C24438] hover:bg-[#a03830] disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+              className="w-full mt-8 py-3 bg-[#C24438] hover:bg-[#a03830] dark:bg-[#9f1212] dark:hover:bg-[#b81c1c] disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
@@ -603,22 +603,22 @@ export const AssignCertificationModal: React.FC<AssignCertificationModalProps> =
             {/* Success State */}
             <div className="flex flex-col items-center justify-center py-8">
               {/* Success Icon */}
-              <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 rounded-full bg-green-50 dark:bg-green-900/30 flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
 
               {/* Success Message */}
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Certification Assigned!</h3>
-              <p className="text-center text-sm text-gray-600 mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Certification Assigned!</h3>
+              <p className="text-center text-sm text-gray-600 dark:text-gray-300 mb-6">
                 The certification has been successfully assigned to the user.
               </p>
 
               {/* Done Button */}
               <button
                 onClick={handleClose}
-                className="w-full py-3 bg-[#C24438] hover:bg-[#a03830] text-white rounded-lg font-medium transition-colors"
+                className="w-full py-3 bg-[#C24438] hover:bg-[#a03830] dark:bg-[#9f1212] dark:hover:bg-[#b81c1c] text-white rounded-lg font-medium transition-colors"
               >
                 Done
               </button>

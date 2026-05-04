@@ -110,7 +110,7 @@ export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose,
         {/* Modal */}
         <div
           ref={modalRef}
-          className={`bg-[#FFFAF5] rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] overflow-y-auto hide-scrollbar transform transition-all duration-300 mx-4 pointer-events-auto ${
+          className={`bg-[#fffaf5] dark:bg-[#121212] rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] overflow-y-auto hide-scrollbar transform transition-all duration-300 mx-4 pointer-events-auto ${
             isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
           }`}
           onClick={(e) => e.stopPropagation()}
@@ -124,45 +124,45 @@ export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose,
             <button
               onClick={onClose}
               type="button"
-              className="absolute top-4 right-4 p-1 hover:bg-[#FFF9F5] rounded-full transition-colors"
+              className="absolute top-4 right-4 p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
             >
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
             {/* Header */}
             <div className="mb-6">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-1">Add Action</h2>
-              <p className="text-sm text-gray-500">Authorized access only</p>
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-1">Add Action</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Authorized access only</p>
             </div>
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Action Title */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Action Title</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Action Title</label>
                 <input
                   type="text"
                   value={formData.actionTitle}
                   onChange={(e) => handleChange('actionTitle', e.target.value)}
-                  className={`w-full px-4 py-2.5 bg-white border ${
-                    errors.actionTitle ? 'border-red-500' : 'border-gray-200'
-                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-sm`}
+                  className={`w-full px-4 py-2.5 bg-white dark:bg-gray-800 border ${
+                    errors.actionTitle ? 'border-red-500 dark:border-red-400' : 'border-gray-200 dark:border-gray-700'
+                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] dark:focus:ring-orange-500 focus:border-transparent text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors`}
                   placeholder="Enter action title"
                 />
-                {errors.actionTitle && <p className="mt-1 text-xs text-red-500">{errors.actionTitle}</p>}
+                {errors.actionTitle && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.actionTitle}</p>}
               </div>
 
               {/* Assigned to */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Assigned to</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2\">Assigned to</label>
                 <select
                   value={formData.assignedTo}
                   onChange={(e) => handleChange('assignedTo', e.target.value)}
-                  className={`w-full px-4 py-2.5 bg-white border ${
-                    errors.assignedTo ? 'border-red-500' : 'border-gray-200'
-                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-sm appearance-none cursor-pointer`}
+                  className={`w-full px-4 py-2.5 bg-white dark:bg-gray-800 border ${
+                    errors.assignedTo ? 'border-red-500 dark:border-red-400' : 'border-gray-200 dark:border-gray-700'
+                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] dark:focus:ring-orange-500 focus:border-transparent text-sm appearance-none cursor-pointer text-gray-900 dark:text-white transition-colors`}
                 >
                   <option value="">Select team</option>
                   <option value="Maintenance Lead">Maintenance Lead</option>
@@ -174,60 +174,60 @@ export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose,
                   <option value="Team Lead">Team Lead</option>
                   <option value="Operations Team">Operations Team</option>
                 </select>
-                {errors.assignedTo && <p className="mt-1 text-xs text-red-500">{errors.assignedTo}</p>}
+                {errors.assignedTo && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.assignedTo}</p>}
               </div>
 
               {/* Due Date */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2\">Due Date</label>
                 <input
                   type="date"
                   value={formData.dueDate}
                   onChange={(e) => handleChange('dueDate', e.target.value)}
-                  className={`w-full px-4 py-2.5 bg-white border ${
-                    errors.dueDate ? 'border-red-500' : 'border-gray-200'
-                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-sm`}
+                  className={`w-full px-4 py-2.5 bg-white dark:bg-gray-800 border ${
+                    errors.dueDate ? 'border-red-500 dark:border-red-400' : 'border-gray-200 dark:border-gray-700'
+                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] dark:focus:ring-orange-500 focus:border-transparent text-sm text-gray-900 dark:text-white transition-colors`}
                 />
-                {errors.dueDate && <p className="mt-1 text-xs text-red-500">{errors.dueDate}</p>}
+                {errors.dueDate && <p className="mt-1 text-xs text-red-500 dark:text-red-400\">{errors.dueDate}</p>}
               </div>
 
               {/* Priority */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2\">Priority</label>
                 <select
                   value={formData.priority}
                   onChange={(e) => handleChange('priority', e.target.value)}
-                  className={`w-full px-4 py-2.5 bg-white border ${
-                    errors.priority ? 'border-red-500' : 'border-gray-200'
-                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-sm appearance-none cursor-pointer`}
+                  className={`w-full px-4 py-2.5 bg-white dark:bg-gray-800 border ${
+                    errors.priority ? 'border-red-500 dark:border-red-400' : 'border-gray-200 dark:border-gray-700'
+                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] dark:focus:ring-orange-500 focus:border-transparent text-sm appearance-none cursor-pointer text-gray-900 dark:text-white transition-colors`}
                 >
                   <option value="">Select</option>
                   <option value="High">High</option>
                   <option value="Medium">Medium</option>
                   <option value="Low">Low</option>
                 </select>
-                {errors.priority && <p className="mt-1 text-xs text-red-500">{errors.priority}</p>}
+                {errors.priority && <p className="mt-1 text-xs text-red-500 dark:text-red-400\">{errors.priority}</p>}
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2\">Description</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => handleChange('description', e.target.value)}
                   rows={4}
-                  className={`w-full px-4 py-2.5 bg-white border ${
-                    errors.description ? 'border-red-500' : 'border-gray-200'
-                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-sm resize-none`}
+                  className={`w-full px-4 py-2.5 bg-white dark:bg-gray-800 border ${
+                    errors.description ? 'border-red-500 dark:border-red-400' : 'border-gray-200 dark:border-gray-700'
+                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] dark:focus:ring-orange-500 focus:border-transparent text-sm resize-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-colors`}
                   placeholder="Enter description"
                 />
-                {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description}</p>}
+                {errors.description && <p className="mt-1 text-xs text-red-500 dark:text-red-400\">{errors.description}</p>}
               </div>
 
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full py-3 bg-[#C24438] hover:bg-[#a03830] text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 mt-6"
+                className="w-full py-3 bg-[#f87171] dark:bg-[#9f1212] hover:bg-[#ef4444] dark:hover:bg-[#b81c1c] text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 mt-6"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path

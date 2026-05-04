@@ -84,7 +84,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
   };
 
   return (
-    <div className="min-h-screen bg-background-light">
+    <div className="min-h-screen bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors">
       {/* Sidebar */}
       <Sidebar
         isCollapsed={sidebarCollapsed}
@@ -107,13 +107,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
         />
 
         {/* Main Content Area */}
-        <main className="p-4 md:p-6 lg:p-8">
+        <main className="p-4 md:p-6 lg:p-8 bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors min-h-screen">
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Back Arrow - Only shown in edit mode */}
             {isEditMode && (
               <button
                 onClick={() => setIsEditMode(false)}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+                className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -123,7 +123,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
             )}
 
             {/* User Profile Card */}
-            <div className="bg-[#FFFAF5] rounded-xl p-6 md:p-8 border border-gray-100">
+            <div className="bg-[#FFFAF5] dark:bg-[#121212] rounded-xl p-6 md:p-8 border border-gray-100 dark:border-gray-700">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
                 {/* Left: Profile Info */}
                 <div className="flex items-start gap-4">
@@ -138,10 +138,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
 
                   {/* Name, Role, Status */}
                   <div className="flex flex-col gap-2">
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-900">{user.name}</h2>
-                    <p className="text-sm text-gray-600">{user.role}</p>
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{user.name}</h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{user.role}</p>
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-full">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium rounded-full">
                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
                         {user.status}
                       </span>
@@ -153,14 +153,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
                 {isEditMode ? (
                   <button 
                     onClick={handleSaveChanges}
-                    className="w-full md:w-auto px-6 py-2.5 bg-[#C24438] text-white rounded-lg hover:bg-[#A63830] transition-colors text-sm font-medium"
+                    className="w-full md:w-auto px-6 py-2.5 bg-[#C24438] hover:bg-[#A63830] dark:bg-[#9f1212] dark:hover:bg-[#b81c1c] text-white rounded-lg transition-colors text-sm font-medium"
                   >
                     Save Changes
                   </button>
                 ) : (
                   <button 
                     onClick={() => setIsEditMode(true)}
-                    className="w-full md:w-auto px-6 py-2.5 bg-[#C24438] text-white rounded-lg hover:bg-[#A63830] transition-colors text-sm font-medium"
+                    className="w-full md:w-auto px-6 py-2.5 bg-[#C24438] hover:bg-[#A63830] dark:bg-[#9f1212] dark:hover:bg-[#b81c1c] text-white rounded-lg transition-colors text-sm font-medium"
                   >
                     Edit Profile
                   </button>
@@ -173,76 +173,76 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
                   {/* Row 1: First Name & Surname */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name</label>
                       <input
                         type="text"
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleInputChange}
-                        className={`w-full px-4 py-3 bg-[#FFF9F5] border rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${errors.firstName ? 'border-red-500' : 'border-gray-200'}`}
+                        className={`w-full px-4 py-3 bg-[#FFF9F5] dark:bg-gray-800 border rounded-lg text-gray-900 dark:text-white dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${errors.firstName ? 'border-red-500' : 'border-gray-200'}`}
                       />
-                      {errors.firstName && <p className="mt-1 text-sm text-red-500">{errors.firstName}</p>}
+                      {errors.firstName && <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.firstName}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Surname</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Surname</label>
                       <input
                         type="text"
                         name="surname"
                         value={formData.surname}
                         onChange={handleInputChange}
-                        className={`w-full px-4 py-3 bg-[#FFF9F5] border rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${errors.surname ? 'border-red-500' : 'border-gray-200'}`}
+                        className={`w-full px-4 py-3 bg-[#FFF9F5] dark:bg-gray-800 border rounded-lg text-gray-900 dark:text-white dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${errors.surname ? 'border-red-500' : 'border-gray-200'}`}
                       />
-                      {errors.surname && <p className="mt-1 text-sm text-red-500">{errors.surname}</p>}
+                      {errors.surname && <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.surname}</p>}
                     </div>
                   </div>
 
                   {/* Row 2: Email & Phone Number */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
                       <input
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        className={`w-full px-4 py-3 bg-[#FFF9F5] border rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${errors.email ? 'border-red-500' : 'border-gray-200'}`}
+                        className={`w-full px-4 py-3 bg-[#FFF9F5] dark:bg-gray-800 border rounded-lg text-gray-900 dark:text-white dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${errors.email ? 'border-red-500' : 'border-gray-200'}`}
                       />
-                      {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
+                      {errors.email && <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.email}</p>}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone Number</label>
                       <input
                         type="tel"
                         name="phoneNumber"
                         value={formData.phoneNumber}
                         onChange={handleInputChange}
-                        className={`w-full px-4 py-3 bg-[#FFF9F5] border rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${errors.phoneNumber ? 'border-red-500' : 'border-gray-200'}`}
+                        className={`w-full px-4 py-3 bg-[#FFF9F5] dark:bg-gray-800 border rounded-lg text-gray-900 dark:text-white dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent ${errors.phoneNumber ? 'border-red-500' : 'border-gray-200'}`}
                       />
-                      {errors.phoneNumber && <p className="mt-1 text-sm text-red-500">{errors.phoneNumber}</p>}
+                      {errors.phoneNumber && <p className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.phoneNumber}</p>}
                     </div>
                   </div>
 
                   {/* Row 3: Role & Location */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Role</label>
                       <input
                         type="text"
                         name="role"
                         value={formData.role}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent"
+                        className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent"
                         readOnly
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Location</label>
                       <input
                         type="text"
                         name="location"
                         value={formData.location}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent"
+                        className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent"
                         readOnly
                       />
                     </div>
@@ -254,27 +254,27 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
             {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-4">
               {/* Report Submitted */}
-              <div className="bg-white rounded-xl p-6 border border-gray-100">
-                <p className="text-sm text-gray-600 mb-2">Report Submitted</p>
-                <p className="text-3xl font-bold text-gray-900">{user.stats.reportsSubmitted}</p>
+              <div className="bg-white dark:bg-[#121212] rounded-xl p-6 border border-gray-100 dark:border-gray-700">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Report Submitted</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">{user.stats.reportsSubmitted}</p>
               </div>
 
               {/* Actions Assigned */}
-              <div className="bg-white rounded-xl p-6 border border-gray-100">
-                <p className="text-sm text-gray-600 mb-2">Actions Assigned</p>
-                <p className="text-3xl font-bold text-gray-900">{user.stats.actionsAssigned}</p>
+              <div className="bg-white dark:bg-[#121212] rounded-xl p-6 border border-gray-100 dark:border-gray-700">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Actions Assigned</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">{user.stats.actionsAssigned}</p>
               </div>
 
               {/* Valid Certifications */}
-              <div className="bg-white rounded-xl p-6 border border-gray-100">
-                <p className="text-sm text-gray-600 mb-2">Valid Certifications</p>
-                <p className="text-3xl font-bold text-gray-900">{user.stats.validCertifications}</p>
+              <div className="bg-white dark:bg-[#121212] rounded-xl p-6 border border-gray-100 dark:border-gray-700">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Valid Certifications</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">{user.stats.validCertifications}</p>
               </div>
 
               {/* Expired Certifications */}
-              <div className="bg-white rounded-xl p-6 border border-gray-100">
-                <p className="text-sm text-gray-600 mb-2">Expired Certifications</p>
-                <p className="text-3xl font-bold text-[#C24438]">{user.stats.expiredCertifications}</p>
+              <div className="bg-white dark:bg-[#121212] rounded-xl p-6 border border-gray-100 dark:border-gray-700">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Expired Certifications</p>
+                <p className="text-3xl font-bold text-[#C24438] dark:text-red-400">{user.stats.expiredCertifications}</p>
               </div>
             </div>
           </div>
@@ -288,33 +288,33 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
           onClick={() => setShowConfirmModal(false)}
         >
           <div
-            className="bg-white rounded-lg shadow-xl w-[90%] max-w-md p-6 relative transform transition-all duration-300 scale-100 opacity-100"
+            className="bg-white dark:bg-[#121212] rounded-lg shadow-xl w-[90%] max-w-md p-6 relative transform transition-all duration-300 scale-100 opacity-100"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
             <button
               onClick={() => setShowConfirmModal(false)}
-              className="absolute top-4 right-4 p-1 hover:bg-gray-100 rounded-full transition-colors"
+              className="absolute top-4 right-4 p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
             >
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
             {/* Check Icon */}
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 rounded-full bg-green-50 dark:bg-green-900/30 flex items-center justify-center">
+                <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
             </div>
 
             {/* Title */}
-            <h3 className="text-center text-lg font-semibold text-gray-900 mb-2">Save Changes?</h3>
+            <h3 className="text-center text-lg font-semibold text-gray-900 dark:text-white mb-2">Save Changes?</h3>
 
             {/* Message */}
-            <p className="text-center text-gray-500 mb-6">
+            <p className="text-center text-gray-500 dark:text-gray-400 mb-6">
               Are you sure you want to save the changes to your profile?
             </p>
 
@@ -322,13 +322,13 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowConfirmModal(false)}
-                className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+                className="flex-1 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmSave}
-                className="flex-1 py-3 bg-[#C24438] hover:bg-[#A63830] text-white rounded-lg font-medium transition-colors"
+                className="flex-1 py-3 bg-[#C24438] hover:bg-[#A63830] dark:bg-[#9f1212] dark:hover:bg-[#b81c1c] text-white rounded-lg font-medium transition-colors"
               >
                 Confirm
               </button>

@@ -13,11 +13,11 @@ export const CertificationCard: React.FC<CertificationCardProps> = ({
   const getStatusBadgeStyle = (status?: string) => {
     switch (status) {
       case 'Valid':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400';
       case 'Expired':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-400';
     }
   };
 
@@ -42,11 +42,11 @@ export const CertificationCard: React.FC<CertificationCardProps> = ({
   };
 
   return (
-    <div className="flex items-start gap-4 py-4 border-b border-gray-200 last:border-b-0">
+    <div className="flex items-start gap-4 py-4 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
       {/* Icon */}
       <div className="flex-shrink-0 mt-0.5">
-        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-          <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+        <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+          <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -59,22 +59,22 @@ export const CertificationCard: React.FC<CertificationCardProps> = ({
       {/* Content */}
       <div className="flex-1 min-w-0">
         {/* Title */}
-        <h4 className="text-sm font-semibold text-gray-900 mb-1">
+        <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
           {certification.name}
         </h4>
 
         {/* Issued by */}
-        <p className="text-xs text-gray-600 mb-2">
+        <p className="text-xs text-gray-600 dark:text-gray-300 mb-2">
           Issued by: <span className="font-medium">{certification.issuedBy}</span>
         </p>
 
         {/* Dates */}
-        <div className="text-xs text-gray-600 flex flex-wrap gap-3">
+        <div className="text-xs text-gray-600 dark:text-gray-400 flex flex-wrap gap-3">
           <span>Issued Date: {formatDate(certification.issueDate)}</span>
           <span className={`${
             certification.status === 'Expired'
-              ? 'text-red-600 font-medium'
-              : 'text-gray-600'
+              ? 'text-red-600 dark:text-red-400 font-medium'
+              : 'text-gray-600 dark:text-gray-400'
           }`}>
             {certification.status === 'Expired' && '•'} Expiry Date: {formatDate(certification.expiryDate)}
           </span>
@@ -96,7 +96,7 @@ export const CertificationCard: React.FC<CertificationCardProps> = ({
         {onDeleteClick && (
           <button
             onClick={handleDeleteClick}
-            className="p-2 hover:bg-red-50 text-gray-400 hover:text-red-600 rounded-lg transition-colors"
+            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors"
             title="Delete certification"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -295,7 +295,7 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
 
       {/* Slide-in Panel */}
       <div
-        className={`fixed top-0 right-0 h-full w-full md:w-[600px] lg:w-[680px] bg-[#FFFAF5] shadow-2xl z-50 transform transition-transform duration-300 overflow-y-auto ${
+        className={`fixed top-0 right-0 h-full w-full md:w-[600px] lg:w-[680px] bg-[#fffaf5] dark:bg-[#121212] shadow-2xl z-50 transform transition-transform duration-300 overflow-y-auto ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -304,9 +304,9 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
           <div className="flex items-start justify-between mb-6">
             <button
               onClick={onClose}
-              className="p-2 hover:bg-[#FFF9F5] rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             >
-              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </button>
@@ -331,8 +331,8 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
               </div>
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-semibold text-gray-900 mb-1">{user.name}</h2>
-              <p className="text-sm text-gray-600 mb-2">Role: {getRoleBadge(user.role)}</p>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">{user.name}</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Role: {getRoleBadge(user.role)}</p>
               <span
                 className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
                   user.status === 'Active'
@@ -350,21 +350,21 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-            <div className="bg-white rounded-lg p-3 border border-gray-100">
-              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">Report Submitted</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.reportsSubmitted}</p>
+            <div className="bg-white dark:bg-[#0D0D0D] rounded-lg p-3 border border-gray-100 dark:border-gray-700">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 whitespace-nowrap">Report Submitted</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.reportsSubmitted}</p>
             </div>
-            <div className="bg-white rounded-lg p-3 border border-gray-100">
-              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">Actions Assigned</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.actionsAssigned}</p>
+            <div className="bg-white dark:bg-[#0D0D0D] rounded-lg p-3 border border-gray-100 dark:border-gray-700">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 whitespace-nowrap">Actions Assigned</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.actionsAssigned}</p>
             </div>
-            <div className="bg-white rounded-lg p-3 border border-gray-100">
-              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">Valid Certifications</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.validCertifications}</p>
+            <div className="bg-white dark:bg-[#0D0D0D] rounded-lg p-3 border border-gray-100 dark:border-gray-700">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 whitespace-nowrap">Valid Certifications</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.validCertifications}</p>
             </div>
-            <div className="bg-white rounded-lg p-3 border border-gray-100">
-              <p className="text-xs text-gray-500 mb-1 whitespace-nowrap">Expired Certifications</p>
-              <p className={`text-2xl font-semibold ${stats.expiredCertifications > 0 ? 'text-red-600' : 'text-gray-900'}`}>
+            <div className="bg-white dark:bg-[#0D0D0D] rounded-lg p-3 border border-gray-100 dark:border-gray-700">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 whitespace-nowrap">Expired Certifications</p>
+              <p className={`text-2xl font-semibold ${stats.expiredCertifications > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
                 {stats.expiredCertifications}
               </p>
             </div>
@@ -384,7 +384,7 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
           {user.status === 'Active' && (
             <button
               onClick={handleDeactivate}
-              className="w-full py-3 bg-[#FF3B30] hover:bg-[#E6342A] text-white rounded-lg font-medium mb-3 transition-colors"
+              className="w-full py-3 bg-[#FC4926] hover:bg-[#962611] text-white rounded-lg font-medium mb-3 transition-colors"
             >
               Deactivate User
             </button>
@@ -426,7 +426,7 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
             ) : (
               <button
                 onClick={handleEdit}
-                className="px-4 py-2 bg-[#C24438] hover:bg-[#a03830] text-white rounded-lg flex items-center gap-2 text-sm"
+                className="px-4 py-2 bg-[#FC4926] hover:bg-[#962611] text-white rounded-lg flex items-center gap-2 text-sm"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -446,32 +446,32 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
             <div className="grid grid-cols-2 gap-4">
               {/* First Name */}
               <div>
-                <label className="block text-sm text-gray-600 mb-2">First Name</label>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">First Name</label>
                 <input
                   type="text"
                   value={isEditing ? editedUser.firstName || firstName : firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
                   readOnly={!isEditing}
-                  className={`w-full px-3 py-2 border rounded-lg text-gray-900 text-sm ${
+                  className={`w-full px-3 py-2 border rounded-lg text-gray-900 dark:text-white text-sm ${
                     isEditing 
-                      ? 'bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent' 
-                      : 'bg-gray-50 border-gray-200 cursor-not-allowed'
+                      ? 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#FC4926] focus:border-transparent' 
+                      : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-not-allowed'
                   }`}
                 />
               </div>
 
               {/* Surname */}
               <div>
-                <label className="block text-sm text-gray-600 mb-2">Surname</label>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">Surname</label>
                 <input
                   type="text"
                   value={isEditing ? editedUser.lastName || surname : surname || ''}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
                   readOnly={!isEditing}
-                  className={`w-full px-3 py-2 border rounded-lg text-gray-900 text-sm ${
+                  className={`w-full px-3 py-2 border rounded-lg text-gray-900 dark:text-white text-sm ${
                     isEditing 
-                      ? 'bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent' 
-                      : 'bg-gray-50 border-gray-200 cursor-not-allowed'
+                      ? 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#FC4926] focus:border-transparent' 
+                      : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-not-allowed'
                   }`}
                 />
               </div>
@@ -480,28 +480,28 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
             <div className="grid grid-cols-2 gap-4">
               {/* Email */}
               <div>
-                <label className="block text-sm text-gray-600 mb-2">Email</label>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">Email</label>
                 <input
                   type="email"
                   value={isEditing ? editedUser.email || user.email : user.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   readOnly={!isEditing}
-                  className={`w-full px-3 py-2 border rounded-lg text-gray-900 text-sm ${
+                  className={`w-full px-3 py-2 border rounded-lg text-gray-900 dark:text-white text-sm ${
                     isEditing 
-                      ? 'bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent' 
-                      : 'bg-gray-50 border-gray-200 cursor-not-allowed'
+                      ? 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#FC4926] focus:border-transparent' 
+                      : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-not-allowed'
                   }`}
                 />
               </div>
 
               {/* Role - Could be a dropdown when editing */}
               <div>
-                <label className="block text-sm text-gray-600 mb-2">Role</label>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">Role</label>
                 {isEditing ? (
                   <select
                     value={editedUser.role || user.role}
                     onChange={(e) => handleInputChange('role', e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent"
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#FC4926] focus:border-transparent"
                   >
                     <option value="ADMIN">Admin</option>
                     <option value="SUPERVISOR">Supervisor</option>
@@ -513,7 +513,7 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                     type="text"
                     value={user.role}
                     readOnly
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm cursor-not-allowed"
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-sm cursor-not-allowed"
                   />
                 )}
               </div>
@@ -522,28 +522,28 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
             <div className="grid grid-cols-2 gap-4">
               {/* Location */}
               <div>
-                <label className="block text-sm text-gray-600 mb-2">Location</label>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">Location</label>
                 <input
                   type="text"
                   value={isEditing ? editedUser.location || user.location : user.location}
                   onChange={(e) => handleInputChange('location', e.target.value)}
                   readOnly={!isEditing}
-                  className={`w-full px-3 py-2 border rounded-lg text-gray-900 text-sm ${
+                  className={`w-full px-3 py-2 border rounded-lg text-gray-900 dark:text-white text-sm ${
                     isEditing 
-                      ? 'bg-white border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent' 
-                      : 'bg-gray-50 border-gray-200 cursor-not-allowed'
+                      ? 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#FC4926] focus:border-transparent' 
+                      : 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-not-allowed'
                   }`}
                 />
               </div>
 
               {/* Status - Dropdown with Pending, Active, Inactive */}
               <div>
-                <label className="block text-sm text-gray-600 mb-2">Status</label>
+                <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">Status</label>
                 {isEditing ? (
                   <select
                     value={editedUser.status || user.status}
                     onChange={(e) => handleInputChange('status', e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent"
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#FC4926] focus:border-transparent"
                   >
                     <option value="Active">Active</option>
                     <option value="Pending">Pending</option>
@@ -554,7 +554,7 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                     type="text"
                     value={user.status}
                     readOnly
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm cursor-not-allowed"
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-sm cursor-not-allowed"
                   />
                 )}
               </div>
@@ -562,27 +562,27 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
 
             {/* Date Added */}
             <div>
-              <label className="block text-sm text-gray-600 mb-2">Date Added</label>
+              <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">Date Added</label>
               <input
                 type="text"
                 value={user.dateAdded || '02-12-2014'}
                 readOnly
-                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm cursor-not-allowed"
+                className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-sm cursor-not-allowed"
               />
             </div>
           </div>
 
           {/* Certifications Section */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
+          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">Certifications</h3>
-                <p className="text-sm text-gray-600">Professional and Safety Certification</p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Certifications</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Professional and Safety Certification</p>
               </div>
               {user.role === 'FIELD_USER' && user.status === 'Active' && (
                 <button
                   onClick={() => setShowAssignCertificationModal(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#C24438] hover:bg-[#a03830] text-white rounded-lg font-medium transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#FC4926] hover:bg-[#962611] dark:bg-[#962611] dark:hover:bg-[#B83A20] text-white rounded-lg font-medium transition-colors"
                 >
                   <svg
                     className="w-5 h-5"
@@ -604,11 +604,11 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
 
             {/* Empty State */}
             {certifications.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-8 px-4 rounded-lg bg-white border border-gray-100">
+              <div className="flex flex-col items-center justify-center py-8 px-4 rounded-lg bg-white dark:bg-[#0D0D0D] border border-gray-100 dark:border-gray-700">
                 {/* Info Icon */}
                 <div className="mb-3">
                   <svg
-                    className="w-12 h-12 text-gray-400"
+                    className="w-12 h-12 text-gray-400 dark:text-gray-600"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -623,8 +623,8 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                 </div>
 
                 {/* Empty State Text */}
-                <p className="text-center text-gray-900 font-medium mb-2">No certifications assigned yet</p>
-                <p className="text-center text-sm text-gray-600">Assign certifications to track training and compliance.</p>
+                <p className="text-center text-gray-900 dark:text-white font-medium mb-2">No certifications assigned yet</p>
+                <p className="text-center text-sm text-gray-600 dark:text-gray-400">Assign certifications to track training and compliance.</p>
               </div>
             )}
 
@@ -662,21 +662,21 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
       {/* Delete Certification Confirmation Modal */}
       {showDeleteConfirmModal && certToDelete && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[100] flex items-center justify-center transition-opacity duration-300 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 md:p-8 relative transform transition-all duration-300 scale-100 opacity-100">
+          <div className="bg-white dark:bg-[#121212] rounded-lg shadow-xl w-full max-w-md p-6 md:p-8 relative transform transition-all duration-300 scale-100 opacity-100">
             {/* Icon */}
-            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </div>
 
             {/* Title */}
-            <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white text-center mb-2">
               Delete Certification?
             </h3>
 
             {/* Message */}
-            <p className="text-sm text-gray-600 text-center mb-6">
+            <p className="text-sm text-gray-600 dark:text-gray-300 text-center mb-6">
               Are you sure you want to delete <span className="font-medium">{certToDelete.name}</span>? This action cannot be undone.
             </p>
 
@@ -688,14 +688,14 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
                   setCertToDelete(null);
                 }}
                 disabled={isDeletingCert}
-                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2.5 border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-lg text-gray-700 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
                 disabled={isDeletingCert}
-                className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 dark:bg-red-900/50 dark:hover:bg-red-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
               >
                 {isDeletingCert ? (
                   <>

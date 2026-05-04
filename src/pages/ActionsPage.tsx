@@ -96,9 +96,9 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
 
   const getPriorityBadge = (priority: PriorityLevel) => {
     const styles = {
-      High: 'bg-red-500 text-white',
-      Medium: 'bg-orange-500 text-white',
-      Low: 'bg-green-500 text-white',
+      High: 'bg-red-500 dark:bg-red-900/30 text-white dark:text-red-400',
+      Medium: 'bg-orange-500 dark:bg-orange-900/30 text-white dark:text-orange-400',
+      Low: 'bg-green-500 dark:bg-green-900/30 text-white dark:text-green-400',
     };
 
     return (
@@ -110,9 +110,9 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
 
   const getStatusBadge = (status: ActionStatus) => {
     const styles = {
-      'In Progress': 'bg-orange-100 text-orange-700',
-      Open: 'bg-red-100 text-red-700',
-      Completed: 'bg-green-100 text-green-700',
+      'In Progress': 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
+      Open: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+      Completed: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
     };
 
     return (
@@ -126,19 +126,19 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
     if (!type) return null;
     
     const styles = {
-      'Suggested': 'bg-blue-100 text-blue-700',
-      'User-Created': 'bg-purple-100 text-purple-700',
+      'Suggested': 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+      'User-Created': 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400',
     };
 
     return (
-      <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${styles[type as keyof typeof styles] || 'bg-gray-100 text-gray-700'}`}>
+      <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${styles[type as keyof typeof styles] || 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}>
         {type}
       </span>
     );
   };
 
   return (
-    <div className="min-h-screen bg-[#FFFAF5]">
+    <div className="min-h-screen bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors">
       {/* Sidebar */}
       <Sidebar
         isCollapsed={sidebarCollapsed}
@@ -165,22 +165,22 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
         />
 
         {/* Page Content */}
-        <main className="p-4 md:p-6 lg:p-8">
+        <main className="p-4 md:p-6 lg:p-8 bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors min-h-screen">
           <div className="max-w-[1400px] mx-auto">
             {/* Page Header */}
             <div className="mb-6" data-aos="fade-down">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Actions</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">Actions</h1>
             </div>
 
             {/* Actions Container */}
-            <div className="bg-[#FFFAF5] rounded-2xl shadow-sm border border-gray-100 p-4 md:p-6" data-aos="fade-up">
+            <div className="bg-[#fffaf5] dark:bg-[#121212] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 md:p-6 transition-colors" data-aos="fade-up">
               {/* Section Header */}
               <div className="flex items-center gap-2 mb-6">
-                <h2 className="text-base md:text-lg font-semibold text-gray-900">
+                <h2 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white">
                   Suggested and user-created corrective actions
                 </h2>
-                <button className="p-1 hover:bg-gray-100 rounded-full transition-colors">
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+                  <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -200,14 +200,14 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
                       onClick={() => setSelectedFilter(filter.label)}
                       className={`px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
                         selectedFilter === filter.label
-                          ? 'bg-orange-50 text-[#C24438] border border-[#C24438]'
-                          : 'bg-[#FFF9F5] text-gray-600 hover:bg-[#FFFEFB]'
+                          ? 'bg-orange-50 dark:bg-orange-900/30 text-[#C24438] dark:text-orange-400 border border-[#C24438] dark:border-orange-600'
+                          : 'bg-[#FFF9F5] dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-[#FFFEFB] dark:hover:bg-gray-700 transition-colors'
                       }`}
                     >
                       {filter.label}{' '}
                       <span
                         className={`ml-1 px-1.5 md:px-2 py-0.5 rounded-full text-xs ${
-                          selectedFilter === filter.label ? 'bg-[#C24438] text-white' : 'bg-gray-200 text-gray-600'
+                          selectedFilter === filter.label ? 'bg-[#C24438] dark:bg-orange-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                         }`}
                       >
                         {filter.count}
@@ -221,7 +221,7 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
               <div className="flex flex-row gap-3 mb-6" data-aos="fade-up" data-aos-delay="100">
                 <div className="flex-1 relative">
                   <svg
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500\"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -238,10 +238,10 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
                     placeholder="Search by Action ID, Report Title, Assigned..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-[#FFF9F5] border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent text-sm"
+                    className="w-full pl-10 pr-4 py-2.5 bg-[#FFF9F5] dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] dark:focus:ring-orange-500 focus:border-transparent text-sm placeholder-gray-400 dark:placeholder-gray-500 transition-colors\"
                   />
                 </div>
-                <button className="px-4 py-2.5 bg-[#FFF9F5] border border-gray-200 rounded-lg hover:bg-[#FFFEFB] transition-colors flex items-center gap-2 text-sm font-medium text-gray-700 justify-center whitespace-nowrap">
+                <button className="px-4 py-2.5 bg-[#FFF9F5] dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-[#FFFEFB] dark:hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm font-medium justify-center whitespace-nowrap">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
@@ -258,14 +258,14 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
               <div className="overflow-x-auto -mx-3 md:mx-0" data-aos="fade-up" data-aos-delay="150">
                 <table className="min-w-full">
                   <thead>
-                    <tr className="bg-[#FFF9F5] border-b border-gray-200">
-                      <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">
+                    <tr className="bg-[#FFF9F5] dark:bg-[#0D0D0D] border-b border-gray-200 dark:border-gray-700">
+                      <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">
                         Action ID
                       </th>
                       <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">
                         Action Title
                       </th>
-                      <th className="hidden md:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500">
+                      <th className="hidden md:table-cell text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">
                         Type
                       </th>
                       <th className="text-left py-2 md:py-3 px-3 md:px-4 text-xs md:text-sm font-medium text-gray-500">
@@ -291,26 +291,26 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
                         <td colSpan={8} className="py-12 text-center">
                           <div className="flex flex-col items-center gap-3">
                             <div className="w-8 h-8 border-4 border-[#C24438] border-t-transparent rounded-full animate-spin" />
-                            <p className="text-gray-500 text-sm">Loading actions...</p>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">Loading actions...</p>
                           </div>
                         </td>
                       </tr>
                     ) : error ? (
                       <tr>
                         <td colSpan={8} className="py-12 text-center">
-                          <p className="text-red-500 text-sm">{error}</p>
+                          <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>
                         </td>
                       </tr>
                     ) : allActions.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="py-12 text-center">
-                          <p className="text-gray-500 text-sm">No actions found</p>
+                          <p className="text-gray-500 dark:text-gray-400 text-sm">No actions found</p>
                         </td>
                       </tr>
                     ) : filteredActions.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="py-12 text-center">
-                          <p className="text-gray-500 text-sm">No actions match your filter</p>
+                          <p className="text-gray-500 dark:text-gray-400 text-sm">No actions match your filter</p>
                         </td>
                       </tr>
                     ) : (
@@ -338,26 +338,26 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
                               ],
                             });
                           }}
-                          className="bg-[#FFFAF5] hover:bg-[#FFFEFB] transition-colors border-l-4 border-l-[#C24438] border-b border-b-gray-200 cursor-pointer"
+                          className="bg-[#FFFAF5] dark:bg-[#121212] hover:bg-[#FFFEFB] dark:hover:bg-gray-800 transition-colors border-l-4 border-l-[#C24438] dark:border-l-orange-500 border-b border-b-gray-200 dark:border-b-gray-700 cursor-pointer\"
                         >
                           <td className="py-3 md:py-4 px-3 md:px-4">
-                            <div className="font-medium text-gray-900 text-xs md:text-sm">{action.id}</div>
+                            <div className="font-medium text-gray-900 dark:text-white text-xs md:text-sm">{action.id}</div>
                           </td>
-                          <td className="py-3 md:py-4 px-3 md:px-4">
-                            <div className="text-gray-900 text-xs md:text-sm">{action.action}</div>
+                          <td className="py-3 md:py-4 px-3 md:px-4\">
+                            <div className="text-gray-900 dark:text-gray-100 text-xs md:text-sm">{action.action}</div>
                           </td>
                           <td className="hidden md:table-cell py-4 px-4">
                             {getTypeBadge(action.type)}
                           </td>
                           <td className="py-3 md:py-4 px-3 md:px-4">
-                            <div className="text-gray-600 text-xs md:text-sm">{action.relatedReport}</div>
+                            <div className="text-gray-600 dark:text-gray-300 text-xs md:text-sm">{action.relatedReport}</div>
                           </td>
-                          <td className="hidden md:table-cell py-4 px-4">
-                            <div className="text-gray-600 text-sm">{action.assignedTo}</div>
+                          <td className="hidden md:table-cell py-4 px-4\">
+                            <div className="text-gray-600 dark:text-gray-300 text-sm">{action.assignedTo}</div>
                           </td>
                           <td className="hidden md:table-cell py-4 px-4">{getPriorityBadge(action.priority)}</td>
                           <td className="hidden md:table-cell py-4 px-4">
-                            <div className="text-gray-600 text-sm">{action.dueDate}</div>
+                            <div className="text-gray-600 dark:text-gray-300 text-sm">{action.dueDate}</div>
                           </td>
                           <td className="hidden lg:table-cell py-4 px-4">{getStatusBadge(action.status as ActionStatus)}</td>
                         </tr>
