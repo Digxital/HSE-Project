@@ -24,14 +24,16 @@ class CustomAppBar extends StatelessWidget {
         children: [
           InkWell(
               onTap: onTap,
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back_ios_new_rounded,
+                color: Theme.of(context).colorScheme.onSurface,
                 size: 20,
               )),
           getText(
               context: context,
               title: text,
               fontSize: 16,
+              color: Theme.of(context).colorScheme.onSurface,
               weight: FontWeight.w500),
           isMore
               ? InkWell(
@@ -40,6 +42,7 @@ class CustomAppBar extends StatelessWidget {
                       context: context,
                       title: more,
                       fontSize: 14,
+                      color: Theme.of(context).colorScheme.onSurface,
                       weight: FontWeight.w400),
                 )
               : const SizedBox()

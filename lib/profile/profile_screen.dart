@@ -8,6 +8,8 @@ import 'package:invera_hse/utils/app_colours.dart';
 import 'package:invera_hse/utils/app_file_paths.dart';
 import 'package:invera_hse/utils/common_image_view.dart';
 import 'package:invera_hse/utils/route.dart';
+import 'package:invera_hse/view_model/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -20,7 +22,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         body: SingleChildScrollView(
           child: SafeArea(
             child: Padding(
@@ -60,9 +62,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       text: "Certification"),
                   addVerticalSpace(10),
                   ProfileTile(
-                      onTap: () {},
-                      icon: AppFilePaths.notification3,
-                      text: "Notifications",
+                      onTap: () =>
+                          Provider.of<ThemeProvider>(context, listen: false)
+                              .toggleTheme(),
+                      icon: AppFilePaths.sun,
+                      text: "Night Mode",
                       isSwitch: true),
                   addVerticalSpace(10),
                   ProfileTile(
@@ -109,21 +113,32 @@ class ProfileTile extends StatelessWidget {
                         imagePath: icon,
                         height: 18,
                         width: 18,
+                        color: Theme.of(context).colorScheme.onSurface,
                         fit: BoxFit.scaleDown),
                     addHorizontalSpace(15),
                     getText(
                         context: context,
                         title: text,
                         fontSize: 14,
+                        color: Theme.of(context).colorScheme.onSurface,
                         weight: FontWeight.w400)
                   ],
                 ),
                 isSwitch
-                    ? CommonImageView(
-                        imagePath: AppFilePaths.toggleOff,
-                        height: 17,
-                        width: 34,
-                        fit: BoxFit.scaleDown)
+                    ? Consumer<ThemeProvider>(
+                        builder: (context, themeProvider, _) {
+                          final isDarkMode =
+                              themeProvider.themeData.brightness ==
+                                  Brightness.dark;
+                          return CommonImageView(
+                              imagePath: isDarkMode
+                                  ? AppFilePaths.toggleDarkMode
+                                  : AppFilePaths.toggleOff,
+                              height: 17,
+                              width: 34,
+                              fit: BoxFit.scaleDown);
+                        },
+                      )
                     : isLogout
                         ? const SizedBox()
                         : CommonImageView(
@@ -166,13 +181,15 @@ class ActionCard extends StatelessWidget {
                   context: context,
                   title: title,
                   fontSize: 12,
-                  weight: FontWeight.w400),
+                  weight: FontWeight.w400,
+                  color: Theme.of(context).textTheme.bodyMedium?.color),
               addVerticalSpace(5),
               getText(
                   context: context,
                   title: description,
                   fontSize: 18,
-                  weight: FontWeight.w500),
+                  weight: FontWeight.w500,
+                  color: Theme.of(context).textTheme.bodyLarge?.color),
             ],
           )),
     );
@@ -204,13 +221,15 @@ class ReportCard extends StatelessWidget {
                   context: context,
                   title: title,
                   fontSize: 12,
-                  weight: FontWeight.w400),
+                  weight: FontWeight.w400,
+                  color: Theme.of(context).textTheme.bodyMedium?.color),
               addVerticalSpace(5),
               getText(
                   context: context,
                   title: description,
                   fontSize: 18,
-                  weight: FontWeight.w500),
+                  weight: FontWeight.w500,
+                  color: Theme.of(context).textTheme.bodyLarge?.color),
             ],
           )),
     );
@@ -237,17 +256,19 @@ class ProfileOverview extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             getText(
-                context: context,
-                title: "John Matthews",
-                fontSize: 16,
-                weight: FontWeight.w500),
+              context: context,
+              title: "John Matthews",
+              fontSize: 16,
+              weight: FontWeight.w500,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
+            ),
             addVerticalSpace(5),
             getText(
                 context: context,
                 title: "john@inveraenergy.com",
                 fontSize: 16,
                 weight: FontWeight.w400,
-                color: AppColors.black2),
+                color: Theme.of(context).colorScheme.onSurface),
           ],
         )
       ],

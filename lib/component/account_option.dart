@@ -26,12 +26,12 @@ class AccountOption extends StatelessWidget {
                 style: TextStyle(
                     fontSize: fontSize,
                     fontWeight: FontWeight.w400,
-                    color: AppColors.black)),
+                    color: Theme.of(context).textTheme.bodyMedium?.color)),
             Text(action,
                 style: TextStyle(
                     fontSize: fontSize,
                     fontWeight: FontWeight.w400,
-                    color: AppColors.black)),
+                    color: Theme.of(context).textTheme.bodyMedium?.color)),
           ],
         ));
   }

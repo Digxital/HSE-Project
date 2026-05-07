@@ -22,7 +22,7 @@ class _CertificationDetailsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -53,7 +53,9 @@ class _CertificationDetailsScreenState
                               context: context,
                               title: "Fire Safety Training",
                               fontSize: 18,
-                              weight: FontWeight.w500),
+                              weight: FontWeight.w500,
+                              color:
+                                  Theme.of(context).textTheme.bodyLarge?.color),
                         ],
                       ),
                       getContainer(
@@ -78,6 +80,7 @@ class _CertificationDetailsScreenState
                       title:
                           "This certification confirms completion of fire safety training, including emergency response and hazard prevention.",
                       fontSize: 14,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
                       weight: FontWeight.w400),
                 ],
               ),
@@ -100,7 +103,8 @@ class _CertificationDetailsScreenState
                   context: context,
                   title: "Covers:",
                   fontSize: 14,
-                  weight: FontWeight.w500),
+                  weight: FontWeight.w500,
+                  color: Theme.of(context).textTheme.bodyLarge?.color),
               addVerticalSpace(20),
               const CoverData(title: "Fire hazard identification"),
               const CoverData(
@@ -168,13 +172,14 @@ class CoverData extends StatelessWidget {
               height: 3,
               width: 3,
               shape: BoxShape.circle,
-              decorationColor: AppColors.neutralDarkGrey),
+              decorationColor: Theme.of(context).textTheme.bodyMedium?.color),
           addHorizontalSpace(10),
           getText(
               context: context,
               title: title,
               fontSize: 14,
-              weight: FontWeight.w400),
+              weight: FontWeight.w400,
+              color: Theme.of(context).textTheme.bodyMedium?.color),
         ],
       ),
     );
@@ -204,14 +209,17 @@ class InfoDetails extends StatelessWidget {
               context: context,
               title: title,
               fontSize: 14,
-              weight: FontWeight.w500),
+              weight: FontWeight.w500,
+              color: Theme.of(context).textTheme.bodyLarge?.color),
           Padding(
             padding: const EdgeInsets.only(right: 70),
             child: getText(
                 context: context,
                 title: description,
                 fontSize: 14,
-                color: isExpired ? AppColors.red : AppColors.black,
+                color: isExpired
+                    ? AppColors.red
+                    : Theme.of(context).textTheme.bodyMedium?.color,
                 weight: FontWeight.w500),
           ),
         ],

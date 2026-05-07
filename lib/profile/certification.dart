@@ -20,7 +20,7 @@ class _CertificationScreenState extends State<CertificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -36,12 +36,14 @@ class _CertificationScreenState extends State<CertificationScreen> {
                       context: context,
                       title: "Certification",
                       fontSize: 18,
-                      weight: FontWeight.w500),
+                      weight: FontWeight.w500,
+                      color: Theme.of(context).textTheme.bodyLarge?.color),
                   getText(
                       context: context,
                       title: "Professional and Safety Certification",
                       fontSize: 14,
-                      weight: FontWeight.w400),
+                      weight: FontWeight.w400,
+                      color: Theme.of(context).textTheme.bodyMedium?.color),
                 ],
               ),
               addVerticalSpace(30),
@@ -114,20 +116,22 @@ class CertificationData extends StatelessWidget {
                         context: context,
                         title: title,
                         fontSize: 16,
-                        weight: FontWeight.w500),
+                        weight: FontWeight.w500,
+                        color: Theme.of(context).textTheme.bodyLarge?.color),
                     addVerticalSpace(5),
                     getText(
                         context: context,
                         title: "Issued by: $issuer",
                         fontSize: 14,
-                        weight: FontWeight.w400),
+                        weight: FontWeight.w400,
+                        color: Theme.of(context).textTheme.bodyMedium?.color),
                     addVerticalSpace(5),
                     getText(
                         context: context,
                         title: "Issued Date: $issuedDate",
                         fontSize: 14,
                         weight: FontWeight.w400,
-                        color: AppColors.grey4),
+                        color: Theme.of(context).textTheme.bodyMedium?.color),
                     addVerticalSpace(5),
                     getText(
                         context: context,

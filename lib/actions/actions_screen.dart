@@ -70,7 +70,7 @@ class _ActionScreenState extends State<ActionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SingleChildScrollView(
         child: SafeArea(
           child: Padding(
@@ -247,6 +247,7 @@ class ActionData extends StatelessWidget {
                             title: title,
                             fontSize: 16,
                             maxLines: 2,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
                             textOverflow: TextOverflow.ellipsis,
                             weight: FontWeight.w500),
                       ),
@@ -268,6 +269,10 @@ class ActionData extends StatelessWidget {
                                 width: 150,
                                 child: getText(
                                     context: context,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color,
                                     title: fromData,
                                     fontSize: 14,
                                     weight: FontWeight.w400),

@@ -41,7 +41,7 @@ class _BottomNavState extends State<BottomNav> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         key: scaffoldKey,
         body: Scaffold(
             backgroundColor: Colors.transparent,
@@ -49,7 +49,7 @@ class _BottomNavState extends State<BottomNav> {
             bottomNavigationBar: Container(
               height: 95,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 boxShadow: [
                   BoxShadow(
                     blurRadius: 20,
@@ -173,7 +173,8 @@ class _BottomNavState extends State<BottomNav> {
   void _showReportBottomSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      // backgroundColor: Colors.white,
+      // barrierColor: Colors.white.withOpacity(0.2),
       builder: (BuildContext context) {
         return const ReportAgentWidget();
       },
@@ -188,9 +189,13 @@ class ReportAgentWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       height: 561,
       width: double.infinity,
+      decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(30), topRight: Radius.circular(30))),
       child: Padding(
         padding: const EdgeInsets.only(top: 20, left: 25, right: 30),
         child: Column(
@@ -210,6 +215,7 @@ class ReportAgentWidget extends StatelessWidget {
                 context: context,
                 title: "Hi, I’m Aegix Assistant.",
                 fontSize: 18,
+                color: Theme.of(context).colorScheme.onSurface,
                 weight: FontWeight.w500),
             addVerticalSpace(5),
             getText(
@@ -218,6 +224,7 @@ class ReportAgentWidget extends StatelessWidget {
                 title:
                     "I’ll guide you step by step to submit\na report quickly and easily..",
                 fontSize: 14,
+                color: Theme.of(context).colorScheme.onSurface,
                 weight: FontWeight.w400),
             addVerticalSpace(50),
             SizedBox(

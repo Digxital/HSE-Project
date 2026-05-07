@@ -61,10 +61,12 @@ class AppFilePaths {
   static const String windows = "assets/images/windows.png";
   static const String logout = "assets/images/logout.png";
   static const String toggleOff = "assets/images/toggle_off.png";
+  static const String toggleDarkMode = "assets/images/toggle_darkmode.png";
   static const String camera = "assets/images/camera.png";
   static const String filter = "assets/images/filter.png";
   static const String actionWhite = "assets/images/actions_white.png";
   static const String actionGrey = "assets/images/actions_grey.png";
   static const String personalCard = "assets/images/personal_card.png";
   static const String tickCircle = "assets/images/tick_circle.png";
+  static const String sun = "assets/images/sun.png";
 }

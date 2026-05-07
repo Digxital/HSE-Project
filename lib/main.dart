@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:invera_hse/utils/router.dart';
 import 'package:invera_hse/view_model/profile_view_model.dart';
+import 'package:invera_hse/view_model/theme_provider.dart';
 import 'package:provider/provider.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final themeProvider = ThemeProvider();
+  await themeProvider.initializeTheme();
+  runApp(MyApp(themeProvider: themeProvider));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final ThemeProvider themeProvider;
+
+  const MyApp({super.key, required this.themeProvider});
 
   // This widget is the root of your application.
   @override
@@ -17,20 +22,20 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ProfileViewModel()),
+        ChangeNotifierProvider.value(value: themeProvider),
       ],
-      child: GestureDetector(
-        onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
-        child: MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          title: 'Flutter Demo',
-          theme: ThemeData(
-            useMaterial3: true,
-            textTheme: GoogleFonts.spaceGroteskTextTheme(
-              Theme.of(context).textTheme,
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) {
+          return GestureDetector(
+            onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
+            child: MaterialApp.router(
+              debugShowCheckedModeBanner: false,
+              title: 'Flutter Demo',
+              theme: themeProvider.themeData,
+              routerConfig: AppRouter.router,
             ),
-          ),
-          routerConfig: AppRouter.router,
-        ),
+          );
+        },
       ),
     );
   }

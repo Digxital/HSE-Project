@@ -89,8 +89,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           child: Container(
             height: 379,
             width: double.infinity,
-            decoration: const BoxDecoration(
-                color: Colors.white,
+            decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(30),
                     topRight: Radius.circular(30))),
@@ -111,6 +111,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       context: context,
                       title: "${contents[currentIndex].title}",
                       fontSize: 24,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
                       weight: FontWeight.w700),
                   addVerticalSpace(5),
                   getText(
@@ -118,7 +119,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     title: "${contents[currentIndex].description}",
                     fontSize: 14,
                     weight: FontWeight.w400,
-                    color: AppColors.neutralDarkGrey,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
                   ),
                   addVerticalSpace(30),
                   if (currentIndex < contents.length - 1)
@@ -226,7 +227,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         decoration: BoxDecoration(
             color: currentIndex == index
                 ? AppColors.primaryColor
-                : AppColors.lightRed,
+                : AppColors.lightRedDark,
             shape: BoxShape.circle),
       ),
     );

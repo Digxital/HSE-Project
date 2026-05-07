@@ -18,7 +18,7 @@ class _ReportAgentState extends State<ReportAgent> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -39,6 +39,7 @@ class _ReportAgentState extends State<ReportAgent> {
                     context: context,
                     title: "What would you like to report\ntoday?",
                     fontSize: 18,
+                    color: Theme.of(context).colorScheme.onSurface,
                     weight: FontWeight.w500),
               ),
             ),
@@ -134,14 +135,14 @@ class DataOption extends StatelessWidget {
                         title: title,
                         fontSize: 14,
                         weight: FontWeight.w500,
-                        color: AppColors.black3),
+                        color: Theme.of(context).colorScheme.onSurface),
                     addVerticalSpace(5),
                     getText(
                         context: context,
                         title: description,
                         fontSize: 12,
                         weight: FontWeight.w400,
-                        color: AppColors.black3),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ],
                 )
               ],

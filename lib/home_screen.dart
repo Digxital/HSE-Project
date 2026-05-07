@@ -46,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         body: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -56,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const Header(),
               addVerticalSpace(50),
               const ReportCards(),
-              addVerticalSpace(40),
+              addVerticalSpace(50),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -67,6 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: "Recent Reports",
                       fontSize: 18,
                       weight: FontWeight.w500,
+                      color: Theme.of(context).textTheme.bodyLarge!.color,
                     ),
                   ),
                   Padding(
@@ -75,6 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         context: context,
                         title: "View all",
                         fontSize: 18,
+                        color: Theme.of(context).textTheme.bodyLarge!.color,
                         weight: FontWeight.w500),
                   ),
                 ],
@@ -122,32 +124,41 @@ class ReportCards extends StatelessWidget {
         title: "Total Reports",
         reportCount: "18",
         isTotalReport: true,
-        bgColor: AppColors.lightOrange,
-        textColor: Colors.black,
+        // bgColor: AppColors.lightOrange,
+        bgColor: Theme.of(context).colorScheme.surface,
+        // textColor: Colors.black,
+        textColor: Theme.of(context).colorScheme.onSurface,
+        // borderColor: AppColors.lightOrange,
         borderColor: AppColors.lightOrange,
       ),
       ReportCardData(
         title: "Open Reports",
         reportCount: "5",
         isTotalReport: false,
-        bgColor: AppColors.lightGrey2,
-        textColor: Colors.black,
+        // bgColor: AppColors.lightGrey2,
+        bgColor: Theme.of(context).colorScheme.surface,
+        // textColor: Colors.black,
+        textColor: Theme.of(context).colorScheme.onSurface,
         borderColor: AppColors.lightGrey3,
       ),
       ReportCardData(
         title: "High Risk Reports",
         reportCount: "2",
         isTotalReport: false,
-        bgColor: AppColors.lightGrey2,
-        textColor: Colors.black,
+        // bgColor: AppColors.lightGrey2,
+        bgColor: Theme.of(context).colorScheme.surface,
+        // textColor: Colors.black,
+        textColor: Theme.of(context).colorScheme.onSurface,
         borderColor: AppColors.lightGrey3,
       ),
       ReportCardData(
         title: "Pending Review",
         reportCount: "3",
         isTotalReport: false,
-        bgColor: AppColors.lightGrey2,
-        textColor: Colors.black,
+        // bgColor: AppColors.lightGrey2,
+        bgColor: Theme.of(context).colorScheme.surface,
+        // textColor: Colors.black,
+        textColor: Theme.of(context).colorScheme.onSurface,
         borderColor: AppColors.lightGrey3,
       ),
     ];
@@ -210,13 +221,16 @@ class ReportData extends StatelessWidget {
                   context: context,
                   title: title,
                   fontSize: 16,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                   weight: FontWeight.w500),
               addVerticalSpace(5),
               Row(
                 children: [
-                  const ReportUpdate(
+                  ReportUpdate(
                     update: "Incident",
-                    indicatorColor: Colors.black,
+                    // indicatorColor: Colors.black,
+                    indicatorColor:
+                        Theme.of(context).textTheme.bodyLarge!.color,
                   ),
                   addHorizontalSpace(10),
                   const ReportUpdate(
@@ -273,7 +287,7 @@ class IconWidget extends StatelessWidget {
 
 class ReportUpdate extends StatelessWidget {
   final String update;
-  final Color indicatorColor;
+  final Color? indicatorColor;
   const ReportUpdate(
       {super.key, required this.update, required this.indicatorColor});
 
@@ -295,7 +309,10 @@ class ReportUpdate extends StatelessWidget {
               title: update,
               fontSize: 12,
               weight: FontWeight.w400,
-              color: AppColors.black2),
+              // color: AppColors.black2
+              color: AppColors.grey4
+              // color: Theme.of(context).textTheme.bodySmall!.color,
+              ),
         ],
       ),
     );
@@ -400,7 +417,8 @@ class Header extends StatelessWidget {
                       context: context,
                       title: "Hello Peter 👋 ",
                       fontSize: 16,
-                      color: AppColors.darkBrown,
+                      // color: AppColors.darkBrown,
+                      color: Theme.of(context).colorScheme.primary,
                       weight: FontWeight.w500),
                   Row(
                     children: [
@@ -408,13 +426,15 @@ class Header extends StatelessWidget {
                           context: context,
                           title: "Akure, Ondo",
                           fontSize: 12,
-                          color: AppColors.lightBrown,
+                          // color: AppColors.lightBrown,
+                          color: Theme.of(context).colorScheme.primary,
                           weight: FontWeight.w400),
                       addHorizontalSpace(5),
                       Padding(
                         padding: const EdgeInsets.only(top: 2),
                         child: CommonImageView(
                           imagePath: AppFilePaths.arrowDown,
+                          color: Theme.of(context).colorScheme.primary,
                           height: 12,
                           width: 12,
                           fit: BoxFit.scaleDown,

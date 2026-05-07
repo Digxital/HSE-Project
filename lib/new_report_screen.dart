@@ -270,7 +270,7 @@ class _NewReportScreenState extends State<NewReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -463,6 +463,7 @@ class _LoaderState extends State<Loader> {
                         ? "Converting speech to text..."
                         : guideText,
                     fontSize: 12,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
                     weight: FontWeight.w400),
                 if (!widget.isConverting) addVerticalSpace(5),
                 if (!widget.isConverting)
@@ -738,7 +739,8 @@ class _AttachImageTagState extends State<AttachImageTag> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AppColors.lightGrey5,
+                    // color: AppColors.lightGrey5,
+                    color: Theme.of(context).highlightColor,
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: Center(
@@ -752,6 +754,7 @@ class _AttachImageTagState extends State<AttachImageTag> {
                           )
                         : CommonImageView(
                             imagePath: AppFilePaths.addImage,
+                            color: Theme.of(context).colorScheme.onSurface,
                             height: 40,
                             width: 40,
                             fit: BoxFit.scaleDown,
@@ -820,8 +823,9 @@ class SecondPrompt extends StatelessWidget {
             child: Container(
               width: MediaQuery.of(context).size.width * 0.65,
               padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: AppColors.lightGrey6,
+              decoration: BoxDecoration(
+                // color: AppColors.lightGrey6,
+                color: Theme.of(context).highlightColor,
                 borderRadius: BorderRadius.only(
                     topRight: Radius.circular(18),
                     bottomLeft: Radius.circular(18),
@@ -1003,8 +1007,8 @@ class FirstPrompt extends StatelessWidget {
             child: Container(
               width: MediaQuery.of(context).size.width * 0.65,
               padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: AppColors.lightGrey6,
+              decoration: BoxDecoration(
+                color: Theme.of(context).highlightColor,
                 borderRadius: BorderRadius.only(
                     topRight: Radius.circular(18),
                     bottomLeft: Radius.circular(18),

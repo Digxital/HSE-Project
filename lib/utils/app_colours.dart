@@ -5,11 +5,13 @@ class AppColors {
   static const secondaryColor = Color(0XFF962611);
 
   static const bgColor = Color(0XFFFFFFFF);
+  static const bgColorDark = Color(0XFF000000);
 
   static const black = Color(0XFF000000);
   static const black2 = Color(0XFF3D3D3D);
   static const black3 = Color(0XFF181818);
   static const lightRed = Color.fromRGBO(252, 73, 38, 0.15);
+  static const lightRedDark = Color.fromRGBO(252, 95, 63, 0.15);
   static const lightRed2 = Color.fromRGBO(252, 73, 38, 0.3);
   static const lightRed3 = Color(0XFFFFA380);
 
@@ -29,6 +31,8 @@ class AppColors {
   static const lightGrey7 = Color.fromRGBO(238, 238, 238, 0.3);
   static const neutralDarkGrey = Color(0XFF1A1A1A);
   static const neutralDarkGrey2 = Color(0XFFF3EFF6);
+
+  static const neutralWhiteGrey = Color(0XFFE5E5E5);
 
   static const darkBrown = Color(0XFF4C0000);
   static const lightBrown = Color(0XFF620000);

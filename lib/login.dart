@@ -47,7 +47,7 @@ class _LoginState extends State<Login> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
@@ -64,13 +64,13 @@ class _LoginState extends State<Login> {
                           title: "Welcome to Aegix",
                           fontSize: 24,
                           weight: FontWeight.w700,
-                          color: AppColors.black),
+                          color: Theme.of(context).textTheme.bodyMedium?.color),
                       getText(
                           context: context,
                           title: "Report hazards and incidents safely.",
                           fontSize: 12,
                           weight: FontWeight.w400,
-                          color: AppColors.black),
+                          color: Theme.of(context).textTheme.bodyMedium?.color),
                       addVerticalSpace(25),
                       addVerticalSpace(20),
                       SizedBox(

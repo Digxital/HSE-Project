@@ -28,7 +28,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SingleChildScrollView(
         child: SafeArea(
           child: Padding(
@@ -78,7 +78,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     context: context,
                     title: "Basic Details",
                     fontSize: 16,
-                    weight: FontWeight.w500),
+                    weight: FontWeight.w500,
+                    color: Theme.of(context).textTheme.bodyLarge?.color),
                 addVerticalSpace(20),
                 Form(
                   key: _formKey,
@@ -89,6 +90,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         controller: _firstNameController,
                         title: "First Name",
                         textInputType: TextInputType.name,
+                        hintTextColor:
+                            Theme.of(context).textTheme.bodyLarge?.color,
                         hintText: "John",
                         validator: (val) {
                           if (!val!.isValidEmail) {
@@ -103,6 +106,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         title: "Surname",
                         textInputType: TextInputType.name,
                         hintText: "Matthews",
+                        hintTextColor:
+                            Theme.of(context).textTheme.bodyLarge?.color,
                         validator: (val) {
                           if (!val!.isValidPassword) {
                             return 'Enter a valid name';
@@ -116,6 +121,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         title: "Email",
                         textInputType: TextInputType.emailAddress,
                         hintText: "john@inveraenergy.com",
+                        hintTextColor:
+                            Theme.of(context).textTheme.bodyLarge?.color,
                         validator: (val) {
                           if (!val!.isValidEmail) {
                             return 'Enter a valid email';
@@ -129,6 +136,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         title: "Phone Number",
                         textInputType: TextInputType.phone,
                         hintText: "+234 807 526 5161",
+                        hintTextColor:
+                            Theme.of(context).textTheme.bodyLarge?.color,
                         validator: (val) {
                           if (!val!.isValidEmail) {
                             return 'Enter a valid phone number';
