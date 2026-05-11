@@ -295,7 +295,7 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
                           </div>
                         </td>
                       </tr>
-                    ) : error ? (
+                    ) : error && allActions.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="py-12 text-center">
                           <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>

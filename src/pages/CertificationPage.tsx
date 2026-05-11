@@ -14,6 +14,7 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [selectedCertification, setSelectedCertification] = useState<Certification | null>(null);
 
   // Fetch certifications on mount
@@ -30,10 +31,14 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
         
         console.log(`✅ Loaded ${certs.length} certifications from API`);
         setCertifications(certs);
+        setError(null);
+        setHasLoaded(true);
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Unknown error occurred';
         console.error('❌ Error loading certifications:', err);
-        setError(`Failed to load certifications: ${errorMsg}`);
+        if (!hasLoaded) {
+          setError(`Failed to load certifications: ${errorMsg}`);
+        }
       } finally {
         setLoading(false);
       }
