@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
+import api from '@/lib/axios';
+import { getAuthToken } from '@/utils/authStorage';
 
 interface AuditLog {
   id: string;
@@ -22,73 +25,134 @@ interface AuditLogPageProps {
 }
 
 export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) => {
+  const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 10;
+  const normalizeText = (value: unknown, fallback = '') => {
+    if (typeof value === 'string') return value;
+    if (value === null || value === undefined) return fallback;
+    return String(value);
+  };
 
-  // Mock data for audit logs - simplified to match design
-  const [auditLogs] = useState<AuditLog[]>([
-    {
-      id: '1',
-      timestamp: '12 Feb, 10:45 AM',
-      user: 'John Doe',
-      userRole: 'Supervisor',
-      action: 'Created Report',
-      actionType: 'CREATE',
-      resourceType: 'Reports',
-      resourceId: 'RPT-2024-001',
-      resourceName: 'Spill reported at Warehouse A',
-      details: 'Oil Spill reported at Warehouse A',
-      ipAddress: '192.168.1.105',
-      status: 'SUCCESS',
-    },
-    {
-      id: '2',
-      timestamp: '12 Feb, 11:00 AM',
-      user: 'Admin User',
-      userRole: 'Admin',
-      action: 'User Created',
-      actionType: 'CREATE',
-      resourceType: 'Users',
-      resourceId: 'USR-2024-042',
-      resourceName: 'Added new supervisor account',
-      details: 'Added new supervisor account',
-      ipAddress: '192.168.1.108',
-      status: 'SUCCESS',
-    },
-    {
-      id: '3',
-      timestamp: '13 Feb, 02:15 PM',
-      user: 'Sarah Lee',
-      userRole: 'Supervisor',
-      action: 'Action Completed',
-      actionType: 'UPDATE',
-      resourceType: 'Actions',
-      resourceId: 'ACT-2024-015',
-      resourceName: 'Uploaded completion proof',
-      details: 'Uploaded completion proof',
-      ipAddress: '192.168.1.102',
-      status: 'SUCCESS',
-    },
-    {
-      id: '4',
-      timestamp: '13 Feb, 03:20 PM',
-      user: 'System',
-      userRole: 'System',
-      action: 'Login Failed',
-      actionType: 'LOGIN',
-      resourceType: 'Authentication',
-      resourceId: 'AUTH-2024-001',
-      resourceName: 'Incorrect password attempt',
-      details: 'Incorrect password attempt',
-      ipAddress: '192.168.1.110',
-      status: 'FAILURE',
-    },
-  ]);
+  // Check authentication
+  useEffect(() => {
+    const token = getAuthToken();
+    if (!token) {
+      console.warn('⚠️ No authentication token found. Redirecting to login...');
+      navigate('/admin/login');
+    }
+  }, [navigate]);
+
+  // Fetch audit logs from backend
+  useEffect(() => {
+    const fetchAuditLogs = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log('🔍 Fetching audit logs from backend...');
+        const response = await api.get('/api/auditlogs');
+        
+        console.log('✅ Backend response:', response.data);
+        
+        // Check if backend returned success:false
+        if (response.data.success === false) {
+          console.error('❌ Backend error:', response.data.message);
+          setError(`Backend error: ${response.data.message}`);
+          setAuditLogs([]);
+          return;
+        }
+        
+        const extractLogsArray = (payload: any): any[] | null => {
+          if (Array.isArray(payload)) return payload;
+          if (!payload || typeof payload !== 'object') return null;
+
+          const directCandidates = [
+            payload.data,
+            payload.auditlogs,
+            payload.auditLogs,
+            payload.logs,
+            payload.results,
+            payload.items,
+            payload.records,
+          ];
+
+          for (const candidate of directCandidates) {
+            if (Array.isArray(candidate)) return candidate;
+            if (candidate && typeof candidate === 'object') {
+              const nestedCandidates = [
+                candidate.data,
+                candidate.auditlogs,
+                candidate.auditLogs,
+                candidate.logs,
+                candidate.results,
+                candidate.items,
+                candidate.records,
+              ];
+              for (const nested of nestedCandidates) {
+                if (Array.isArray(nested)) return nested;
+              }
+            }
+          }
+
+          return null;
+        };
+
+        const logsData = extractLogsArray(response.data);
+
+        if (!logsData) {
+          console.warn('⚠️ Unexpected response format:', logsData);
+          setError(`Unexpected response format from backend - ${response.statusText}`);
+          setAuditLogs([]);
+          return;
+        }
+        
+        console.log('✅ Audit logs fetched:', logsData);
+        
+        // Transform backend data to match our interface
+        const transformedLogs = logsData.map((log: any) => ({
+          id: log.id || log._id || `${log.actionType || 'log'}-${Math.random()}`,
+          timestamp: normalizeText(log.timestamp, new Date().toLocaleString()),
+          user: normalizeText(log.user || log.userName, 'Unknown'),
+          userRole: normalizeText(log.userRole || log.role, 'User'),
+          action: normalizeText(log.action || log.actionType, 'Unknown Action'),
+          actionType: (log.actionType as AuditLog['actionType']) || 'VIEW',
+          resourceType: normalizeText(log.resourceType, 'Unknown'),
+          resourceId: normalizeText(log.resourceId, ''),
+          resourceName: normalizeText(log.resourceName || log.description, ''),
+          details: normalizeText(log.details || log.description, ''),
+          ipAddress: normalizeText(log.ipAddress, 'N/A'),
+          status: (log.status as AuditLog['status']) || 'SUCCESS',
+        }));
+        
+        setAuditLogs(transformedLogs);
+      } catch (err: any) {
+        console.error('❌ Error fetching audit logs:', err);
+        
+        if (err.response?.status === 401) {
+          setError('Session expired. Please log in again to view audit logs.');
+        } else if (err.response?.status === 403) {
+          setError('You do not have permission to view audit logs.');
+        } else if (err.response?.status === 404) {
+          setError('Audit logs endpoint not found on backend.');
+        } else {
+          setError(err.response?.data?.message || 'Failed to load audit logs. Please try again.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAuditLogs();
+  }, []);
 
   // Check if mobile on mount and window resize
   useEffect(() => {
@@ -104,11 +168,12 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
 
   // Filter logs
   const filteredLogs = auditLogs.filter((log) => {
+    const query = searchQuery.toLowerCase();
     const matchesSearch = 
-      log.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.resourceName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.details.toLowerCase().includes(searchQuery.toLowerCase());
+      normalizeText(log.user).toLowerCase().includes(query) ||
+      normalizeText(log.action).toLowerCase().includes(query) ||
+      normalizeText(log.resourceName).toLowerCase().includes(query) ||
+      normalizeText(log.details).toLowerCase().includes(query);
     
     const matchesRole = selectedRole === 'ALL' || log.userRole === selectedRole;
 
@@ -125,6 +190,18 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
   const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const displayedLogs = filteredLogs.slice(startIndex, startIndex + itemsPerPage);
+  const startResult = filteredLogs.length === 0 ? 0 : startIndex + 1;
+  const endResult = Math.min(startIndex + itemsPerPage, filteredLogs.length);
+
+  useEffect(() => {
+    if (totalPages === 0 && currentPage !== 1) {
+      setCurrentPage(1);
+      return;
+    }
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const getActionTypeColor = (actionType: AuditLog['actionType']) => {
     switch (actionType) {
@@ -221,7 +298,7 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
                     setCurrentPage(1);
                   }}
                   placeholder="Search..."
-                  className="w-full px-4 py-2.5 bg-white dark:bg-[#121212] border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent transition-colors"
+                  className="w-full px-4 py-2.5 bg-[#FFF9F5] dark:bg-[#121212] border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:border-transparent transition-colors"
                 />
                 <svg className="absolute right-3 top-3 w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -229,13 +306,32 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
               </div>
             </div>
 
-            {/* Results Count */}
-            <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-              Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredLogs.length)} of {filteredLogs.length} results
-            </div>
+            {/* Error State */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+              </div>
+            )}
+
+            {/* Loading State */}
+            {loading ? (
+              <div className="bg-[#FFFAF5] dark:bg-[#121212] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 text-center">
+                <div className="flex justify-center mb-4">
+                  <svg className="w-8 h-8 text-[#C24438] dark:text-orange-500 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </div>
+                <p className="text-gray-600 dark:text-gray-400">Loading audit logs...</p>
+              </div>
+            ) : (
+              <>
+                {/* Results Count */}
+                <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                  Showing {startResult} to {endResult} of {filteredLogs.length} results
+                </div>
 
             {/* Audit Logs Table */}
-            <div className="bg-white dark:bg-[#121212] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="bg-[#FFFAF5] dark:bg-[#121212] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
@@ -251,7 +347,7 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                     {displayedLogs.length > 0 ? (
                       displayedLogs.map((log) => (
-                        <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors border-l-4 border-l-[#C24438] dark:border-l-orange-600">
+                        <tr key={log.id} className="hover:bg-[#FFFEFB] dark:hover:bg-gray-800/50 transition-colors border-l-4 border-l-[#C24438] dark:border-l-orange-600">
                           <td className="px-4 md:px-6 py-4 text-sm text-gray-900 dark:text-white font-medium">{log.user}</td>
                           <td className="px-4 md:px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{log.userRole}</td>
                           <td className="px-4 md:px-6 py-4 text-sm">
@@ -283,11 +379,11 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-between px-4 py-3 bg-white dark:bg-[#121212] rounded-lg border border-gray-200 dark:border-gray-700">
+              <div className="mt-6 flex items-center justify-between px-4 py-3 bg-[#FFFAF5] dark:bg-[#121212] rounded-lg border border-gray-200 dark:border-gray-700">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-[#FFF9F5] dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-[#FFFEFB] dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Previous
                 </button>
@@ -300,7 +396,7 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
                       className={`px-3 py-1 text-sm font-medium rounded-lg transition-colors ${
                         currentPage === index + 1
                           ? 'bg-[#C24438] text-white'
-                          : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          : 'text-gray-700 dark:text-gray-300 bg-[#FFF9F5] dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:bg-[#FFFEFB] dark:hover:bg-gray-700'
                       }`}
                     >
                       {index + 1}
@@ -311,11 +407,13 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-[#FFF9F5] dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-[#FFFEFB] dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   Next
                 </button>
               </div>
+            )}
+              </>
             )}
           </div>
         </main>

@@ -117,12 +117,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V4a2 2 0 10-4 0v1.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0h6z"
+          />
+        </svg>
+      ),
+      label: 'Notifications',
+      path: `${pathPrefix}/notifications`,
+    },
+    {
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
             d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
           />
         </svg>
       ),
       label: 'Certification',
       path: `${pathPrefix}/certification`,
+      adminOnly: true,
     },
     {
       icon: (
@@ -164,7 +179,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
   <>
     <aside
-      className={`fixed left-0 top-0 h-screen bg-white dark:bg-[#121212] border-r border-gray-100 dark:border-gray-800 transition-all duration-300 z-30 flex flex-col ${
+      className={`group fixed left-0 top-0 h-screen bg-white dark:bg-[#121212] border-r border-gray-100 dark:border-gray-800 transition-all duration-300 z-30 flex flex-col ${
         isCollapsed ? 'w-20' : 'w-64'
       } ${
         isMobileOpen ? 'translate-x-0' : '-translate-x-full'
@@ -218,13 +233,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto scrollbar-hide">
+      <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
         {menuItems.map((item, index) => {
           const isActive = location.pathname === item.path;
           return (
             <button
               key={index}
               onClick={() => navigate(item.path)}
+              title={isCollapsed ? item.label : undefined}
+              aria-label={item.label}
               className={`w-full flex items-center ${
                 isCollapsed ? 'justify-center px-3' : 'justify-start px-4'
               } py-3 rounded-lg transition-all ${
@@ -242,47 +259,87 @@ export const Sidebar: React.FC<SidebarProps> = ({
         })}
       </nav>
 
-      {/* Feedback Section */}
-      {!isCollapsed && (
-        <div className="px-4 py-4 border-t border-gray-100 dark:border-gray-800">
-          <div 
-            className="bg-yellow-50 dark:bg-yellow-900/30 rounded-lg p-4 mb-4 cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition-colors"
-            onClick={() => setShowFeedbackModal(true)}
-          >
-            <div className="flex items-start space-x-3">
-              <span className="text-2xl">👍</span>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Tell us what's working and what's not</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">We're building Aegix for you.</p>
-                <div className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 flex items-center space-x-1 transition-colors">
-                  <span>Give Feedback</span>
-                  <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+      {!isCollapsed ? (
+        <div className="border-t border-gray-100 dark:border-gray-800 max-h-0 opacity-0 pointer-events-none overflow-hidden transition-all duration-300 group-hover:max-h-[420px] group-hover:opacity-100 group-hover:pointer-events-auto">
+          <div className="px-4 py-4">
+            {/* Feedback Section */}
+            <div
+              className="bg-yellow-50 dark:bg-yellow-900/30 rounded-lg p-4 mb-4 cursor-pointer hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition-colors"
+              onClick={() => setShowFeedbackModal(true)}
+            >
+              <div className="flex items-start space-x-3">
+                <span className="text-2xl">👍</span>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Tell us what's working and what's not</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">We're building Aegix for you.</p>
+                  <div className="text-xs font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 flex items-center space-x-1 transition-colors">
+                    <span>Give Feedback</span>
+                    <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Logout Button */}
+            <button
+              onClick={() => {
+                if (role === 'supervisor') {
+                  navigate('/supervisor/login');
+                } else {
+                  navigate('/admin/login');
+                }
+              }}
+              className={`w-full flex items-center ${
+                isCollapsed ? 'justify-center px-3' : 'justify-start px-4'
+              } py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-all`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+              {!isCollapsed && <span className="ml-3 font-medium">Log out</span>}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="border-t border-gray-100 dark:border-gray-800 max-h-0 opacity-0 pointer-events-none overflow-hidden transition-all duration-300 group-hover:max-h-[180px] group-hover:opacity-100 group-hover:pointer-events-auto">
+          <div className="px-3 py-4 space-y-3">
+            <button
+              onClick={() => setShowFeedbackModal(true)}
+              className="w-full flex items-center justify-center p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/30 hover:bg-yellow-100 dark:hover:bg-yellow-900/50 transition-colors"
+              aria-label="Give feedback"
+              title="Give feedback"
+            >
+              <span className="text-xl">👍</span>
+            </button>
+            <button
+              onClick={() => {
+                if (role === 'supervisor') {
+                  navigate('/supervisor/login');
+                } else {
+                  navigate('/admin/login');
+                }
+              }}
+              className="w-full flex items-center justify-center p-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+              aria-label="Log out"
+              title="Log out"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+            </button>
           </div>
         </div>
       )}
-
-      {/* Logout Button */}
-      <div className="px-4 py-4 border-t border-gray-100 dark:border-gray-800">
-        <button
-          onClick={() => navigate('/')}
-          className={`w-full flex items-center ${
-            isCollapsed ? 'justify-center px-3' : 'justify-start px-4'
-          } py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-all`}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-            />
-          </svg>
-          {!isCollapsed && <span className="ml-3 font-medium">Log out</span>}
-        </button>
-      </div>
     </aside>
 
     {/* Feedback Modal - Outside aside for proper centering */}

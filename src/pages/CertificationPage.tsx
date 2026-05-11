@@ -14,6 +14,7 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCertification, setSelectedCertification] = useState<Certification | null>(null);
 
   // Fetch certifications on mount
   useEffect(() => {
@@ -74,6 +75,31 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
       ),
     };
   };
+
+  const getDetailStatusLabel = (status: Certification['status']) => {
+    return status === 'Valid' ? 'Active' : 'Expired';
+  };
+
+  const handleCloseDetails = () => setSelectedCertification(null);
+
+  useEffect(() => {
+    if (!selectedCertification) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSelectedCertification(null);
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedCertification]);
 
   return (
     <div className="min-h-screen bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors">
@@ -141,7 +167,16 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
                     return (
                       <div
                         key={cert.id}
-                        className="bg-white dark:bg-[#0D0D0D] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700 flex flex-col md:flex-row md:items-center gap-4"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setSelectedCertification(cert)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            setSelectedCertification(cert);
+                          }
+                        }}
+                        className="bg-white dark:bg-[#0D0D0D] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700 flex flex-col md:flex-row md:items-center gap-4 cursor-pointer transition-colors hover:bg-[#FFFEFB] dark:hover:bg-[#121212] focus:outline-none focus:ring-2 focus:ring-[#C24438] focus:ring-offset-2 focus:ring-offset-[#FFFAF5] dark:focus:ring-offset-[#0D0D0D]"
                       >
                         {/* Left: Icon + Info */}
                         <div className="flex items-start gap-4 flex-1">
@@ -194,6 +229,106 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
           </div>
         </main>
       </div>
+      {selectedCertification && (
+        <>
+          <div
+            className={`fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity z-40 ${
+              selectedCertification ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
+            onClick={handleCloseDetails}
+          />
+
+          <div
+            className={`fixed top-0 right-0 h-full w-full md:w-[600px] lg:w-[680px] bg-[#fffaf5] dark:bg-[#121212] shadow-2xl z-50 transform transition-transform duration-300 overflow-y-auto ${
+              selectedCertification ? 'translate-x-0' : 'translate-x-full'
+            }`}
+          >
+            <div className="p-4 md:p-6">
+              <div className="flex items-start justify-between mb-6">
+                <button
+                  onClick={handleCloseDetails}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                </button>
+
+                <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full border ${getStatusStyles(selectedCertification.status)}`}>
+                  {getDetailStatusLabel(selectedCertification.status)}
+                </span>
+              </div>
+
+              <div className="bg-[#FFFAF5] dark:bg-[#0D0D0D] rounded-xl p-5 md:p-6 border border-gray-100 dark:border-gray-700">
+                <div className="flex items-start gap-4 mb-4">
+                  <div className={`w-10 h-10 rounded-full ${getIconStyles(selectedCertification.status).bgColor} flex items-center justify-center flex-shrink-0`}>
+                    <span className={getIconStyles(selectedCertification.status).iconColor}>
+                      {getIconStyles(selectedCertification.status).icon}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {selectedCertification.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      This certification confirms completion of {selectedCertification.name.toLowerCase()} and validates current safety compliance.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-sm border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Issued by</p>
+                    <p className="text-gray-900 dark:text-white font-medium">{selectedCertification.issuedBy}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Issue Date</p>
+                    <p className="text-gray-900 dark:text-white font-medium">{selectedCertification.issueDate}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Expiry Date</p>
+                    <p className="text-[#C24438] dark:text-red-400 font-medium">{selectedCertification.expiryDate}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Assigned to</p>
+                    <p className="text-gray-900 dark:text-white font-medium">{selectedCertification.userEmail || 'Unknown User'}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                  <p className="text-xs uppercase tracking-wide text-gray-400">Covers</p>
+                  <ul className="space-y-2 list-disc list-inside">
+                    <li>Fire hazard identification</li>
+                    <li>Emergency evacuation</li>
+                    <li>Fire extinguisher usage</li>
+                  </ul>
+                </div>
+
+                <div className="mt-6">
+                  {selectedCertification.fileUrl ? (
+                    <a
+                      href={selectedCertification.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex w-full items-center justify-center px-4 py-2.5 rounded-lg bg-[#C24438] text-white text-sm font-semibold hover:bg-[#A63830] transition-colors"
+                    >
+                      Download Certificate
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      className="inline-flex w-full items-center justify-center px-4 py-2.5 rounded-lg bg-[#C24438]/60 text-white text-sm font-semibold cursor-not-allowed"
+                      disabled
+                    >
+                      Download Certificate
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

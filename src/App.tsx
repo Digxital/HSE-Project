@@ -102,7 +102,22 @@ const RootRedirect = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Always redirect to admin login first
+    // Check if user data exists to determine role
+    const userDataStr = localStorage.getItem('user_data') || sessionStorage.getItem('user_data');
+    
+    try {
+      if (userDataStr) {
+        const userData = JSON.parse(userDataStr);
+        if (userData.role === 'supervisor') {
+          navigate('/supervisor/login', { replace: true });
+          return;
+        }
+      }
+    } catch (e) {
+      // JSON parse error, continue with admin login
+    }
+    
+    // Default to admin login
     navigate('/admin/login', { replace: true });
   }, [navigate]);
 

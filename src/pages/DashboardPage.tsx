@@ -4,6 +4,7 @@ import { TopBar } from '@/components/layout/TopBar';
 import { StatsOverview } from '@/components/dashboard/StatsOverview';
 import { AIInsights } from '@/components/dashboard/AIInsights';
 import { RecentReportsTable } from '@/components/dashboard/RecentReportsTable';
+import { getUserData } from '@/utils/authStorage';
 
 interface DashboardPageProps {
   role?: 'admin' | 'supervisor';
@@ -13,6 +14,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ role = 'admin' }) 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const userData = getUserData();
 
   const hasData = true; // Change to false to see empty state
 
@@ -64,8 +66,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ role = 'admin' }) 
         {/* Top Bar */}
         <TopBar
           pageTitle="Dashboard"
-          userName={role === 'supervisor' ? 'John Matthew' : 'Peter Omorogbolahan'}
-          userRole={role === 'supervisor' ? 'Supervisor' : 'Admin'}
+          userName={userData?.name || (role === 'supervisor' ? 'supervisor' : 'Peter Omorogbolahan')}
+          userRole={userData?.role === 'supervisor' ? 'Supervisor' : 'System Administrator'}
           syncStatus="synced"
           notificationCount={4}
           onMenuClick={handleMobileSidebarToggle}

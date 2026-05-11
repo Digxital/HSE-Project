@@ -63,8 +63,12 @@ export const TopBar: React.FC<TopBarProps> = ({
         onLogout();
       }
       
-      // Navigate to role selection page
-      navigate('/', { replace: true });
+      // Navigate to appropriate login page based on current URL
+      if (window.location.pathname.includes('/supervisor')) {
+        navigate('/supervisor/login', { replace: true });
+      } else {
+        navigate('/admin/login', { replace: true });
+      }
       
     } catch (error) {
       console.error('Logout error:', error);
@@ -79,7 +83,12 @@ export const TopBar: React.FC<TopBarProps> = ({
         message: 'Error during logout, but you have been signed out locally',
       });
       
-      navigate('/', { replace: true });
+      // Navigate to appropriate login page based on current URL
+      if (window.location.pathname.includes('/supervisor')) {
+        navigate('/supervisor/login', { replace: true });
+      } else {
+        navigate('/admin/login', { replace: true });
+      }
       
     } finally {
       setIsLoggingOut(false);
@@ -232,18 +241,28 @@ export const TopBar: React.FC<TopBarProps> = ({
           {/* Theme Toggle */}
           <button
             onClick={toggleDarkMode}
-            className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="relative inline-flex h-8 w-14 items-center rounded-full border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 transition-colors"
             title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-pressed={isDark}
+            type="button"
           >
-            {isDark ? (
-              <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 3v1m0 16v1m9-9h-1m-16 0H1m15.364 1.636l.707-.707M6.343 17.657l-.707-.707m12.728 0l-.707.707M6.343 6.343l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            )}
+            <span className={`absolute left-1 top-1 h-6 w-6 rounded-full bg-white dark:bg-[#0D0D0D] shadow transition-transform ${
+              isDark ? 'translate-x-6' : 'translate-x-0'
+            }`}>
+              <span className="flex h-full w-full items-center justify-center">
+                {isDark ? (
+                  <svg className="h-3.5 w-3.5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                  </svg>
+                ) : (
+                  <svg className="h-3.5 w-3.5 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 3v1m0 16v1m9-9h-1m-16 0H1m15.364 1.636l.707-.707M6.343 17.657l-.707-.707m12.728 0l-.707.707M6.343 6.343l-.707.707M16 12a4 4 0 11-8 0 4 0 0 1 8 0z" />
+                  </svg>
+                )}
+              </span>
+            </span>
+            <span className="sr-only">Toggle theme</span>
           </button>
           {/* Sync Status - Hidden on mobile */}
           <div

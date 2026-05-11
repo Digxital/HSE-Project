@@ -54,8 +54,12 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ role = 'admin' }) =>
   };
 
   const handleLogout = () => {
-    // Navigate to role selection page
-    navigate('/');
+    // Navigate to appropriate login page based on current URL
+    if (window.location.pathname.includes('/supervisor')) {
+      navigate('/supervisor/login');
+    } else {
+      navigate('/admin/login');
+    }
   };
 
   // Toggle Switch Component

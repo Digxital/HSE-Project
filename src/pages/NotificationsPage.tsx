@@ -145,24 +145,23 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'ad
         {/* Main Content Area */}
         <main className="p-4 md:p-6 lg:p-8 bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors min-h-screen">
           <div className="max-w-2xl mx-auto">
-            {/* Page Header */}
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Notification</h1>
-              <p className="text-gray-600 dark:text-gray-400">View and manage system updates and alerts</p>
-            </div>
+            <div className="bg-[#FFFAF5] dark:bg-[#121212] rounded-xl p-6 md:p-8 border border-gray-100 dark:border-gray-700">
+              {/* Page Header */}
+              <div className="mb-6">
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Notification</h1>
+                <p className="text-gray-600 dark:text-gray-400">View and manage system updates and alerts</p>
+              </div>
 
-            {/* Notifications List */}
-            <div className="space-y-3">
-              {notifications.length > 0 ? (
-                notifications.map((notification) => (
-                  <div
-                    key={notification.id}
-                    className={`p-4 rounded-lg border transition-colors ${
-                      !notification.isRead
-                        ? 'bg-white dark:bg-[#121212] border-gray-200 dark:border-gray-700 shadow-sm'
-                        : 'bg-[#FFF9F5] dark:bg-gray-800/30 border-gray-100 dark:border-gray-700'
-                    }`}
-                  >
+              {/* Notifications List */}
+              <div className="space-y-3">
+                {notifications.length > 0 ? (
+                  notifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`p-4 rounded-lg border transition-colors bg-white dark:bg-[#0D0D0D] border-gray-100 dark:border-gray-700 ${
+                        !notification.isRead ? 'shadow-sm' : ''
+                      }`}
+                    >
                     <div className="flex gap-4">
                       {/* Icon */}
                       <div className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-xl bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
@@ -203,16 +202,17 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'ad
                         )}
                       </div>
                     </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-12">
+                    <svg className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">No notifications yet</p>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-12">
-                  <svg className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">No notifications yet</p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </main>

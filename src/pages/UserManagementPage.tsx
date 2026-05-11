@@ -49,19 +49,19 @@ const Pagination: React.FC<{
   onPageChange: (page: number) => void;
 }> = ({ currentPage, totalPages, onPageChange }) => {
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-[#121212] border-t border-gray-200 dark:border-gray-700 sm:px-6">
+    <div className="flex items-center justify-between px-4 py-3 bg-[#FFFAF5] dark:bg-[#121212] border-t border-gray-200 dark:border-gray-700 sm:px-6">
       <div className="flex justify-between flex-1 sm:hidden">
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-[#FFF9F5] dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-[#FFFEFB] dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Previous
         </button>
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-[#FFF9F5] dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-[#FFFEFB] dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Next
         </button>
@@ -667,7 +667,7 @@ export const UserManagementPage: React.FC = () => {
           {/* Header */}
           <div className="flex items-center justify-between gap-3 mb-6" data-aos="fade-down">
             <div className="flex items-center gap-2">
-              <h2 className="text-sm md:text-lg font-semibold text-gray-900">User Management</h2>
+              <h2 className="text-sm md:text-lg font-semibold text-gray-900 dark:text-white">User Management</h2>
               <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
                 {activeTab === 'platform' ? `Platform: ${users.length}` : `Microsoft: ${microsoftUsers.length}`}
               </span>
@@ -811,7 +811,7 @@ export const UserManagementPage: React.FC = () => {
                             <tr 
                               key={user.id} 
                               onClick={() => setSelectedUser(user)}
-                              className="bg-white dark:bg-[#121212] hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-l-4 border-l-[#FC4926] border-b border-b-gray-200 dark:border-b-gray-700 cursor-pointer"
+                              className="bg-[#FFFAF5] dark:bg-[#121212] hover:bg-[#FFFEFB] dark:hover:bg-gray-800 transition-colors border-l-4 border-l-[#FC4926] border-b border-b-gray-200 dark:border-b-gray-700 cursor-pointer"
                             >
                               <td className="py-3 md:py-4 px-3 md:px-4">
                                 <div className="text-gray-500 dark:text-gray-400 text-xs md:text-sm">
@@ -934,7 +934,7 @@ export const UserManagementPage: React.FC = () => {
 
               {/* Microsoft Users Table */}
               {!isLoading && activeTab === 'microsoft' && (
-                <div className="bg-white dark:bg-[#121212] rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 p-4 md:p-6">
+                <div className="bg-[#FFFAF5] dark:bg-[#121212] rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 p-4 md:p-6">
                   <div className="overflow-x-auto -mx-3 md:mx-0" data-aos="fade-up" data-aos-delay="150">
                     <table className="min-w-full">
                       <thead>
@@ -958,7 +958,7 @@ export const UserManagementPage: React.FC = () => {
                           currentMicrosoftUsers.map((user, index) => (
                             <tr 
                               key={user.id} 
-                              className="bg-white dark:bg-[#121212] hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-l-4 border-l-blue-500 border-b border-b-gray-200 dark:border-b-gray-700"
+                              className="bg-[#FFFAF5] dark:bg-[#121212] hover:bg-[#FFFEFB] dark:hover:bg-gray-800 transition-colors border-l-4 border-l-blue-500 border-b border-b-gray-200 dark:border-b-gray-700"
                             >
                               <td className="py-3 md:py-4 px-3 md:px-4">
                                 <div className="text-gray-500 dark:text-gray-400 text-xs md:text-sm">
