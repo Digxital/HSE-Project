@@ -17,7 +17,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SingleChildScrollView(
         child: SafeArea(
           child: Column(
@@ -126,13 +126,15 @@ class NotificationMessage extends StatelessWidget {
                       context: context,
                       title: title,
                       fontSize: 14,
-                      weight: FontWeight.w500),
+                      // weight: FontWeight.w500),
+                      color: Theme.of(context).textTheme.bodyLarge?.color),
                   addVerticalSpace(10),
                   getText(
                       context: context,
                       title: description,
                       fontSize: 12,
-                      weight: FontWeight.w400),
+                      weight: FontWeight.w400,
+                      color: Theme.of(context).textTheme.bodyMedium?.color),
                   addVerticalSpace(10),
                   Row(
                     children: [
@@ -181,6 +183,7 @@ class Header extends StatelessWidget {
               height: 24,
               width: 24,
               fit: BoxFit.scaleDown,
+              color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
           ),
           Padding(
@@ -189,7 +192,8 @@ class Header extends StatelessWidget {
                 context: context,
                 title: "Notification",
                 fontSize: 16,
-                weight: FontWeight.w500),
+                weight: FontWeight.w500,
+                color: Theme.of(context).textTheme.bodyLarge?.color),
           ),
           const SizedBox()
         ],

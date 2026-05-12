@@ -21,7 +21,7 @@ class _ActionsDetailsState extends State<ActionsDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SingleChildScrollView(
         child: SafeArea(
             child: Padding(
@@ -38,6 +38,7 @@ class _ActionsDetailsState extends State<ActionsDetails> {
                   context: context,
                   title: widget.action['title'],
                   fontSize: 20,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                   weight: FontWeight.w500),
               addVerticalSpace(5),
               getContainer(
@@ -61,12 +62,14 @@ class _ActionsDetailsState extends State<ActionsDetails> {
                       title: "View related report",
                       fontSize: 12,
                       weight: FontWeight.w400,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
                       decoration: TextDecoration.underline),
                   addHorizontalSpace(10),
                   CommonImageView(
                       imagePath: AppFilePaths.arrowForwardRound,
                       height: 12,
                       width: 12,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
                       fit: BoxFit.scaleDown)
                 ],
               ),
@@ -79,6 +82,7 @@ class _ActionsDetailsState extends State<ActionsDetails> {
                 title: "Description",
                 fontSize: 14,
                 weight: FontWeight.w500,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
               addVerticalSpace(10),
               getContainer(
@@ -94,6 +98,7 @@ class _ActionsDetailsState extends State<ActionsDetails> {
                       "Secure and cover the exposed cable located near the main entrance to prevent tripping hazards.",
                   fontSize: 14,
                   weight: FontWeight.w400,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
               addVerticalSpace(50),
@@ -160,7 +165,8 @@ class DetailsCard extends StatelessWidget {
                         title: "Location",
                         fontSize: 12,
                         weight: FontWeight.w400,
-                        color: AppColors.grey4),
+                        // color: AppColors.grey4),
+                        color: Theme.of(context).textTheme.bodyLarge?.color),
                     addVerticalSpace(5),
                     SizedBox(
                       width: 150,
@@ -168,7 +174,8 @@ class DetailsCard extends StatelessWidget {
                           context: context,
                           title: action['locationData'],
                           fontSize: 14,
-                          weight: FontWeight.w400),
+                          weight: FontWeight.w400,
+                          color: Theme.of(context).textTheme.bodyLarge?.color),
                     ),
                   ],
                 ),
@@ -180,7 +187,8 @@ class DetailsCard extends StatelessWidget {
                         title: "Assigned By",
                         fontSize: 12,
                         weight: FontWeight.w400,
-                        color: AppColors.grey4),
+                        // color: AppColors.grey4),
+                        color: Theme.of(context).textTheme.bodyLarge?.color),
                     addVerticalSpace(5),
                     SizedBox(
                       width: 150,
@@ -188,7 +196,8 @@ class DetailsCard extends StatelessWidget {
                           context: context,
                           title: "Safety Supervisor",
                           fontSize: 14,
-                          weight: FontWeight.w400),
+                          weight: FontWeight.w400,
+                          color: Theme.of(context).textTheme.bodyLarge?.color),
                     ),
                   ],
                 ),
@@ -207,7 +216,8 @@ class DetailsCard extends StatelessWidget {
                         title: "Date Assigned",
                         fontSize: 12,
                         weight: FontWeight.w400,
-                        color: AppColors.grey4),
+                        // color: AppColors.grey4),
+                        color: Theme.of(context).textTheme.bodyLarge?.color),
                     addVerticalSpace(5),
                     SizedBox(
                       width: 150,
@@ -215,7 +225,8 @@ class DetailsCard extends StatelessWidget {
                           context: context,
                           title: "Feb 1, 2026",
                           fontSize: 14,
-                          weight: FontWeight.w400),
+                          weight: FontWeight.w400,
+                          color: Theme.of(context).textTheme.bodyLarge?.color),
                     ),
                   ],
                 ),
@@ -227,7 +238,8 @@ class DetailsCard extends StatelessWidget {
                         title: "Due Date",
                         fontSize: 12,
                         weight: FontWeight.w400,
-                        color: AppColors.grey4),
+                        // color: AppColors.grey4),
+                        color: Theme.of(context).textTheme.bodyLarge?.color),
                     addVerticalSpace(5),
                     SizedBox(
                       width: 150,
@@ -236,7 +248,8 @@ class DetailsCard extends StatelessWidget {
                           title: action['date'],
                           fontSize: 14,
                           weight: FontWeight.w400,
-                          color: AppColors.red),
+                          // color: AppColors.red
+                          color: Theme.of(context).textTheme.bodyLarge?.color),
                     ),
                   ],
                 ),

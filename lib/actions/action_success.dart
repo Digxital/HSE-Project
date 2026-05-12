@@ -18,7 +18,7 @@ class _ActionSuccessScreenState extends State<ActionSuccessScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         body: Align(
           alignment: Alignment.center,
           child: Padding(
@@ -42,6 +42,7 @@ class _ActionSuccessScreenState extends State<ActionSuccessScreen> {
                       textAlign: TextAlign.center,
                       fontSize: 14,
                       weight: FontWeight.w500,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                     getText(
                         context: context,
@@ -60,6 +61,7 @@ class _ActionSuccessScreenState extends State<ActionSuccessScreen> {
                   textAlign: TextAlign.center,
                   fontSize: 12,
                   weight: FontWeight.w400,
+                  color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
                 addVerticalSpace(25),
                 SizedBox(
@@ -85,7 +87,7 @@ class _ActionSuccessScreenState extends State<ActionSuccessScreen> {
                             title: "Back to Home",
                             fontSize: 16,
                             weight: FontWeight.w600,
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ),

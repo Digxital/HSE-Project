@@ -150,7 +150,7 @@ class ProfileTile extends StatelessWidget {
             ),
           ),
         ),
-        const Divider(color: AppColors.lightGrey5)
+        const Divider(thickness: 0.2, color: AppColors.lightGrey4)
       ],
     );
   }

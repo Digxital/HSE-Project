@@ -35,7 +35,7 @@ class _StartActionsDetailsState extends State<StartActionsDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SingleChildScrollView(
         child: SafeArea(
             child: Padding(
@@ -52,6 +52,7 @@ class _StartActionsDetailsState extends State<StartActionsDetails> {
                   context: context,
                   title: "Secure loose cable near main entrance",
                   fontSize: 20,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                   weight: FontWeight.w500),
               addVerticalSpace(5),
               getContainer(
@@ -74,12 +75,22 @@ class _StartActionsDetailsState extends State<StartActionsDetails> {
                       title: "View related report",
                       fontSize: 12,
                       weight: FontWeight.w400,
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.color
+                          ?.withOpacity(0.7),
                       decoration: TextDecoration.underline),
                   addHorizontalSpace(10),
                   CommonImageView(
                       imagePath: AppFilePaths.arrowForwardRound,
                       height: 12,
                       width: 12,
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.color
+                          ?.withOpacity(0.7),
                       fit: BoxFit.scaleDown)
                 ],
               ),
@@ -91,6 +102,7 @@ class _StartActionsDetailsState extends State<StartActionsDetails> {
                 context: context,
                 title: "Description",
                 fontSize: 14,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
                 weight: FontWeight.w500,
               ),
               addVerticalSpace(10),
@@ -107,6 +119,7 @@ class _StartActionsDetailsState extends State<StartActionsDetails> {
                       "Secure and cover the exposed cable located near the main entrance to prevent tripping hazards.",
                   fontSize: 14,
                   weight: FontWeight.w400,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
               const Divider(
@@ -118,6 +131,7 @@ class _StartActionsDetailsState extends State<StartActionsDetails> {
                 title: "Upload proof after completing the task.",
                 fontSize: 14,
                 weight: FontWeight.w500,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -137,7 +151,7 @@ class _StartActionsDetailsState extends State<StartActionsDetails> {
                 title: "Comment (Optional)",
                 titleSize: 14,
                 titleFontWeight: FontWeight.w500,
-                titleColor: Colors.black,
+                titleColor: Theme.of(context).textTheme.bodyLarge!.color,
                 hintText: "Placeholder",
                 hintTextColor: AppColors.grey4,
                 isFilled: true,
@@ -163,13 +177,13 @@ class _StartActionsDetailsState extends State<StartActionsDetails> {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () => context.push(AppRoutes.actionSuccessScreen),
-                      child: const Center(
+                      child: Center(
                         child: Text(
                           "Submit",
                           style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: Colors.white),
+                              color: Theme.of(context).colorScheme.onSurface),
                         ),
                       ),
                     ),
@@ -212,7 +226,8 @@ class DetailsCard extends StatelessWidget {
                         title: "Location",
                         fontSize: 12,
                         weight: FontWeight.w400,
-                        color: AppColors.grey4),
+                        // color: AppColors.grey4),
+                        color: Theme.of(context).textTheme.bodyLarge?.color),
                     addVerticalSpace(5),
                     SizedBox(
                       width: 150,
@@ -232,7 +247,8 @@ class DetailsCard extends StatelessWidget {
                         title: "Assigned By",
                         fontSize: 12,
                         weight: FontWeight.w400,
-                        color: AppColors.grey4),
+                        // color: AppColors.grey4),
+                        color: Theme.of(context).textTheme.bodyLarge?.color),
                     addVerticalSpace(5),
                     SizedBox(
                       width: 150,
@@ -259,7 +275,8 @@ class DetailsCard extends StatelessWidget {
                         title: "Date Assigned",
                         fontSize: 12,
                         weight: FontWeight.w400,
-                        color: AppColors.grey4),
+                        // color: AppColors.grey4),
+                        color: Theme.of(context).textTheme.bodyLarge?.color),
                     addVerticalSpace(5),
                     SizedBox(
                       width: 150,
@@ -279,7 +296,8 @@ class DetailsCard extends StatelessWidget {
                         title: "Due Date",
                         fontSize: 12,
                         weight: FontWeight.w400,
-                        color: AppColors.grey4),
+                        // color: AppColors.grey4),
+                        color: Theme.of(context).textTheme.bodyLarge?.color),
                     addVerticalSpace(5),
                     SizedBox(
                       width: 150,

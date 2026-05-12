@@ -13,7 +13,7 @@ class CustomTextArea extends StatelessWidget {
   final Color borderColor;
   final Color filledColor;
   final Color hintTextColor;
-  final Color titleColor;
+  final Color? titleColor;
   final bool isFilled;
   final bool isSuffix;
   final Widget? suffixIcon;

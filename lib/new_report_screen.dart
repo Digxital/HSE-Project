@@ -1,13 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-// import 'package:flutter_sound/public/flutter_sound_recorder.dart';
-// import 'package:flutter_sound/flutter_sound.dart';
+import 'package:flutter_sound/flutter_sound.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:invera_hse/component/constant.dart';
 import 'package:invera_hse/component/get_container.dart';
 import 'package:invera_hse/component/get_text.dart';
 import 'package:invera_hse/component/screen_properties.dart';
@@ -15,9 +12,9 @@ import 'package:invera_hse/utils/app_colours.dart';
 import 'package:invera_hse/utils/app_file_paths.dart';
 import 'package:invera_hse/utils/common_image_view.dart';
 import 'package:invera_hse/utils/route.dart';
-import 'package:http/http.dart' as http;
-// import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class NewReportScreen extends StatefulWidget {
   final String reportType;
@@ -34,209 +31,284 @@ class _NewReportScreenState extends State<NewReportScreen> {
   bool isConverting = false;
   File? selectedImage;
 
-  // FlutterSoundRecorder? _recorder; // object to manage recording
-  bool isRecording = false; // Flag to check if recording is ongoing;
-  String? _filePath; //path where the recorded file is saved
+  FlutterSoundRecorder? _recorder;
+  bool isRecording = false;
+  bool _recorderReady = false;
+  String? _filePath;
   String _transcription = "";
+
+  late stt.SpeechToText _speechToText;
+  bool _isListening = false;
+
+  // Safe mount flag: set false at the START of dispose() so async
+  // callbacks (e.g. SpeechToText onError) never touch context/setState
+  // after the widget tree has released this State.
+  bool _isMounted = false;
 
   @override
   void initState() {
     super.initState();
-    // initializs recorded when the app Start
-    // _initRecorder();
+    _isMounted = true;
+    _initRecorder();
+    _initSpeechToText();
   }
 
-  // Future<void> _initRecorder() async {
-  //   _recorder = FlutterSoundRecorder();
-  //   final status =
-  //       await Permission.microphone.request(); // Request microphone access
-  //   if (status != PermissionStatus.granted) {
-  //     print(" Microphone permission not granted");
-  //     throw Exception(
-  //       ' Microphone permission not granted',
-  //     ); // throw error if permission denied
-  //   }
-  //   print(" Microphone permission granted: $status");
-  //   await _recorder!.openRecorder(); // open the recorder
-  // }
-
-  //Start Recording audio
-  Future<void> _startRecording() async {
-    final tempDir = await getTemporaryDirectory(); // Get temporary directory
-    _filePath =
-        '${tempDir.path}/recording.m4a'; //Set file path for saving recording
-    print("Recording file path: $_filePath");
-
-    // await _recorder!.startRecorder(toFile: _filePath, codec: Codec.aacMP4);
-
-    setState(() {
-      isRecording = true;
-      _transcription = "";
-    });
-  }
-
-  // Stop recording audio
-
-  Future<void> _stopRecording() async {
+  Future<void> _initRecorder() async {
     try {
-      // await _recorder!.stopRecorder();
-      // Longer delay to ensure file is completely written to disk
-      await Future.delayed(const Duration(milliseconds: 1500));
-
-      // Verify file exists before attempting transcription
-      if (_filePath != null) {
-        final file = File(_filePath!);
-        if (await file.exists()) {
-          final fileSize = await file.length();
-          print("Audio file size: $fileSize bytes");
-          if (fileSize > 0) {
-            setState(() {
-              isRecording = false;
-              isConverting = true;
-            });
-            await _sendToWhisper(_filePath!);
-          } else {
-            throw Exception('Audio file is empty or not properly saved');
-          }
-        } else {
-          throw Exception('Audio file does not exist at $_filePath');
+      _recorder = FlutterSoundRecorder();
+      final status = await Permission.microphone.request();
+      if (status != PermissionStatus.granted) {
+        if (_isMounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Microphone permission not granted')),
+          );
         }
-      } else {
-        throw Exception('File path is null');
+        return;
+      }
+
+      await _recorder!.openRecorder();
+
+      if (_isMounted) {
+        setState(() {
+          _recorderReady = true;
+        });
       }
     } catch (e) {
-      print("Error stopping recording: $e");
-      setState(() {
-        _transcription = "Error: ${e.toString()}";
-        isRecording = false;
-        isConverting = false;
-        isLoading = false;
-        showSecondPhase = true;
-      });
+      print('Error initializing recorder: $e');
+      if (_isMounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error initializing recorder: $e')),
+        );
+      }
     }
   }
 
-  Future<void> _sendToWhisper(String path) async {
+  Future<void> _initSpeechToText() async {
     try {
-      String token = apiKey;
+      _speechToText = stt.SpeechToText();
+      bool available = await _speechToText.initialize(
+        onError: (error) {
+          print('Speech Recognition Error: $error');
+          // Use _isMounted (not `mounted`) — safe to read after dispose()
+          if (_isMounted) {
+            setState(() {
+              _isListening = false;
+            });
+          }
+        },
+        onStatus: (status) {
+          print('Speech Status: $status');
+        },
+      );
 
-      // Verify file exists and is readable
-      final file = File(path);
-      if (!await file.exists()) {
-        throw Exception('Audio file not found at path: $path');
+      if (!available) {
+        print('Speech to text not available on this device');
       }
-
-      print("Sending audio file to Whisper API: $path");
-      print("File size: ${await file.length()} bytes");
-
-      // Check for network connectivity before attempting API call
-      print("Checking network connectivity...");
-      try {
-        final result = await InternetAddress.lookup('google.com')
-            .timeout(const Duration(seconds: 5));
-        if (result.isEmpty || result[0].rawAddress.isEmpty) {
-          throw Exception('No internet connection available');
-        }
-        print("Network connectivity confirmed");
-      } on SocketException catch (_) {
-        throw Exception(
-            'Network Error: No internet connection. Please check your connection and try again.');
-      }
-
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse('https://api.openai.com/v1/audio/transcriptions'),
-      )
-        ..headers['Authorization'] = 'Bearer $token'
-        ..files.add(
-          await http.MultipartFile.fromPath('file', path),
-        )
-        ..fields['model'] = 'whisper-1'
-        ..fields['language'] = 'en';
-
-      print("Sending request to OpenAI Whisper API...");
-      final response = await request.send().timeout(
-            const Duration(seconds: 60),
-            onTimeout: () =>
-                throw Exception('API request timed out after 60 seconds'),
-          );
-
-      print("Response status: ${response.statusCode}");
-      final responseBody = await response.stream.bytesToString();
-      print("Response body: $responseBody");
-
-      if (response.statusCode == 200) {
-        final decoded = json.decode(responseBody);
-        print("Decoded response: $decoded");
-        final text = decoded['text'] ?? "";
-        print("Successfully transcribed: $text");
-
-        setState(() {
-          _transcription =
-              text.isNotEmpty ? text : "No speech detected. Please try again.";
-          isConverting = false;
-          isLoading = false;
-          showSecondPhase = true;
-        });
-      } else {
-        print("API Error: ${response.statusCode}");
-        final errorBody = json.decode(responseBody);
-        final errorMessage = errorBody['error']?['message'] ?? 'Unknown error';
-        throw Exception('API Error: $errorMessage');
-      }
-    } on SocketException catch (e) {
-      print("Socket/Network error: $e");
-      setState(() {
-        _transcription =
-            "Network Error: Cannot reach the server. Please check your internet connection.";
-        isConverting = false;
-        isLoading = false;
-        showSecondPhase = true;
-      });
-    } on TimeoutException catch (e) {
-      print("Timeout error: $e");
-      setState(() {
-        _transcription =
-            "Request timed out. Please check your internet and try again.";
-        isConverting = false;
-        isLoading = false;
-        showSecondPhase = true;
-      });
     } catch (e) {
-      print("Transcription error: $e");
-      String errorMsg = e.toString();
+      print('Error initializing speech to text: $e');
+    }
+  }
 
-      // Provide user-friendly error messages
-      if (errorMsg.contains('Failed host lookup') ||
-          errorMsg.contains('Failed to lookup')) {
-        errorMsg =
-            "Cannot reach OpenAI server. Please check your internet connection.";
-      } else if (errorMsg.contains('Network Error')) {
-        errorMsg =
-            "Network error. Please check your internet connection and try again.";
-      } else if (errorMsg.contains('timed out')) {
-        errorMsg = "Request timed out. Please try recording again.";
-      } else if (errorMsg.contains('No internet')) {
-        errorMsg =
-            "No internet connection detected. Please connect to the internet and try again.";
-      } else if (errorMsg.contains('SocketException')) {
-        errorMsg =
-            "Connection failed. Please check your network and try again.";
+  Future<void> _startRecording() async {
+    print("startRecording called");
+    if (!_recorderReady) {
+      if (_isMounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Recorder is initializing. Please wait...')),
+        );
+        setState(() {
+          isLoading = false;
+        });
+      }
+      return;
+    }
+
+    try {
+      if (isRecording) {
+        return; // Already recording, prevent multiple starts
       }
 
-      setState(() {
-        _transcription = errorMsg;
-        isConverting = false;
-        isLoading = false;
-        showSecondPhase = true;
-      });
+      final directory = await getApplicationDocumentsDirectory();
+      _filePath =
+          '${directory.path}/recording_${DateTime.now().millisecondsSinceEpoch}.aac';
+
+      // Ensure recorder is not already recording
+      if (_recorder?.isStopped != true) {
+        await _recorder?.stopRecorder();
+        await Future.delayed(const Duration(milliseconds: 200));
+      }
+
+      await _recorder!.startRecorder(
+        toFile: _filePath,
+        codec: Codec.aacADTS,
+      );
+
+      if (_isMounted) {
+        setState(() {
+          isRecording = true;
+        });
+      }
+
+      // Start listening to speech after a short delay
+      await Future.delayed(const Duration(milliseconds: 500));
+      await _startListening();
+    } catch (e) {
+      print('Error starting recording: $e');
+      if (_isMounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error starting recording: $e')),
+        );
+      }
+      if (_isMounted) {
+        setState(() {
+          isLoading = false;
+          isRecording = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _startListening() async {
+    print("startListening called");
+    try {
+      if (!_isListening && _speechToText.isAvailable) {
+        if (_isMounted) {
+          setState(() {
+            _isListening = true;
+            _transcription = ""; // Reset transcription
+          });
+        }
+
+        // Start listening with error handling
+        _speechToText.listen(
+          onResult: (result) {
+            if (_isMounted) {
+              setState(() {
+                _transcription = result.recognizedWords;
+                print("Transcription result: $_transcription");
+                print("Is final: ${result.finalResult}");
+              });
+            }
+          },
+          onSoundLevelChange: (level) {
+            print('Sound level: $level');
+          },
+          listenFor: const Duration(seconds: 60),
+          pauseFor: const Duration(seconds: 3),
+          partialResults: true,
+          cancelOnError: false,
+          localeId: 'en_US',
+        );
+      }
+    } catch (e) {
+      print('Error starting listening: $e');
+      if (_isMounted) {
+        setState(() {
+          _isListening = false;
+          // Set default transcription if listening fails
+          _transcription =
+              "There was an incident this morning at the production site around 9:15 a.m. A worker slipped near the loading area because the floor was wet from a leaking pipe close to the storage section.";
+        });
+        // Show error message only if widget is still mounted
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Speech recognition unavailable. Using sample text.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
+  // Stop recording audio
+  Future<void> _stopRecording() async {
+    print("stopRecording called");
+    if (!isRecording) {
+      return; // Not currently recording
+    }
+
+    try {
+      await _recorder?.stopRecorder();
+      await _speechToText.stop();
+
+      if (_isMounted) {
+        setState(() {
+          isRecording = false;
+          _isListening = false;
+          showSecondPhase = true;
+          isLoading = false;
+        });
+      }
+
+      if (_transcription.isEmpty) {
+        // Set default transcription
+        if (_isMounted) {
+          setState(() {
+            _transcription =
+                "There was an incident this morning at the production site around 9:15 a.m. A worker slipped near the loading area because the floor was wet from a leaking pipe close to the storage section. There were no warning signs placed around the area at the time.";
+          });
+        }
+        if (_isMounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                  'No speech detected. Using sample text. Please try again for accurate transcription.'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
+        // Show success message with transcription preview
+        if (_isMounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Transcription captured: ${_transcription.substring(0, (_transcription.length > 50 ? 50 : _transcription.length))}...'),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error stopping recording: $e');
+      if (_isMounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error stopping recording: $e')),
+        );
+      }
+      if (_isMounted) {
+        setState(() {
+          isLoading = false;
+          isRecording = false;
+        });
+      }
     }
   }
 
   @override
   void dispose() {
-    // _recorder?.closeRecorder();
-    // _recorder = null;
+    // Mark as unmounted FIRST so any in-flight async callbacks
+    // (e.g. SpeechToText onError fired after navigation) skip setState/context.
+    _isMounted = false;
+    try {
+      // Stop speech recognition first
+      if (_speechToText.isListening) {
+        _speechToText.stop();
+      }
+      _speechToText.cancel();
+
+      // Stop audio recorder
+      if (_recorder != null) {
+        if (_recorder!.isRecording) {
+          _recorder?.stopRecorder();
+        }
+        _recorder?.closeRecorder();
+      }
+      _recorder = null;
+    } catch (e) {
+      print('Error during dispose: $e');
+    }
     super.dispose();
   }
 
@@ -249,13 +321,13 @@ class _NewReportScreenState extends State<NewReportScreen> {
     }
 
     // Toggle recording
-    if (!isLoading) {
+    if (!isLoading && !isRecording) {
       // Start recording
       setState(() {
         isLoading = true;
       });
       _startRecording();
-    } else if (isRecording) {
+    } else if (isRecording && isLoading) {
       // Stop recording
       _stopRecording();
     }
