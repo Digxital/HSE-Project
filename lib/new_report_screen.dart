@@ -99,10 +99,21 @@ class _NewReportScreenState extends State<NewReportScreen> {
         onStatus: (status) {
           print('Speech Status: $status');
         },
+        debugLogging: true, // Enable debug logging
       );
 
       if (!available) {
         print('Speech to text not available on this device');
+        if (_isMounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Speech recognition not available on this device'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
+        print('Speech recognition initialized successfully');
       }
     } catch (e) {
       print('Error initializing speech to text: $e');
@@ -180,7 +191,7 @@ class _NewReportScreenState extends State<NewReportScreen> {
           });
         }
 
-        // Start listening with error handling
+        // Start listening with Android-optimized settings
         _speechToText.listen(
           onResult: (result) {
             if (_isMounted) {
@@ -188,33 +199,35 @@ class _NewReportScreenState extends State<NewReportScreen> {
                 _transcription = result.recognizedWords;
                 print("Transcription result: $_transcription");
                 print("Is final: ${result.finalResult}");
+                print("Confidence: ${result.confidence}");
               });
             }
           },
           onSoundLevelChange: (level) {
             print('Sound level: $level');
           },
-          listenFor: const Duration(seconds: 60),
-          pauseFor: const Duration(seconds: 3),
+          listenFor: const Duration(seconds: 30), // Shorter duration
+          pauseFor: const Duration(seconds: 5), // Longer pause to allow speaking
           partialResults: true,
           cancelOnError: false,
           localeId: 'en_US',
         );
+
+        print('Speech recognition started successfully');
+      } else {
+        print('Speech recognition not available or already listening');
       }
     } catch (e) {
       print('Error starting listening: $e');
       if (_isMounted) {
         setState(() {
           _isListening = false;
-          // Set default transcription if listening fails
-          _transcription =
-              "There was an incident this morning at the production site around 9:15 a.m. A worker slipped near the loading area because the floor was wet from a leaking pipe close to the storage section.";
         });
-        // Show error message only if widget is still mounted
+        // Don't immediately set sample text - let the user try again
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Speech recognition unavailable. Using sample text.'),
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text('Speech recognition failed to start: $e'),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -241,8 +254,14 @@ class _NewReportScreenState extends State<NewReportScreen> {
         });
       }
 
-      if (_transcription.isEmpty) {
-        // Set default transcription
+      // Give speech recognition a moment to finalize results
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      print('Final transcription: "$_transcription"');
+
+      if (_transcription.isEmpty || _transcription.trim().isEmpty) {
+        // Only fall back to sample text if we have no transcription at all
+        print('No transcription received, using sample text');
         if (_isMounted) {
           setState(() {
             _transcription =
@@ -252,9 +271,8 @@ class _NewReportScreenState extends State<NewReportScreen> {
         if (_isMounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text(
-                  'No speech detected. Using sample text. Please try again for accurate transcription.'),
-              duration: Duration(seconds: 3),
+              content: Text('No speech detected. Using sample text. Please try again for accurate transcription.'),
+              duration: Duration(seconds: 4),
             ),
           );
         }
@@ -265,7 +283,7 @@ class _NewReportScreenState extends State<NewReportScreen> {
             SnackBar(
               content: Text(
                   'Transcription captured: ${_transcription.substring(0, (_transcription.length > 50 ? 50 : _transcription.length))}...'),
-              duration: const Duration(seconds: 2),
+              duration: const Duration(seconds: 3),
             ),
           );
         }
