@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import type { Certification } from '@/services/certificationService';
@@ -9,6 +10,8 @@ interface CertificationPageProps {
 }
 
 export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'admin' }) => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [certifications, setCertifications] = useState<Certification[]>([]);
@@ -17,6 +20,16 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
   const [hasLoaded, setHasLoaded] = useState(false);
   const [selectedCertification, setSelectedCertification] = useState<Certification | null>(null);
 
+  const filterUserId = (searchParams.get('userId') || '').trim();
+  const filterEmail = (searchParams.get('email') || '').trim().toLowerCase();
+
+  const isFiltered = Boolean(filterUserId || filterEmail);
+  const filterLabel = useMemo(() => {
+    if (filterEmail) return filterEmail;
+    if (filterUserId) return `User ID: ${filterUserId}`;
+    return '';
+  }, [filterEmail, filterUserId]);
+
   // Fetch certifications on mount
   useEffect(() => {
     const fetchCertifications = async () => {
@@ -24,13 +37,21 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
         setLoading(true);
         setError(null);
 
-        console.log('📋 Loading certifications from API...');
+        if (filterUserId) {
+          console.log(`📋 Loading certifications for user: ${filterUserId}`);
+          const certs = await certificationService.getUserCertifications(filterUserId);
+          console.log(`✅ Loaded ${certs.length} user certifications from API`);
+          setCertifications(certs);
+        } else {
+          console.log('📋 Loading certifications from API...');
+          const certs = await certificationService.getAllCertifications();
+          const filtered = filterEmail
+            ? certs.filter((cert) => (cert.userEmail || '').toLowerCase() === filterEmail)
+            : certs;
+          console.log(`✅ Loaded ${filtered.length} certifications from API`);
+          setCertifications(filtered);
+        }
 
-        // Fetch from the API endpoint
-        const certs = await certificationService.getAllCertifications();
-        
-        console.log(`✅ Loaded ${certs.length} certifications from API`);
-        setCertifications(certs);
         setError(null);
         setHasLoaded(true);
       } catch (err) {
@@ -45,7 +66,7 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
     };
 
     fetchCertifications();
-  }, []);
+  }, [filterEmail, filterUserId]);
 
   const getStatusStyles = (status: Certification['status']) => {
     switch (status) {
@@ -136,8 +157,27 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
             <div className="bg-[#FFFAF5] dark:bg-[#121212] rounded-xl p-6 md:p-8 border border-gray-100 dark:border-gray-700">
               {/* Header */}
               <div className="mb-6">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Certification</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 font-bold">Professional and Safety Certification</p>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Certification</h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 font-bold">Professional and Safety Certification</p>
+                  </div>
+                  {isFiltered && (
+                    <button
+                      type="button"
+                      onClick={() => navigate(role === 'supervisor' ? '/supervisor/certification' : '/certification')}
+                      className="inline-flex items-center justify-center px-3 py-2 text-xs font-semibold rounded-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      Clear filter
+                    </button>
+                  )}
+                </div>
+                {isFiltered && (
+                  <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-[#0D0D0D] border border-gray-200 dark:border-gray-700">
+                    <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">Filtered:</span>
+                    <span className="text-xs text-gray-900 dark:text-white">{filterLabel || 'Selected user'}</span>
+                  </div>
+                )}
               </div>
 
               {/* Loading State */}
@@ -160,7 +200,9 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
               {/* Empty State */}
               {!loading && !error && certifications.length === 0 && (
                 <div className="text-center py-12">
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">No certifications found</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">
+                    {isFiltered ? 'No certifications found for this user' : 'No certifications found'}
+                  </p>
                 </div>
               )}
 
