@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { ActionDetailsModal } from '@/components/actions/ActionDetailsModal';
@@ -19,6 +20,7 @@ interface ActionsPageProps {
 
 export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
   const { reports, loading, error, refreshReports } = useReports();
+  const [searchParams] = useSearchParams();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<ActionFilterType>('All Actions');
@@ -93,6 +95,34 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
 
     return matchesFilter && matchesSearch;
   });
+
+  const buildActionDetails = (action: Action) => ({
+    id: action.id,
+    title: action.action,
+    description: 'Corrective action details',
+    reportId: action.relatedReport,
+    assignedTo: action.assignedTo,
+    status: action.status,
+    createdOn: new Date().toLocaleDateString(),
+    dueDate: action.dueDate,
+    comments: 'Action from report system',
+    timeline: [
+      {
+        date: `${new Date().toLocaleDateString()} - Action Created`,
+        title: `Assigned to ${action.assignedTo}`,
+        description: '',
+      },
+    ],
+  });
+
+  useEffect(() => {
+    const actionId = searchParams.get('actionId');
+    if (!actionId) return;
+    const found = allActions.find((action) => action.id === actionId);
+    if (found) {
+      setSelectedAction(buildActionDetails(found));
+    }
+  }, [allActions, searchParams]);
 
   const getPriorityBadge = (priority: PriorityLevel) => {
     const styles = {
@@ -318,27 +348,9 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
                         <tr
                           key={`${action.id}-${index}`}
                           onClick={() => {
-                            // Create full action details for modal
-                            setSelectedAction({
-                              id: action.id,
-                              title: action.action,
-                              description: 'Corrective action details',
-                              reportId: action.relatedReport,
-                              assignedTo: action.assignedTo,
-                              status: action.status,
-                              createdOn: new Date().toLocaleDateString(),
-                              dueDate: action.dueDate,
-                              comments: 'Action from report system',
-                              timeline: [
-                                {
-                                  date: `${new Date().toLocaleDateString()} - Action Created`,
-                                  title: `Assigned to ${action.assignedTo}`,
-                                  description: '',
-                                },
-                              ],
-                            });
+                            setSelectedAction(buildActionDetails(action));
                           }}
-                          className="bg-[#FFFAF5] dark:bg-[#121212] hover:bg-[#FFFEFB] dark:hover:bg-gray-800 transition-colors border-l-4 border-l-[#C24438] dark:border-l-orange-500 border-b border-b-gray-200 dark:border-b-gray-700 cursor-pointer\"
+                          className="bg-[#FFFAF5] dark:bg-[#121212] hover:bg-[#FFFEFB] dark:hover:bg-gray-800 transition-colors border-l-4 border-l-[#C24438] dark:border-l-orange-500 border-b border-b-gray-200 dark:border-b-gray-700 cursor-pointer"
                         >
                           <td className="py-3 md:py-4 px-3 md:px-4">
                             <div className="font-medium text-gray-900 dark:text-white text-xs md:text-sm">{action.id}</div>

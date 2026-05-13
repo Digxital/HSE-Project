@@ -299,11 +299,12 @@ export const TopBar: React.FC<TopBarProps> = ({
               onClose={() => setShowNotifications(false)}
               notifications={notifications.map(notif => ({
                 id: notif.id,
-                type: notif.type as 'REPORT' | 'ACTION' | 'SYSTEM',
+                type: notif.type === 'report_submitted' ? 'REPORT' : notif.type === 'action_closed' || notif.type === 'action_progress' ? 'ACTION' : 'SYSTEM',
                 title: notif.title,
                 description: notif.description,
                 timestamp: notif.timestamp,
                 isRead: notif.read,
+                targetId: notif.data?.reportId || notif.data?.actionId || notif.data?.report?.id || notif.data?.action?.id || notif.data?.id,
               }))}
             />
           </div> 

@@ -31,6 +31,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setUnreadCount(notificationService.getUnreadCount());
     });
 
+    notificationService.fetchNotifications();
+
     return () => {
       unsubscribe();
     };

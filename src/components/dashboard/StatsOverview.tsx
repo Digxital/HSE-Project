@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StatsCard } from './StatsCard';
+import { useReports } from '@/services/ReportsContext';
  
 interface StatsOverviewProps {
   hasData?: boolean;
@@ -8,6 +9,7 @@ interface StatsOverviewProps {
 
 export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) => {
   const navigate = useNavigate();
+  const { reports, loading } = useReports();
   const [showHeaderTooltip, setShowHeaderTooltip] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
  
@@ -22,26 +24,65 @@ export const StatsOverview: React.FC<StatsOverviewProps> = ({ hasData = true }) 
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Mock data - will be replaced with API data later
-  const stats = hasData
-    ? {
-        totalReports: 248,
-        totalReportsChange: '+18 since last month',
-        highRiskItems: 23,
-        highRiskImmediate: '5 require immediate action',
-        openActions: 41,
-        openActionsOverdue: '12 overdue',
-        monthlyTrend: 7,
-      }
-    : {
+  const stats = useMemo(() => {
+    const parseDate = (value: string) => {
+      if (!value) return null;
+      const normalized = value.replace('\n', ' ');
+      const parsed = new Date(normalized);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    };
+
+    const now = new Date();
+    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+
+    const reportDates = reports
+      .map((report) => parseDate(report.dateReported))
+      .filter((date): date is Date => Boolean(date));
+
+    const recentCount = reportDates.filter((date) => now.getTime() - date.getTime() <= thirtyDaysMs).length;
+    const previousCount = reportDates.filter((date) => {
+      const diff = now.getTime() - date.getTime();
+      return diff > thirtyDaysMs && diff <= thirtyDaysMs * 2;
+    }).length;
+
+    const diff = recentCount - previousCount;
+    const trend = previousCount > 0 ? Math.round((diff / previousCount) * 100) : 0;
+
+    const highRiskItems = reports.filter((report) => report.risk === 'High').length;
+    const highRiskOpen = reports.filter((report) => report.risk === 'High' && report.status !== 'Closed').length;
+
+    const allActions = reports.flatMap((report) => report.actions || []);
+    const openActions = allActions.filter((action) => action.status !== 'Completed').length;
+    const overdueActions = allActions.filter((action) => {
+      if (action.status === 'Completed') return false;
+      const dueDate = parseDate(action.dueDate);
+      return dueDate ? dueDate.getTime() < now.getTime() : false;
+    }).length;
+
+    if (!hasData || reports.length === 0) {
+      return {
         totalReports: 0,
-        totalReportsChange: 'No reports yet',
+        totalReportsChange: loading ? 'Loading reports...' : 'No reports yet',
         highRiskItems: 0,
-        highRiskImmediate: 'No high-risk items',
+        highRiskImmediate: loading ? 'Loading high-risk items...' : 'No high-risk items',
         openActions: 0,
-        openActionsOverdue: 'No overdue actions',
+        openActionsOverdue: loading ? 'Loading actions...' : 'No overdue actions',
         monthlyTrend: 0,
       };
+    }
+
+    return {
+      totalReports: reports.length,
+      totalReportsChange: previousCount === 0
+        ? `${recentCount} in last 30 days`
+        : `${diff >= 0 ? '+' : ''}${diff} vs previous 30 days`,
+      highRiskItems,
+      highRiskImmediate: highRiskOpen > 0 ? `${highRiskOpen} require immediate action` : 'No high-risk items',
+      openActions,
+      openActionsOverdue: overdueActions > 0 ? `${overdueActions} overdue` : 'No overdue actions',
+      monthlyTrend: trend,
+    };
+  }, [hasData, loading, reports]);
 
   return (
     <div className="mb-8">

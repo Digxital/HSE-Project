@@ -8,6 +8,7 @@ interface Notification {
   description: string;
   timestamp: string;
   isRead: boolean;
+  targetId?: string;
 }
 
 interface NotificationPreviewModalProps {
@@ -29,12 +30,12 @@ export const NotificationPreviewModal: React.FC<NotificationPreviewModalProps> =
   const recentNotifications = notifications.slice(0, 3);
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  const getNotificationLink = (type: Notification['type']) => {
-    switch (type) {
+  const getNotificationLink = (notification: Notification) => {
+    switch (notification.type) {
       case 'REPORT':
-        return '/reports';
+        return notification.targetId ? `/reports?reportId=${notification.targetId}` : '/reports';
       case 'ACTION':
-        return '/actions';
+        return notification.targetId ? `/actions?actionId=${notification.targetId}` : '/actions';
       case 'SYSTEM':
         return '/settings';
       default:
@@ -42,8 +43,8 @@ export const NotificationPreviewModal: React.FC<NotificationPreviewModalProps> =
     }
   };
 
-  const handleNavigate = (type: Notification['type']) => {
-    navigate(getNotificationLink(type));
+  const handleNavigate = (notification: Notification) => {
+    navigate(getNotificationLink(notification));
     onClose();
   };
 
@@ -73,7 +74,7 @@ export const NotificationPreviewModal: React.FC<NotificationPreviewModalProps> =
             recentNotifications.map((notification) => (
               <div
                 key={notification.id}
-                onClick={() => handleNavigate(notification.type)}
+                onClick={() => handleNavigate(notification)}
                 className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer ${
                   !notification.isRead ? 'bg-white dark:bg-[#121212]' : 'bg-[#FFF9F5] dark:bg-gray-800/30'
                 }`}

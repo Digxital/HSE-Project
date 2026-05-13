@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { ReportDetailsModal } from '@/components/reports/ReportDetailsModal';
@@ -12,6 +13,7 @@ interface ReportsPageProps {
  
 export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
   const { reports, loading, error, refreshReports, closeReport, addComment, addAction } = useReports();
+  const [searchParams] = useSearchParams();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<ReportType>('All');
@@ -33,6 +35,15 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
       }
     }
   }, [reports]);
+
+  useEffect(() => {
+    const reportId = searchParams.get('reportId');
+    if (!reportId) return;
+    const found = reports.find((report) => report.id === reportId || (report as any)._id === reportId);
+    if (found && (!selectedReport || selectedReport.id !== found.id)) {
+      setSelectedReport(found);
+    }
+  }, [reports, searchParams]);
 
   const types: { label: ReportType; count: number }[] = [
     { label: 'All', count: reports.length },

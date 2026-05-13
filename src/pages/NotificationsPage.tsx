@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
+import { useNotifications } from '@/contexts/NotificationContext';
 
 interface Notification {
   id: string;
@@ -9,8 +11,7 @@ interface Notification {
   description: string;
   timestamp: string;
   isRead: boolean;
-  actionLink?: string;
-  actionLinkText?: string;
+  targetId?: string;
 }
 
 interface NotificationsPageProps {
@@ -18,71 +19,38 @@ interface NotificationsPageProps {
 }
 
 export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'admin' }) => {
+  const navigate = useNavigate();
+  const { notifications } = useNotifications();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Mock notifications data
-  const [notifications] = useState<Notification[]>([
-    {
-      id: '1',
-      type: 'REPORT',
-      title: 'New Hazard Report Submitted',
-      description: 'A new hazard report was submitted at the production site',
-      timestamp: '6 minutes ago',
-      isRead: false,
-      actionLink: '/reports',
-      actionLinkText: 'View Report →',
-    },
-    {
-      id: '2',
-      type: 'REPORT',
-      title: 'A new report has been submitted and is awaiting review',
-      description: 'An incident was reported at Warehouse 3.',
-      timestamp: '20 minutes ago',
-      isRead: false,
-      actionLink: '/reports',
-      actionLinkText: 'View Report →',
-    },
-    {
-      id: '3',
-      type: 'ACTION',
-      title: 'Action Assigned',
-      description: 'ACT-0045 has been assigned to John Doe.',
-      timestamp: '1 hour ago',
-      isRead: true,
-      actionLink: '/actions',
-      actionLinkText: 'View Report →',
-    },
-    {
-      id: '4',
-      type: 'ACTION',
-      title: 'Action In Progress',
-      description: 'ACT-0043 has been started by John Doe.',
-      timestamp: '2 hour ago',
-      isRead: true,
-      actionLink: '/actions',
-      actionLinkText: 'View Report →',
-    },
-    {
-      id: '5',
-      type: 'ACTION',
-      title: 'Action Completed',
-      description: 'ACT-0045 has been marked as completed.',
-      timestamp: 'Yesterday, 10:31',
-      isRead: true,
-      actionLink: '/actions',
-      actionLinkText: 'View Report →',
-    },
-    {
-      id: '6',
-      type: 'SYSTEM',
-      title: 'System Update',
-      description: 'New safety analytics features have been added.',
-      timestamp: 'Last week',
-      isRead: true,
-    },
-  ]);
+  const mappedNotifications: Notification[] = notifications.map((notification) => {
+    const mappedType: Notification['type'] =
+      notification.type === 'report_submitted'
+        ? 'REPORT'
+        : notification.type === 'action_closed' || notification.type === 'action_progress'
+        ? 'ACTION'
+        : 'SYSTEM';
+
+    const targetId =
+      notification.data?.incidentId ||
+      notification.data?.reportId ||
+      notification.data?.actionId ||
+      notification.data?.report?.id ||
+      notification.data?.action?.id ||
+      notification.data?.id;
+
+    return {
+      id: notification.id,
+      type: mappedType,
+      title: notification.title,
+      description: notification.description,
+      timestamp: notification.timestamp,
+      isRead: notification.read,
+      targetId,
+    };
+  });
 
   // Check if mobile on mount and window resize
   useEffect(() => {
@@ -98,16 +66,29 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'ad
 
 
 
-  const getNotificationLink = (type: Notification['type']) => {
-    switch (type) {
+  const getNotificationLink = (notification: Notification) => {
+    switch (notification.type) {
       case 'REPORT':
-        return '/reports';
+        return notification.targetId ? `/reports?reportId=${notification.targetId}` : '/reports';
       case 'ACTION':
-        return '/actions';
+        return notification.targetId ? `/actions?actionId=${notification.targetId}` : '/actions';
       case 'SYSTEM':
         return '/settings';
       default:
         return '';
+    }
+  };
+
+  const getActionLabel = (type: Notification['type']) => {
+    switch (type) {
+      case 'REPORT':
+        return 'View Report →';
+      case 'ACTION':
+        return 'View Action →';
+      case 'SYSTEM':
+        return 'Open Settings →';
+      default:
+        return 'View →';
     }
   };
 
@@ -154,11 +135,15 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'ad
 
               {/* Notifications List */}
               <div className="space-y-3">
-                {notifications.length > 0 ? (
-                  notifications.map((notification) => (
+                {mappedNotifications.length > 0 ? (
+                  mappedNotifications.map((notification) => (
+                    (() => {
+                      const targetLink = getNotificationLink(notification);
+                      return (
                     <div
                       key={notification.id}
-                      className={`p-4 rounded-lg border transition-colors bg-white dark:bg-[#0D0D0D] border-gray-100 dark:border-gray-700 ${
+                      onClick={() => targetLink && navigate(targetLink)}
+                      className={`p-4 rounded-lg border transition-colors bg-white dark:bg-[#0D0D0D] border-gray-100 dark:border-gray-700 cursor-pointer ${
                         !notification.isRead ? 'shadow-sm' : ''
                       }`}
                     >
@@ -192,17 +177,22 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'ad
                         </div>
 
                         {/* Action Link */}
-                        {notification.actionLink && (
-                          <a
-                            href={notification.actionLink}
+                        {targetLink && (
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              navigate(targetLink);
+                            }}
                             className="text-sm font-medium text-[#C24438] dark:text-orange-500 hover:text-[#A63830] dark:hover:text-orange-400 mt-3 inline-block transition-colors"
                           >
-                            {notification.actionLinkText}
-                          </a>
+                            {getActionLabel(notification.type)}
+                          </button>
                         )}
                       </div>
                     </div>
                     </div>
+                      );
+                    })()
                   ))
                 ) : (
                   <div className="text-center py-12">

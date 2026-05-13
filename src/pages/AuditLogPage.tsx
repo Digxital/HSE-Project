@@ -30,6 +30,7 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('ALL');
+  const [selectedAction, setSelectedAction] = useState<string>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
@@ -40,6 +41,27 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
     if (typeof value === 'string') return value;
     if (value === null || value === undefined) return fallback;
     return String(value);
+  };
+  const getUserDisplay = (log: any) => {
+    const emailCandidate =
+      log.userEmail ||
+      log.email ||
+      log.user?.email ||
+      log.user?.userEmail ||
+      log.actor?.email;
+    if (emailCandidate) return emailCandidate;
+
+    const idCandidate =
+      log.userId ||
+      log.user?.id ||
+      log.user?._id ||
+      log.user?.userId ||
+      log.actorId ||
+      log.actor?.id ||
+      log.actor?._id;
+    if (idCandidate) return idCandidate;
+
+    return log.user || log.userName;
   };
 
   // Check authentication
@@ -58,8 +80,9 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
         setLoading(true);
         setError(null);
         
-        console.log('🔍 Fetching audit logs from backend...');
-        const response = await api.get('/api/auditlogs');
+        const params = selectedAction === 'ALL' ? undefined : { action: selectedAction };
+        console.log('🔍 Fetching audit logs from backend...', params ? params : 'all');
+        const response = await api.get('/api/auditlogs', params ? { params } : undefined);
         
         console.log('✅ Backend response:', response.data);
         
@@ -121,7 +144,7 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
         const transformedLogs = logsData.map((log: any) => ({
           id: log.id || log._id || `${log.actionType || 'log'}-${Math.random()}`,
           timestamp: normalizeText(log.timestamp, new Date().toLocaleString()),
-          user: normalizeText(log.user || log.userName, 'Unknown'),
+          user: normalizeText(getUserDisplay(log), 'Unknown'),
           userRole: normalizeText(log.userRole || log.role, 'User'),
           action: normalizeText(log.action || log.actionType, 'Unknown Action'),
           actionType: (log.actionType as AuditLog['actionType']) || 'VIEW',
@@ -152,7 +175,7 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
     };
 
     fetchAuditLogs();
-  }, []);
+  }, [selectedAction]);
 
   // Check if mobile on mount and window resize
   useEffect(() => {
@@ -179,6 +202,16 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
 
     return matchesSearch && matchesRole;
   });
+
+  const actionFilters = [
+    'ALL',
+    'USER_CREATED',
+    'USER_UPDATED',
+    'ROLE_CHANGED',
+    'RECORD_DELETED',
+    'LOGIN_FAILED',
+    'CERTIFICATION_UPLOADED',
+  ] as const;
 
   // Get role counts
   const roleCount = (roleType: string) => {
@@ -266,7 +299,7 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
               <p className="text-gray-600 dark:text-gray-400">Track all system activities.</p>
             </div>
 
-            {/* Role Filter Pills & Search */}
+            {/* Role Filter Pills, Action Filter & Search */}
             <div className="mb-6 space-y-4">
               {/* Role Filter Pills */}
               <div className="flex flex-wrap gap-2">
@@ -284,6 +317,26 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
                     }`}
                   >
                     {roleFilter} {roleFilter !== 'ALL' && `(${roleCount(roleFilter)})`}
+                  </button>
+                ))}
+              </div>
+
+              {/* Action Filter Pills */}
+              <div className="flex flex-wrap gap-2">
+                {actionFilters.map((actionFilter) => (
+                  <button
+                    key={actionFilter}
+                    onClick={() => {
+                      setSelectedAction(actionFilter);
+                      setCurrentPage(1);
+                    }}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                      selectedAction === actionFilter
+                        ? 'bg-[#C24438] dark:bg-orange-600 text-white'
+                        : 'bg-white dark:bg-[#121212] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    }`}
+                  >
+                    {actionFilter === 'ALL' ? 'All Actions' : actionFilter.replace(/_/g, ' ')}
                   </button>
                 ))}
               </div>

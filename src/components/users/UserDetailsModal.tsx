@@ -7,6 +7,7 @@ import { userService } from '@/services/userService';
 import { certificationService } from '@/services/certificationService';
 import type { Certification } from '@/services/certificationService';
 import { useToast } from '@/hooks/useToast';
+import { useReports } from '@/services/ReportsContext';
 
 interface UserDetailsModalProps {
   isOpen: boolean;
@@ -40,9 +41,7 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
   onUpdateUserStatus,
   onUserUpdated 
 }) => {
-  // IMPORTANT: Check user BEFORE any hooks!
-  if (!user) return null;
-
+  const { reports } = useReports();
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState<Partial<any>>({});
@@ -54,7 +53,9 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
   const [isDeletingCert, setIsDeletingCert] = useState(false);
   const { showToast } = useToast();
 
-  const [firstName, surname] = user.name.split(' ');
+  const nameParts = (user?.name || '').split(' ');
+  const firstName = nameParts[0] || '';
+  const surname = nameParts[1] || '';
 
   // Load certifications from backend when modal opens
   useEffect(() => {
@@ -124,12 +125,17 @@ export const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
     }
   };
 
+  const userEmail = user?.email?.toLowerCase();
   const stats = {
-    reportsSubmitted: user.stats?.reportsSubmitted || 15,
-    actionsAssigned: user.stats?.actionsAssigned || 0,
+    reportsSubmitted: userEmail
+      ? reports.filter((report) => report.reportedBy?.toLowerCase() === userEmail).length
+      : 0,
+    actionsAssigned: user?.stats?.actionsAssigned || 0,
     validCertifications: certifications.filter(c => c.status === 'Valid').length,
     expiredCertifications: certifications.filter(c => c.status === 'Expired').length,
   };
+
+  if (!user) return null;
 
   const handleReactivate = () => {
     if (user) {

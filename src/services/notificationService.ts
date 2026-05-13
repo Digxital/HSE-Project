@@ -67,6 +67,43 @@ class NotificationService {
     return this.notifications.filter(n => !n.read).length;
   }
 
+  // Load notifications from backend
+  async fetchNotifications() {
+    try {
+      const token = getAuthToken();
+      if (!token) return [];
+
+      const response = await api.get('/api/notifications', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const payload = response.data;
+      const list = Array.isArray(payload)
+        ? payload
+        : payload?.data || payload?.notifications || payload?.results || payload?.items || payload?.records || [];
+
+      if (!Array.isArray(list)) {
+        return [];
+      }
+
+      this.notifications = list.map((item: any) => ({
+        id: item.id || item._id || item.notificationId || Math.random().toString(36).substr(2, 9),
+        type: item.type || item.notificationType || 'system',
+        title: item.title || item.message || 'Notification',
+        description: item.description || item.details || '',
+        timestamp: item.timestamp || item.createdAt || new Date().toLocaleString(),
+        read: item.read ?? item.isRead ?? false,
+        data: item.data || item.metadata || item.payload,
+      }));
+
+      this.notifyListeners();
+      return this.notifications;
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+      return [];
+    }
+  }
+
   private notifyListeners() {
     this.listeners.forEach(listener => listener(this.notifications));
   }
