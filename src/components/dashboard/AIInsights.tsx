@@ -1,26 +1,97 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { AIInsightCard } from './AIInsightCard';
+import { useReports } from '@/services/ReportsContext';
 
 interface AIInsightsProps {
   hasData?: boolean;
 }
 
 export const AIInsights: React.FC<AIInsightsProps> = ({ hasData = true }) => {
-  // Mock data - will be replaced with API data later
-  const insights = hasData
-    ? [
-        {
-          id: 1,
-          message: 'Near-miss reports increased by 22% at North Sea Platform Alpha in the last 14 days.',
-          type: 'info' as const,
-        },
-        {
-          id: 2,
-          message: 'Action closure rate dropped from 82% to 68% this month.',
-          type: 'warning' as const,
-        },
-      ]
-    : [];
+  const { reports, loading } = useReports();
+
+  const insights = useMemo(() => {
+    if (!hasData || loading || reports.length === 0) return [];
+
+    const now = new Date();
+    const daysAgo = (days: number) => {
+      const date = new Date(now);
+      date.setDate(date.getDate() - days);
+      return date;
+    };
+
+    const parseReportDate = (dateValue: string) => {
+      const raw = dateValue.split('\n')[0]?.trim();
+      const parsed = new Date(raw);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    };
+
+    const dateRanges = {
+      last14Start: daysAgo(14),
+      prev14Start: daysAgo(28),
+      last30Start: daysAgo(30),
+    };
+
+    const reportsWithDates = reports
+      .map((report) => ({
+        report,
+        date: parseReportDate(report.dateReported),
+      }))
+      .filter((entry) => entry.date !== null) as Array<{ report: typeof reports[number]; date: Date }>;
+
+    const last14 = reportsWithDates.filter((entry) => entry.date >= dateRanges.last14Start && entry.date <= now);
+    const prev14 = reportsWithDates.filter(
+      (entry) => entry.date >= dateRanges.prev14Start && entry.date < dateRanges.last14Start
+    );
+
+    const last30 = reportsWithDates.filter((entry) => entry.date >= dateRanges.last30Start && entry.date <= now);
+    const reportsScope = last30.length > 0 ? last30 : reportsWithDates;
+
+    const insightsList: Array<{ id: number; message: string; type: 'info' | 'warning' | 'success' | 'error' }> = [];
+
+    if (last14.length > 0 || prev14.length > 0) {
+      const changeBase = prev14.length || 1;
+      const change = Math.round(((last14.length - prev14.length) / changeBase) * 100);
+      const trendType = change > 0 ? 'warning' : change < 0 ? 'success' : 'info';
+      const trendWord = change > 0 ? 'increased' : change < 0 ? 'decreased' : 'stayed level';
+      const suffix = prev14.length === 0 ? ' (baseline is 0)' : '';
+      insightsList.push({
+        id: 1,
+        message: `Reports ${trendWord} by ${Math.abs(change)}% in the last 14 days (${last14.length} vs ${prev14.length}).${suffix}`,
+        type: trendType,
+      });
+    }
+
+    const totalActions = reports.reduce((sum, report) => sum + report.actions.length, 0);
+    const completedActions = reports.reduce(
+      (sum, report) => sum + report.actions.filter((action) => action.status === 'Completed').length,
+      0
+    );
+
+    if (totalActions > 0) {
+      const completionRate = Math.round((completedActions / totalActions) * 100);
+      const completionType = completionRate < 70 ? 'warning' : 'success';
+      insightsList.push({
+        id: 2,
+        message: `Action completion rate is ${completionRate}% (${completedActions} of ${totalActions} completed).`,
+        type: completionType,
+      });
+    }
+
+    if (reportsScope.length > 0) {
+      const highRiskCount = reportsScope.filter((entry) => entry.report.risk === 'High').length;
+      if (highRiskCount > 0) {
+        const highRiskShare = Math.round((highRiskCount / reportsScope.length) * 100);
+        const highRiskType = highRiskShare >= 40 ? 'warning' : 'info';
+        insightsList.push({
+          id: 3,
+          message: `High-risk reports account for ${highRiskShare}% of recent reports (${highRiskCount} of ${reportsScope.length}).`,
+          type: highRiskType,
+        });
+      }
+    }
+
+    return insightsList.slice(0, 3);
+  }, [hasData, loading, reports]);
 
   // Don't render section if no insights
   if (insights.length === 0) {

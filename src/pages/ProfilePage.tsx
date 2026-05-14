@@ -2,17 +2,28 @@ import React, { useState } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import johnMatthewsImg from '@/assets/images/Jhn-Matthew-profileImg.jpg';
+import { getUserData } from '@/utils/authStorage';
 
 interface ProfilePageProps {
   role?: 'admin' | 'supervisor';
 }
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
+  const userData = getUserData();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const displayName = userData?.name || 'User';
+  const displayRole = userData?.role
+    ? userData.role === 'supervisor'
+      ? 'Supervisor'
+      : 'System Administrator'
+    : role === 'supervisor'
+      ? 'Supervisor'
+      : 'System Administrator';
 
   // Form state for edit mode
   const [formData, setFormData] = useState({
@@ -101,9 +112,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
           pageTitle="Profile"
           onMenuClick={() => setMobileMenuOpen(true)}
           showMenuButton={true}
-          userName={role === 'supervisor' ? 'John Matthew' : 'Peter Omorogbolahan'}
-          userRole={role === 'supervisor' ? 'Supervisor' : 'System Administrator'}
-          notificationCount={4}
+          userName={displayName}
+          userRole={displayRole}
         />
 
         {/* Main Content Area */}

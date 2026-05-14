@@ -3,7 +3,7 @@ import { getAuthToken, removeAuthToken, removeUserData  } from '@/utils/authStor
 
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://hse-backend-n6bu.onrender.com',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://hse-backend-n8d4.onrender.com',
   headers: {
     'Content-Type': 'application/json',
     'X-PLATFORM': 'web'

@@ -27,7 +27,7 @@ import { SupervisorDashboardPage } from '@/pages/supervisor/SupervisorDashboardP
 import { SupervisorProfilePage } from '@/pages/supervisor/SupervisorProfilePage';
 import { SupervisorReportsPage } from '@/pages/supervisor/SupervisorReportsPage';
 import { SupervisorSettingsPage } from '@/pages/supervisor/SupervisorSettingsPage';
-import { ReportsProvider } from './services/ReportsContext';
+import { ReportsProvider } from '@/services/ReportsContext';
 
 // Create a separate component for the authenticated routes
 const AppRoutes = () => {

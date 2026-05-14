@@ -3,15 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { useNotifications } from '@/contexts/NotificationContext';
+import { getUserData } from '@/utils/authStorage';
 
 interface Notification {
   id: string;
-  type: 'REPORT' | 'ACTION' | 'SYSTEM';
+  type: 'REPORT' | 'ACTION' | 'USER' | 'SYSTEM';
   title: string;
   description: string;
   timestamp: string;
   isRead: boolean;
   targetId?: string;
+  commentId?: string;
+  userEmail?: string;
 }
 
 interface NotificationsPageProps {
@@ -20,23 +23,49 @@ interface NotificationsPageProps {
 
 export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'admin' }) => {
   const navigate = useNavigate();
-  const { notifications } = useNotifications();
+  const userData = getUserData();
+  const { notifications, markAsRead } = useNotifications();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const routePrefix = role === 'supervisor' ? '/supervisor' : '';
+
+  const displayName = userData?.name || 'User';
+  const displayRole = userData?.role
+    ? userData.role === 'supervisor'
+      ? 'Supervisor'
+      : 'System Administrator'
+    : role === 'supervisor'
+      ? 'Supervisor'
+      : 'System Administrator';
 
   const mappedNotifications: Notification[] = notifications.map((notification) => {
-    const mappedType: Notification['type'] =
-      notification.type === 'report_submitted'
-        ? 'REPORT'
-        : notification.type === 'action_closed' || notification.type === 'action_progress'
-        ? 'ACTION'
-        : 'SYSTEM';
+    const emailMatch = typeof notification.description === 'string'
+      ? notification.description.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)
+      : null;
+    const userEmail = notification.data?.userEmail || notification.data?.email || notification.data?.user?.email || emailMatch?.[0];
+    const hasReportTarget = Boolean(notification.data?.reportId || notification.data?.incidentId || notification.data?.report?.id);
+    const hasActionTarget = Boolean(notification.data?.actionId || notification.data?.action?.id);
+    const hasUserTarget = Boolean(notification.data?.userId || userEmail);
+    const mappedType: Notification['type'] = hasReportTarget
+      ? 'REPORT'
+      : hasActionTarget
+      ? 'ACTION'
+      : hasUserTarget
+      ? 'USER'
+      : notification.type === 'report_submitted' || notification.type === 'report_commented'
+      ? 'REPORT'
+      : notification.type === 'action_closed' || notification.type === 'action_progress'
+      ? 'ACTION'
+      : notification.type === 'user_added'
+      ? 'USER'
+      : 'SYSTEM';
 
     const targetId =
-      notification.data?.incidentId ||
       notification.data?.reportId ||
+      notification.data?.incidentId ||
       notification.data?.actionId ||
+      notification.data?.userId ||
       notification.data?.report?.id ||
       notification.data?.action?.id ||
       notification.data?.id;
@@ -49,6 +78,8 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'ad
       timestamp: notification.timestamp,
       isRead: notification.read,
       targetId,
+      commentId: notification.data?.commentId,
+      userEmail,
     };
   });
 
@@ -69,13 +100,34 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'ad
   const getNotificationLink = (notification: Notification) => {
     switch (notification.type) {
       case 'REPORT':
-        return notification.targetId ? `/reports?reportId=${notification.targetId}` : '/reports';
+        if (notification.targetId && notification.commentId) {
+          return `${routePrefix}/reports?reportId=${notification.targetId}&commentId=${notification.commentId}`;
+        }
+        return notification.targetId ? `${routePrefix}/reports?reportId=${notification.targetId}` : `${routePrefix}/reports`;
       case 'ACTION':
-        return notification.targetId ? `/actions?actionId=${notification.targetId}` : '/actions';
+        return notification.targetId ? `${routePrefix}/actions?actionId=${notification.targetId}` : `${routePrefix}/actions`;
+      case 'USER':
+        if (notification.targetId) {
+          return `/users?userId=${notification.targetId}`;
+        }
+        if (notification.userEmail) {
+          return `/users?email=${encodeURIComponent(notification.userEmail)}`;
+        }
+        return '/users';
       case 'SYSTEM':
-        return '/settings';
+        return `${routePrefix}/settings`;
       default:
         return '';
+    }
+  };
+
+  const handleOpenNotification = (notification: Notification) => {
+    if (!notification.isRead) {
+      markAsRead(notification.id);
+    }
+    const target = getNotificationLink(notification);
+    if (target) {
+      navigate(target);
     }
   };
 
@@ -85,6 +137,8 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'ad
         return 'View Report →';
       case 'ACTION':
         return 'View Action →';
+      case 'USER':
+        return 'View User →';
       case 'SYSTEM':
         return 'Open Settings →';
       default:
@@ -118,9 +172,8 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'ad
           pageTitle="Notification"
           onMenuClick={() => setMobileMenuOpen(true)}
           showMenuButton={isMobile}
-          userName={role === 'supervisor' ? 'John Matthew' : 'Peter Omorogbolahan'}
-          userRole={role === 'supervisor' ? 'Supervisor' : 'System Administrator'}
-          notificationCount={4}
+          userName={displayName}
+          userRole={displayRole}
         />
 
         {/* Main Content Area */}
@@ -142,7 +195,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'ad
                       return (
                     <div
                       key={notification.id}
-                      onClick={() => targetLink && navigate(targetLink)}
+                      onClick={() => handleOpenNotification(notification)}
                       className={`p-4 rounded-lg border transition-colors bg-white dark:bg-[#0D0D0D] border-gray-100 dark:border-gray-700 cursor-pointer ${
                         !notification.isRead ? 'shadow-sm' : ''
                       }`}
@@ -181,7 +234,7 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'ad
                           <button
                             onClick={(event) => {
                               event.stopPropagation();
-                              navigate(targetLink);
+                              handleOpenNotification(notification);
                             }}
                             className="text-sm font-medium text-[#C24438] dark:text-orange-500 hover:text-[#A63830] dark:hover:text-orange-400 mt-3 inline-block transition-colors"
                           >

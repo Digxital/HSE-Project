@@ -297,15 +297,41 @@ export const TopBar: React.FC<TopBarProps> = ({
             <NotificationPreviewModal 
               isOpen={showNotifications}
               onClose={() => setShowNotifications(false)}
-              notifications={notifications.map(notif => ({
-                id: notif.id,
-                type: notif.type === 'report_submitted' ? 'REPORT' : notif.type === 'action_closed' || notif.type === 'action_progress' ? 'ACTION' : 'SYSTEM',
-                title: notif.title,
-                description: notif.description,
-                timestamp: notif.timestamp,
-                isRead: notif.read,
-                targetId: notif.data?.reportId || notif.data?.actionId || notif.data?.report?.id || notif.data?.action?.id || notif.data?.id,
-              }))}
+              onMarkAsRead={markAsRead}
+              notifications={notifications.map(notif => {
+                const emailMatch = typeof notif.description === 'string'
+                  ? notif.description.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)
+                  : null;
+                const userEmail = notif.data?.userEmail || notif.data?.email || notif.data?.user?.email || emailMatch?.[0];
+                const hasReportTarget = Boolean(notif.data?.reportId || notif.data?.incidentId || notif.data?.report?.id);
+                const hasActionTarget = Boolean(notif.data?.actionId || notif.data?.action?.id);
+                const hasUserTarget = Boolean(notif.data?.userId || userEmail);
+                const type = hasReportTarget
+                  ? 'REPORT'
+                  : hasActionTarget
+                  ? 'ACTION'
+                  : hasUserTarget
+                  ? 'USER'
+                  : notif.type === 'report_submitted' || notif.type === 'report_commented'
+                  ? 'REPORT'
+                  : notif.type === 'action_closed' || notif.type === 'action_progress'
+                  ? 'ACTION'
+                  : notif.type === 'user_added'
+                  ? 'USER'
+                  : 'SYSTEM';
+
+                return {
+                  id: notif.id,
+                  type,
+                  title: notif.title,
+                  description: notif.description,
+                  timestamp: notif.timestamp,
+                  isRead: notif.read,
+                  targetId: notif.data?.reportId || notif.data?.incidentId || notif.data?.actionId || notif.data?.userId || notif.data?.report?.id || notif.data?.action?.id || notif.data?.id,
+                  commentId: notif.data?.commentId,
+                  userEmail,
+                };
+              })}
             />
           </div> 
 

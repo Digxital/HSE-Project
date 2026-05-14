@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { Button } from '@/components/ui/Button';
@@ -118,6 +119,8 @@ const Pagination: React.FC<{
 };
 
 export const UserManagementPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { handleLogout } = useAuth();
   const [user, setUser] = useState<UserData | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -134,6 +137,8 @@ export const UserManagementPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const { addNotification } = useNotifications();
+  const userIdParam = searchParams.get('userId') || '';
+  const userEmailParam = (searchParams.get('email') || '').trim().toLowerCase();
    
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -150,6 +155,26 @@ export const UserManagementPage: React.FC = () => {
     fetchUsers();
     fetchMicrosoftUsers();
   }, []);
+
+  useEffect(() => {
+    if (users.length === 0) return;
+    if (userIdParam) {
+      if (selectedUser?.id === userIdParam) return;
+      const match = users.find((item) => item.id === userIdParam || item._id === userIdParam);
+      if (match) {
+        setActiveTab('platform');
+        setSelectedUser(match);
+        return;
+      }
+    }
+    if (userEmailParam) {
+      const match = users.find((item) => item.email.toLowerCase() === userEmailParam);
+      if (match && selectedUser?.id !== match.id) {
+        setActiveTab('platform');
+        setSelectedUser(match);
+      }
+    }
+  }, [userEmailParam, userIdParam, users, selectedUser?.id]);
 
  const fetchUsers = async () => {
     setIsLoading(true);
@@ -324,6 +349,9 @@ export const UserManagementPage: React.FC = () => {
             title: 'New User Added',
             description: `${firstName} ${lastName} (${email}) has been added to the platform.`,
             timestamp: new Date().toISOString(),
+            data: {
+              userId: newUser._id || newUser.id,
+            },
           });
           // addNotification({
           //   type: 'user_added',
@@ -657,7 +685,6 @@ export const UserManagementPage: React.FC = () => {
           userName={user.name}
           userRole={user.role}
           syncStatus="synced"
-          notificationCount={4}
           onMenuClick={handleMobileSidebarToggle} 
           showMenuButton={isMobile}
           onLogout={handleLogout}
@@ -1007,7 +1034,12 @@ export const UserManagementPage: React.FC = () => {
       {/* User Details Modal */}
       <UserDetailsModal
         isOpen={!!selectedUser}
-        onClose={() => setSelectedUser(null)}
+        onClose={() => {
+          setSelectedUser(null);
+          if (userIdParam || userEmailParam) {
+            navigate('/users', { replace: true });
+          }
+        }}
         user={selectedUser ? {
           id: selectedUser.id, // This should be the correct ID
           name: `${selectedUser.firstName} ${selectedUser.lastName}`,

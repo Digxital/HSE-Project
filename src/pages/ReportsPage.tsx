@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { ReportDetailsModal } from '@/components/reports/ReportDetailsModal';
 import { useReports, type Report, type RiskLevel, type ReportStatus } from '@/services/ReportsContext';
+import { getUserData } from '@/utils/authStorage';
  
 type ReportType = 'All' | 'Incidents' | 'Hazard';
 
@@ -12,6 +13,7 @@ interface ReportsPageProps {
 }
  
 export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
+  const userData = getUserData();
   const { reports, loading, error, refreshReports, closeReport, addComment, addAction } = useReports();
   const [searchParams] = useSearchParams();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -20,6 +22,15 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [showHeaderTooltip, setShowHeaderTooltip] = useState(false);
+
+  const displayName = userData?.name || 'User';
+  const displayRole = userData?.role
+    ? userData.role === 'supervisor'
+      ? 'Supervisor'
+      : 'System Administrator'
+    : role === 'supervisor'
+      ? 'Supervisor'
+      : 'System Administrator';
 
   // Re-fetch reports every time the page is visited
   useEffect(() => {
@@ -38,9 +49,13 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
 
   useEffect(() => {
     const reportId = searchParams.get('reportId');
+    const commentId = searchParams.get('commentId');
     if (!reportId) return;
     const found = reports.find((report) => report.id === reportId || (report as any)._id === reportId);
     if (found && (!selectedReport || selectedReport.id !== found.id)) {
+      setSelectedReport(found);
+    }
+    if (commentId && found && (!selectedReport || selectedReport.id !== found.id)) {
       setSelectedReport(found);
     }
   }, [reports, searchParams]);
@@ -131,9 +146,8 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
           pageTitle="Report"
           onMenuClick={() => setMobileMenuOpen(true)}
           showMenuButton={true}
-          userName={role === 'supervisor' ? 'John Matthew' : 'Peter Omorogbolahan'}
-          userRole={role === 'supervisor' ? 'Supervisor' : 'System Administrator'}
-          notificationCount={4}
+          userName={displayName}
+          userRole={displayRole}
         />
 
         {/* Main Content Area */}
@@ -323,6 +337,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
         onAddAction={handleAddAction}
         onAddComment={handleAddComment}
         report={selectedReport}
+        highlightCommentId={searchParams.get('commentId') || undefined}
       />
     </div>
   );

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
+import { getUserData } from '@/utils/authStorage';
 
 interface SettingsPageProps {
   role?: 'admin' | 'supervisor';
@@ -9,6 +10,7 @@ interface SettingsPageProps {
 
 export const SettingsPage: React.FC<SettingsPageProps> = ({ role = 'admin' }) => {
   const navigate = useNavigate();
+  const userData = getUserData();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -62,6 +64,15 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ role = 'admin' }) =>
     }
   };
 
+  const displayName = userData?.name || 'User';
+  const displayRole = userData?.role
+    ? userData.role === 'supervisor'
+      ? 'Supervisor'
+      : 'System Administrator'
+    : role === 'supervisor'
+      ? 'Supervisor'
+      : 'System Administrator';
+
   // Toggle Switch Component
   const ToggleSwitch = ({ 
     enabled, 
@@ -113,9 +124,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ role = 'admin' }) =>
           pageTitle="Settings"
           onMenuClick={handleMobileSidebarToggle}
           showMenuButton={isMobile}
-          userName={role === 'supervisor' ? 'John Matthew' : 'Peter Omorogbolahan'}
-          userRole={role === 'supervisor' ? 'Supervisor' : 'Admin'}
-          notificationCount={4}
+          userName={displayName}
+          userRole={displayRole}
         />
 
         {/* Main Content Area */}

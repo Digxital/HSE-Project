@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AddActionModal } from './AddActionModal';
  
 interface Action {
@@ -45,11 +45,21 @@ interface ReportDetailsModalProps {
   }) => void;
   onAddComment: (reportId: string, text: string) => void;
   report: Report | null;
+  highlightCommentId?: string;
 }
 
-export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, onClose, onCloseReport, onAddAction, onAddComment, report }) => {
+export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, onClose, onCloseReport, onAddAction, onAddComment, report, highlightCommentId }) => {
   const [isAddActionModalOpen, setIsAddActionModalOpen] = useState(false);
   const [newComment, setNewComment] = useState('');
+
+  useEffect(() => {
+    if (!isOpen || !highlightCommentId) return;
+    const elementId = `comment-${highlightCommentId}`;
+    const target = document.getElementById(elementId);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [highlightCommentId, isOpen, report?.comments]);
 
   const handleAddAction = (actionData: {
     actionTitle: string;
@@ -302,7 +312,15 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
             {report.comments && report.comments.length > 0 ? (
               <div className="space-y-3">
                 {report.comments.map((comment) => (
-                  <div key={comment.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 md:p-4">
+                  <div
+                    key={comment.id}
+                    id={`comment-${comment.id}`}
+                    className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 md:p-4 ${
+                      highlightCommentId === comment.id
+                        ? 'ring-2 ring-[#C24438] ring-offset-2 ring-offset-[#FFFAF5] dark:ring-offset-[#121212]'
+                        : ''
+                    }`}
+                  >
                     <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mb-2">
                       <div className="w-7 h-7 bg-[#f87171] dark:bg-[#9f1212] rounded-full flex items-center justify-center flex-shrink-0">
                         <span className="text-white text-xs font-medium">

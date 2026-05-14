@@ -8,7 +8,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://hse-backend-n6bu.onrender.com',
+        target: 'https://hse-backend-n8d4.onrender.com',
         changeOrigin: true,
         secure: true,
       }

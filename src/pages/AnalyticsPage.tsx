@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { useReports } from '@/services/ReportsContext';
+import { getUserData } from '@/utils/authStorage';
 import {
   AreaChart,
   Area,
@@ -33,6 +34,7 @@ const categorizeReport = (category: string): string => {
 };
 
 export const AnalyticsPage: React.FC = () => {
+  const userData = getUserData();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [trendsFilter, setTrendsFilter] = useState<TimeFilter>('12 months');
@@ -444,6 +446,13 @@ export const AnalyticsPage: React.FC = () => {
 
   const timeFilters: TimeFilter[] = ['12 months', '6 months', '30 days', '7 days'];
 
+  const displayName = userData?.name || 'User';
+  const displayRole = userData?.role
+    ? userData.role === 'supervisor'
+      ? 'Supervisor'
+      : 'System Administrator'
+    : 'System Administrator';
+
   return (
     <div className="min-h-screen bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors">
       {/* Sidebar */}
@@ -461,9 +470,8 @@ export const AnalyticsPage: React.FC = () => {
           pageTitle="Analytics"
           onMenuClick={() => setMobileMenuOpen(true)}
           showMenuButton={true}
-          userName="Peter Omogbolahan"
-          userRole="System Administrator"
-          notificationCount={4}
+          userName={displayName}
+          userRole={displayRole}
         />
 
         {/* Main Content Area */}

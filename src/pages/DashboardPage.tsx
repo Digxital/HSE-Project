@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { StatsOverview } from '@/components/dashboard/StatsOverview';
 import { AIInsights } from '@/components/dashboard/AIInsights';
 import { RecentReportsTable } from '@/components/dashboard/RecentReportsTable';
 import { getUserData } from '@/utils/authStorage';
+import { useReports } from '@/services/ReportsContext';
 
 interface DashboardPageProps {
   role?: 'admin' | 'supervisor';
@@ -15,8 +16,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ role = 'admin' }) 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const userData = getUserData();
+  const { reports, loading } = useReports();
 
-  const hasData = true; // Change to false to see empty state
+  const hasData = useMemo(() => !loading && reports.length > 0, [loading, reports.length]);
+
+  const displayName = userData?.name || 'User';
+  const displayRole = userData?.role
+    ? userData.role === 'supervisor'
+      ? 'Supervisor'
+      : 'System Administrator'
+    : role === 'supervisor'
+      ? 'Supervisor'
+      : 'System Administrator';
 
   // Check if mobile on mount and window resize
   useEffect(() => {
@@ -66,10 +77,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ role = 'admin' }) 
         {/* Top Bar */}
         <TopBar
           pageTitle="Dashboard"
-          userName={userData?.name || (role === 'supervisor' ? 'supervisor' : 'Peter Omorogbolahan')}
-          userRole={userData?.role === 'supervisor' ? 'Supervisor' : 'System Administrator'}
+          userName={displayName}
+          userRole={displayRole}
           syncStatus="synced"
-          notificationCount={4}
           onMenuClick={handleMobileSidebarToggle}
           showMenuButton={isMobile}
         />

@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { ActionDetailsModal } from '@/components/actions/ActionDetailsModal';
 import { useReports, type Action as ReportAction } from '@/services/ReportsContext';
+import { getUserData } from '@/utils/authStorage';
 
 type ActionFilterType = 'All Actions' | 'Open' | 'In Progress' | 'Completed' | 'Overdue';
 type ActionStatus = 'Open' | 'In Progress' | 'Completed';
@@ -19,6 +20,7 @@ interface ActionsPageProps {
 }
 
 export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
+  const userData = getUserData();
   const { reports, loading, error, refreshReports } = useReports();
   const [searchParams] = useSearchParams();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -26,6 +28,15 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
   const [selectedFilter, setSelectedFilter] = useState<ActionFilterType>('All Actions');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAction, setSelectedAction] = useState<any>(null);
+
+  const displayName = userData?.name || 'User';
+  const displayRole = userData?.role
+    ? userData.role === 'supervisor'
+      ? 'Supervisor'
+      : 'System Administrator'
+    : role === 'supervisor'
+      ? 'Supervisor'
+      : 'System Administrator';
 
   // Re-fetch reports every time the page is visited
   useEffect(() => {
@@ -187,9 +198,8 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
         {/* Top Bar */}
         <TopBar 
           pageTitle="Actions"
-          userName={role === 'supervisor' ? 'John Matthew' : 'Peter Omorogbolahan'}
-          userRole={role === 'supervisor' ? 'Supervisor' : 'Admin'}
-          notificationCount={4}
+          userName={displayName}
+          userRole={displayRole}
           onMenuClick={() => setMobileMenuOpen(true)}
           showMenuButton={true}
         />

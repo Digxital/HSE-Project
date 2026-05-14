@@ -4,12 +4,14 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import type { Certification } from '@/services/certificationService';
 import { certificationService } from '@/services/certificationService';
+import { getUserData } from '@/utils/authStorage';
 
 interface CertificationPageProps {
   role?: 'admin' | 'supervisor';
 }
 
 export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'admin' }) => {
+  const userData = getUserData();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -29,6 +31,15 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
     if (filterUserId) return `User ID: ${filterUserId}`;
     return '';
   }, [filterEmail, filterUserId]);
+
+  const displayName = userData?.name || 'User';
+  const displayRole = userData?.role
+    ? userData.role === 'supervisor'
+      ? 'Supervisor'
+      : 'System Administrator'
+    : role === 'supervisor'
+      ? 'Supervisor'
+      : 'System Administrator';
 
   // Fetch certifications on mount
   useEffect(() => {
@@ -145,9 +156,8 @@ export const CertificationPage: React.FC<CertificationPageProps> = ({ role = 'ad
           pageTitle="Certification"
           onMenuClick={() => setMobileMenuOpen(true)}
           showMenuButton={true}
-          userName={role === 'supervisor' ? 'John Matthew' : 'Peter Omorogbolahan'}
-          userRole={role === 'supervisor' ? 'Supervisor' : 'System Administrator'}
-          notificationCount={4}
+          userName={displayName}
+          userRole={displayRole}
         />
 
         {/* Main Content Area */}

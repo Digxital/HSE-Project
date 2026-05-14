@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { reportService } from '@/services/reportService';
+import { getUserData } from '@/utils/authStorage';
 import { authService } from '@/services/authService';
+import { useNotifications } from '@/contexts/NotificationContext';
 
 // Types
 export type RiskLevel = 'High' | 'Medium' | 'Low';
@@ -70,9 +72,12 @@ export const useReports = () => {
 const initialReports: Report[] = [];
 
 export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { addNotification } = useNotifications();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const previousReportIdsRef = useRef<Set<string>>(new Set());
+  const hasLoadedReportsRef = useRef(false);
 
   // Helper to generate suggested actions from report attributes
   const generateSuggestedActions = (report: Report): Action[] => {
@@ -223,7 +228,27 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setLoading(true);
       setError(null);
       const data = await reportService.getReports();
-      setReports(mergeWithActionsAndComments(data));
+      const mergedReports = mergeWithActionsAndComments(data);
+      setReports(mergedReports);
+
+      if (hasLoadedReportsRef.current) {
+        const previousIds = previousReportIdsRef.current;
+        const newReports = mergedReports.filter((report) => !previousIds.has(report.id));
+        newReports.forEach((report) => {
+          addNotification({
+            type: 'report_submitted',
+            title: 'New report submitted',
+            description: `${report.category} reported at ${report.location}`,
+            timestamp: report.dateReported.replace('\n', ' '),
+            data: {
+              reportId: report.id,
+            },
+          });
+        });
+      }
+
+      previousReportIdsRef.current = new Set(mergedReports.map((report) => report.id));
+      hasLoadedReportsRef.current = true;
     } catch (err) {
       console.error('Failed to fetch reports from API, using fallback data:', err);
       setError('Failed to load reports from server');
@@ -330,11 +355,16 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const report = reports.find(r => r.id === reportId);
     const backendId = report?._id;
 
+    const userData = getUserData();
+    const authorName = userData?.name || (role === 'supervisor' ? 'Supervisor' : 'Admin');
+    const authorRoleLabel = role === 'supervisor' ? 'Supervisor' : 'Admin';
+
     // Optimistic update
+    const commentId = `CMT-${Date.now()}`;
     const newComment: Comment = {
-      id: `CMT-${Date.now()}`,
-      author: role === 'supervisor' ? 'John Matthew' : 'Peter Omorogbolahan',
-      role: role === 'supervisor' ? 'Supervisor' : 'Admin',
+      id: commentId,
+      author: authorName,
+      role: authorRoleLabel,
       text,
       timestamp: new Date().toLocaleDateString('en-GB', {
         day: '2-digit',
@@ -358,6 +388,19 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return r;
       })
     );
+
+    if (report) {
+      addNotification({
+        type: 'report_commented',
+        title: `New comment on ${report.category}`,
+        description: text,
+        timestamp: newComment.timestamp,
+        data: {
+          reportId: report.id,
+          commentId: commentId,
+        },
+      });
+    }
 
     if (backendId) {
       try {

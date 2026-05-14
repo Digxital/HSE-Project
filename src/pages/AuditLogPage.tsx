@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import api from '@/lib/axios';
-import { getAuthToken } from '@/utils/authStorage';
+import { getAuthToken, getUserData } from '@/utils/authStorage';
 
 interface AuditLog {
   id: string;
@@ -26,6 +26,7 @@ interface AuditLogPageProps {
 
 export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) => {
   const navigate = useNavigate();
+  const userData = getUserData();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,6 +38,14 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 10;
+  const displayName = userData?.name || 'User';
+  const displayRole = userData?.role
+    ? userData.role === 'supervisor'
+      ? 'Supervisor'
+      : 'System Administrator'
+    : role === 'supervisor'
+      ? 'Supervisor'
+      : 'System Administrator';
   const normalizeText = (value: unknown, fallback = '') => {
     if (typeof value === 'string') return value;
     if (value === null || value === undefined) return fallback;
@@ -285,9 +294,8 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
           pageTitle="Audit Log"
           onMenuClick={() => setMobileMenuOpen(true)}
           showMenuButton={isMobile}
-          userName={role === 'supervisor' ? 'John Matthew' : 'Peter Omorogbolahan'}
-          userRole={role === 'supervisor' ? 'Supervisor' : 'System Administrator'}
-          notificationCount={4}
+          userName={displayName}
+          userRole={displayRole}
         />
 
         {/* Main Content Area */}

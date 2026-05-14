@@ -3,26 +3,32 @@ import { useNavigate } from 'react-router-dom';
 
 interface Notification {
   id: string;
-  type: 'REPORT' | 'ACTION' | 'SYSTEM';
+  type: 'REPORT' | 'ACTION' | 'USER' | 'SYSTEM';
   title: string;
   description: string;
   timestamp: string;
   isRead: boolean;
   targetId?: string;
+  commentId?: string;
+  userEmail?: string;
 }
 
 interface NotificationPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   notifications: Notification[];
+  onMarkAsRead?: (id: string) => void;
 }
 
 export const NotificationPreviewModal: React.FC<NotificationPreviewModalProps> = ({
   isOpen,
   onClose,
   notifications,
+  onMarkAsRead,
 }) => {
   const navigate = useNavigate();
+  const isSupervisor = window.location.pathname.startsWith('/supervisor');
+  const routePrefix = isSupervisor ? '/supervisor' : '';
 
   if (!isOpen) return null;
 
@@ -33,17 +39,31 @@ export const NotificationPreviewModal: React.FC<NotificationPreviewModalProps> =
   const getNotificationLink = (notification: Notification) => {
     switch (notification.type) {
       case 'REPORT':
-        return notification.targetId ? `/reports?reportId=${notification.targetId}` : '/reports';
+        if (notification.targetId && notification.commentId) {
+          return `${routePrefix}/reports?reportId=${notification.targetId}&commentId=${notification.commentId}`;
+        }
+        return notification.targetId ? `${routePrefix}/reports?reportId=${notification.targetId}` : `${routePrefix}/reports`;
       case 'ACTION':
-        return notification.targetId ? `/actions?actionId=${notification.targetId}` : '/actions';
+        return notification.targetId ? `${routePrefix}/actions?actionId=${notification.targetId}` : `${routePrefix}/actions`;
+      case 'USER':
+        if (notification.targetId) {
+          return `/users?userId=${notification.targetId}`;
+        }
+        if (notification.userEmail) {
+          return `/users?email=${encodeURIComponent(notification.userEmail)}`;
+        }
+        return '/users';
       case 'SYSTEM':
-        return '/settings';
+        return `${routePrefix}/settings`;
       default:
         return '';
     }
   };
 
   const handleNavigate = (notification: Notification) => {
+    if (!notification.isRead && onMarkAsRead) {
+      onMarkAsRead(notification.id);
+    }
     navigate(getNotificationLink(notification));
     onClose();
   };
