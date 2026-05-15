@@ -2,8 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:invera_hse/api/auth_service.dart';
 import 'package:invera_hse/component/get_text.dart';
 import 'package:invera_hse/component/screen_properties.dart';
+import 'package:invera_hse/error_model/error_model/auth_error.dart';
 import 'package:invera_hse/home_screen.dart';
 import 'package:invera_hse/profile/profile_screen.dart';
 import 'package:invera_hse/report_screen.dart';
@@ -12,6 +14,9 @@ import 'package:invera_hse/utils/app_colours.dart';
 import 'package:invera_hse/utils/app_file_paths.dart';
 import 'package:invera_hse/utils/common_image_view.dart';
 import 'package:invera_hse/utils/route.dart';
+import 'package:invera_hse/view_model/profile_view_model.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -28,6 +33,48 @@ class _BottomNavState extends State<BottomNav> {
     setState(() {
       selectedIndex = index;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initialize();
+  }
+
+  void initialize() {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      final bool isLoggedIn = await AuthService.getLoggedInUser();
+      // print("isLoggedIn: $isLoggedIn");
+      // if (isLoggedIn) {
+      getUserProfile(context);
+      // }
+    });
+  }
+
+  void getUserProfile(BuildContext context) async {
+    final profileViewModel =
+        Provider.of<ProfileViewModel>(context, listen: false);
+    await profileViewModel.getUser();
+
+    Object? errorMessage = profileViewModel.authError?.responseMessage;
+    print("profile-error-message: $errorMessage");
+    if (errorMessage == "Kindly, check your internet connection." ||
+        errorMessage == "401" ||
+        errorMessage == "400" ||
+        errorMessage == "404" ||
+        errorMessage == "500") {
+      final prefs = await SharedPreferences.getInstance();
+      prefs.remove("isLoggedIn");
+      print("logging out");
+      context.go(AppRoutes.login);
+    } else {}
+    clearAuthErrorMessage(profileViewModel);
+  }
+
+  clearAuthErrorMessage(authViewModel) {
+    AuthError authError = AuthError(responseMessage: null);
+    authViewModel.setAuthError(authError);
+    authViewModel.authError;
   }
 
   final List _pages = [

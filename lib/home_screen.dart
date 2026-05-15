@@ -7,6 +7,11 @@ import 'package:invera_hse/utils/app_colours.dart';
 import 'package:invera_hse/utils/app_file_paths.dart';
 import 'package:invera_hse/utils/common_image_view.dart';
 import 'package:invera_hse/utils/route.dart';
+import 'package:invera_hse/view_model/profile_view_model.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:provider/provider.dart';
+
+import 'component/loader.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -44,67 +49,73 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
   @override
   Widget build(BuildContext context) {
+    final userModel = Provider.of<ProfileViewModel>(context);
     return SafeArea(
       child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
-        body: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              addVerticalSpace(20),
-              const Header(),
-              addVerticalSpace(50),
-              const ReportCards(),
-              addVerticalSpace(50),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: getText(
-                      context: context,
-                      title: "Recent Reports",
-                      fontSize: 18,
-                      weight: FontWeight.w500,
-                      color: Theme.of(context).textTheme.bodyLarge!.color,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: getText(
+        body: ModalProgressHUD(
+          inAsyncCall: userModel.loading,
+          progressIndicator: const CustomLoader(),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                addVerticalSpace(20),
+                Header(
+                    firstName: userModel.userModel?.data.user.firstName ?? ""),
+                addVerticalSpace(50),
+                const ReportCards(),
+                addVerticalSpace(50),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: getText(
                         context: context,
-                        title: "View all",
+                        title: "Recent Reports",
                         fontSize: 18,
+                        weight: FontWeight.w500,
                         color: Theme.of(context).textTheme.bodyLarge!.color,
-                        weight: FontWeight.w500),
-                  ),
-                ],
-              ),
-              addVerticalSpace(20),
-              ...List.generate(
-                reportDataList.length,
-                (index) {
-                  final item = reportDataList[index];
-                  return Column(
-                    children: [
-                      ReportData(
-                        title: item['title'] as String,
-                        date: item['date'] as String,
-                        icon: item['icon'] as String,
-                        iconColor: item['iconColor'] as Color,
                       ),
-                      if (index < reportDataList.length - 1)
-                        const Divider(
-                          height: 50,
-                          thickness: 0.2,
-                          color: AppColors.lightGrey4,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: getText(
+                          context: context,
+                          title: "View all",
+                          fontSize: 18,
+                          color: Theme.of(context).textTheme.bodyLarge!.color,
+                          weight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+                addVerticalSpace(20),
+                ...List.generate(
+                  reportDataList.length,
+                  (index) {
+                    final item = reportDataList[index];
+                    return Column(
+                      children: [
+                        ReportData(
+                          title: item['title'] as String,
+                          date: item['date'] as String,
+                          icon: item['icon'] as String,
+                          iconColor: item['iconColor'] as Color,
                         ),
-                    ],
-                  );
-                },
-              )
-            ],
+                        if (index < reportDataList.length - 1)
+                          const Divider(
+                            height: 50,
+                            thickness: 0.2,
+                            color: AppColors.lightGrey4,
+                          ),
+                      ],
+                    );
+                  },
+                )
+              ],
+            ),
           ),
         ),
       ),
@@ -390,8 +401,10 @@ class ReportCard extends StatelessWidget {
 }
 
 class Header extends StatelessWidget {
+  final String firstName;
   const Header({
     super.key,
+    required this.firstName,
   });
 
   @override
@@ -415,7 +428,7 @@ class Header extends StatelessWidget {
                 children: [
                   getText(
                       context: context,
-                      title: "Hello Peter 👋 ",
+                      title: "Hello $firstName 👋 ",
                       fontSize: 16,
                       // color: AppColors.darkBrown,
                       color: Theme.of(context).colorScheme.primary,

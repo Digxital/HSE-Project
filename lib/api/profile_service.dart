@@ -1,35 +1,21 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:invera_hse/api/api_status.dart';
-import 'package:invera_hse/api/auth_service.dart';
 import 'package:invera_hse/model/user_model.dart';
 import 'package:invera_hse/utils/network_handler.dart';
 import 'package:invera_hse/utils/url_paths.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileService {
-  static getUserProfile(userId) async {
+  static getUserProfile() async {
     NetworkHandler networkHandler = NetworkHandler();
     Map<String, dynamic>? decodedData;
-    int? errorCode;
     try {
       var response = await networkHandler.getRequest(
-          urlPath: "${UserUrls.userProfile}/$userId",
-          isProfile: true,
-          isToken: true,
-          isProperty: false,
-          isSlot: false,
-          isReservation: false,
-          isHistory: false,
-          isPortfolio: false,
-          isShortlet: false,
-          isTransactionHistory: false,
-          isNotification: false,
-          isBlog: false,
-          isOpen: false,
-          isWallet: false);
+        urlPath: UserUrls.userProfile,
+        isOpen: false,
+        isToken: true,
+      );
       decodedData = jsonDecode(response['data'].body);
       print("user-profile-status-code: ${response['code']}");
       print("user-profile-response-data: ${decodedData?['data']}");

@@ -5,15 +5,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:invera_hse/component/custom_flush_bar.dart';
 import 'package:invera_hse/component/get_container.dart';
 import 'package:invera_hse/component/get_text.dart';
 import 'package:invera_hse/component/screen_properties.dart';
+import 'package:invera_hse/error_model/error_model/data_error.dart';
 import 'package:invera_hse/utils/app_colours.dart';
 import 'package:invera_hse/utils/app_file_paths.dart';
 import 'package:invera_hse/utils/common_image_view.dart';
 import 'package:invera_hse/utils/route.dart';
+import 'package:invera_hse/view_model/report_view_model.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 class NewReportScreen extends StatefulWidget {
@@ -207,7 +211,8 @@ class _NewReportScreenState extends State<NewReportScreen> {
             print('Sound level: $level');
           },
           listenFor: const Duration(seconds: 30), // Shorter duration
-          pauseFor: const Duration(seconds: 5), // Longer pause to allow speaking
+          pauseFor:
+              const Duration(seconds: 5), // Longer pause to allow speaking
           partialResults: true,
           cancelOnError: false,
           localeId: 'en_US',
@@ -271,7 +276,8 @@ class _NewReportScreenState extends State<NewReportScreen> {
         if (_isMounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('No speech detected. Using sample text. Please try again for accurate transcription.'),
+              content: Text(
+                  'No speech detected. Using sample text. Please try again for accurate transcription.'),
               duration: Duration(seconds: 4),
             ),
           );
@@ -334,7 +340,7 @@ class _NewReportScreenState extends State<NewReportScreen> {
     // If image is selected and transcription is done, submit
     if (selectedImage != null && showSecondPhase && !isLoading) {
       // Navigate to success screen
-      context.push(AppRoutes.successScreen);
+      submitReport(context);
       return;
     }
 
@@ -412,6 +418,48 @@ class _NewReportScreenState extends State<NewReportScreen> {
         ),
       ),
     );
+  }
+
+  void submitReport(BuildContext context, {email, password}) async {
+    var data = {
+      "recordType": "incident",
+      "title": "medium Injury",
+      "description": _transcription,
+      "riskLevel": "low",
+      "location": {
+        "clientId": "6985cd674c8230bd3c317181",
+        "siteId": "6985cdbb4c8230bd3c317185",
+        "specificArea": "Entire Facility"
+      },
+      "eventDate": DateTime.now().toString().split(' ')[0],
+      "eventTime": DateTime.now().toString().split(' ')[1].substring(0, 5),
+      "peopleAffected": 1,
+      "injuryDetails": _transcription,
+      "equipmentInvolved": "None"
+    };
+    print("data: $data");
+    final CustomFlushBar customFlushBar = CustomFlushBar();
+    final reportViewModel =
+        Provider.of<ReportViewModel>(context, listen: false);
+    clearDataErrorMessage(reportViewModel);
+    await reportViewModel.createReportData(data);
+
+    Object? errorMessage = reportViewModel.dataError?.message;
+    print("report-error-message: $errorMessage");
+    if (errorMessage != null) {
+      customFlushBar.showErrorFlushBar(
+          title: 'Error occurred', body: errorMessage, context: context);
+    } else {
+      context.push(AppRoutes.successScreen);
+    }
+
+    clearDataErrorMessage(reportViewModel);
+  }
+
+  clearDataErrorMessage(dataViewModel) {
+    DataError dataError = DataError(message: null);
+    dataViewModel.setDataError(dataError);
+    dataViewModel.dataError;
   }
 }
 
@@ -665,13 +713,13 @@ class _ContentBodyState extends State<ContentBody> {
         children: [
           /// Hazard tag
           if (_showReportCategory)
-            AnimatedOpacityWidget(
-              child: ReportCategoryTag(reportType: widget.reportType),
-            ),
+            // AnimatedOpacityWidget(
+            //   child: ReportCategoryTag(reportType: widget.reportType),
+            // ),
 
-          /// Bot Message 1
-          if (_showFirstPrompt)
-            const AnimatedOpacityWidget(child: FirstPrompt()),
+            /// Bot Message 1
+            if (_showFirstPrompt)
+              const AnimatedOpacityWidget(child: FirstPrompt()),
 
           /// Transcription tag or Error tag (appears in second phase)
           if (_showTranscription)

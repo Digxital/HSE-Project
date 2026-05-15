@@ -23,4 +23,39 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString("token");
   }
+
+  static storeUserId(userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString("userId", userId);
+  }
+
+  static getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString("userId");
+  }
+
+  static storeUserEmail(email) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString("email", email);
+  }
+
+  static getUserEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString("email");
+  }
+
+  static storeLoggedInUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setBool("isLoggedIn", true);
+  }
+
+  static removeLoggedInUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setBool("isLoggedIn", false);
+  }
+
+  static Future<bool> getLoggedInUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool("isLoggedIn") ?? false;
+  }
 }

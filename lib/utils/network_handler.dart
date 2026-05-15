@@ -41,22 +41,16 @@ class NetworkHandler {
   Future getRequest(
       {String? urlPath,
       bool? isProfile,
-      bool? isPortfolio,
-      bool? isProperty,
-      bool? isSlot,
-      bool? isShortlet,
-      bool? isReservation,
-      bool? isHistory,
-      bool? isWallet,
-      bool? isTransactionHistory,
-      bool? isNotification,
-      bool? isBlog,
       bool? isOpen,
       required bool isToken}) async {
     dynamic response;
     dynamic url;
 
-    url = Uri.parse(formater(urlPath!));
+    if (isOpen!) {
+      url = Uri.parse(openFormater(urlPath!));
+    } else {
+      url = Uri.parse(formater(urlPath!));
+    }
 
     log.i("URL: $url");
 
@@ -67,8 +61,6 @@ class NetworkHandler {
         url,
         headers: {
           "content-type": "application/json",
-          "X-Version": "2.2",
-          "X-Tenant": "01jj0kxqv8rzjy3xnwc5p7htmb",
           "Authorization": "Bearer $token"
         },
       );
@@ -124,8 +116,6 @@ class NetworkHandler {
         request.body = jsonEncode(body);
         request.headers.addAll({
           "content-type": "application/json",
-          "X-Version": "2.2",
-          "X-Tenant": "01jj0kxqv8rzjy3xnwc5p7htmb",
           "Authorization": "Bearer $token",
         });
 
@@ -138,8 +128,6 @@ class NetworkHandler {
       request.body = jsonEncode(body);
       request.headers.addAll({
         "content-type": "application/json",
-        "X-Version": "2.2",
-        "X-Tenant": "01jj0kxqv8rzjy3xnwc5p7htmb",
       });
 
       response = await request.send();
@@ -168,16 +156,16 @@ class NetworkHandler {
       required Map<String, dynamic> body,
       required bool isToken,
       bool? isProfile,
-      bool? isWallet,
-      bool? isProperty,
-      bool? isSlot,
-      bool? isReservation,
-      bool? isNotification,
-      bool? isShortlet,
-      bool? isReview}) async {
+      bool? isOpen,
+      bool? isAuth}) async {
     dynamic response;
     dynamic url;
-    url = Uri.parse(formater(urlPath!));
+
+    if (isOpen!) {
+      url = Uri.parse(openFormater(urlPath!));
+    } else {
+      url = Uri.parse(formater(urlPath!));
+    }
 
     log.i("URL: $url");
 
@@ -187,8 +175,6 @@ class NetworkHandler {
           headers: {
             "content-type": "application/json",
             "accept": "application/json",
-            "X-Version": "2.2",
-            "X-Tenant": "01jj0kxqv8rzjy3xnwc5p7htmb",
             "Authorization": "Bearer $token"
           },
           body: json.encode(body));
@@ -198,8 +184,6 @@ class NetworkHandler {
       response = await http.post(url,
           headers: {
             "content-type": "application/json",
-            "X-Version": "2.2",
-            "X-Tenant": "01jj0kxqv8rzjy3xnwc5p7htmb",
             "accept": "application/json"
           },
           // headers: {"accept": "application/json"},
@@ -263,8 +247,6 @@ class NetworkHandler {
     response = await http.put(url,
         headers: {
           "Content-type": "application/json",
-          "X-Version": "2.2",
-          "X-Tenant": "01jj0kxqv8rzjy3xnwc5p7htmb",
           "Authorization": "Bearer $token"
         },
         body: jsonEncode(body));
@@ -291,8 +273,6 @@ class NetworkHandler {
     var response = await http.put(url,
         headers: {
           "Content-type": "application/json",
-          "X-Version": "2.2",
-          "X-Tenant": "01jj0kxqv8rzjy3xnwc5p7htmb",
           "Authorization": "Bearer $token",
         },
         body: jsonEncode(data));

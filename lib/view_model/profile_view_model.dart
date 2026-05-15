@@ -33,9 +33,9 @@ class ProfileViewModel extends ChangeNotifier {
 
   setDataError(DataError dataError) => _dataError = dataError;
 
-  getUser({data, String? userId}) async {
+  getUser() async {
     setLoading(true);
-    var response = await ProfileService.getUserProfile(userId);
+    var response = await ProfileService.getUserProfile();
     print("user-resp-data: $response");
     if (response is Success) {
       setUserModel(response.data);
