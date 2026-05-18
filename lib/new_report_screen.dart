@@ -195,46 +195,41 @@ class _NewReportScreenState extends State<NewReportScreen> {
           });
         }
 
-        // Start listening with Android-optimized settings
-        _speechToText.listen(
+        print('Attempting to start speech recognition...');
+
+        // Start listening with proper error handling
+        await _speechToText.listen(
           onResult: (result) {
+            print("✓ ON_RESULT CALLED: ${result.recognizedWords}");
+            print("  - Final: ${result.finalResult}");
+            print("  - Confidence: ${result.confidence}");
             if (_isMounted) {
               setState(() {
                 _transcription = result.recognizedWords;
-                print("Transcription result: $_transcription");
-                print("Is final: ${result.finalResult}");
-                print("Confidence: ${result.confidence}");
               });
             }
           },
           onSoundLevelChange: (level) {
             print('Sound level: $level');
           },
-          listenFor: const Duration(seconds: 30), // Shorter duration
-          pauseFor:
-              const Duration(seconds: 5), // Longer pause to allow speaking
+          listenFor: const Duration(seconds: 60), // Allow longer recording
+          pauseFor: const Duration(seconds: 2), // Pause after 2 secs of silence
           partialResults: true,
-          cancelOnError: false,
+          cancelOnError: true, // Stop on error to see what went wrong
           localeId: 'en_US',
         );
 
         print('Speech recognition started successfully');
       } else {
-        print('Speech recognition not available or already listening');
+        print(
+            'Speech recognition not available or already listening. IsAvailable: ${_speechToText.isAvailable}, IsListening: $_isListening');
       }
     } catch (e) {
-      print('Error starting listening: $e');
+      print('Exception in _startListening: $e');
       if (_isMounted) {
         setState(() {
           _isListening = false;
         });
-        // Don't immediately set sample text - let the user try again
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Speech recognition failed to start: $e'),
-            duration: const Duration(seconds: 3),
-          ),
-        );
       }
     }
   }
@@ -247,7 +242,14 @@ class _NewReportScreenState extends State<NewReportScreen> {
     }
 
     try {
+      print("Stopping recorder...");
       await _recorder?.stopRecorder();
+
+      // Give speech recognition time to finalize and send results
+      print("Waiting for speech recognition to finalize...");
+      await Future.delayed(const Duration(seconds: 2));
+
+      print("Stopping speech recognition...");
       await _speechToText.stop();
 
       if (_isMounted) {
@@ -258,9 +260,6 @@ class _NewReportScreenState extends State<NewReportScreen> {
           isLoading = false;
         });
       }
-
-      // Give speech recognition a moment to finalize results
-      await Future.delayed(const Duration(milliseconds: 500));
 
       print('Final transcription: "$_transcription"');
 
@@ -423,7 +422,7 @@ class _NewReportScreenState extends State<NewReportScreen> {
   void submitReport(BuildContext context, {email, password}) async {
     var data = {
       "recordType": "incident",
-      "title": "medium Injury",
+      "title": "Medium Injury",
       "description": _transcription,
       "riskLevel": "low",
       "location": {
