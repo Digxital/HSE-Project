@@ -61,6 +61,7 @@ class NetworkHandler {
         url,
         headers: {
           "content-type": "application/json",
+          "X-PLATFORM": "mobile",
           "Authorization": "Bearer $token"
         },
       );
@@ -116,6 +117,7 @@ class NetworkHandler {
         request.body = jsonEncode(body);
         request.headers.addAll({
           "content-type": "application/json",
+          "X-PLATFORM": "mobile",
           "Authorization": "Bearer $token",
         });
 
@@ -128,6 +130,7 @@ class NetworkHandler {
       request.body = jsonEncode(body);
       request.headers.addAll({
         "content-type": "application/json",
+        "X-PLATFORM": "mobile",
       });
 
       response = await request.send();
@@ -175,6 +178,7 @@ class NetworkHandler {
           headers: {
             "content-type": "application/json",
             "accept": "application/json",
+            "X-PLATFORM": "mobile",
             "Authorization": "Bearer $token"
           },
           body: json.encode(body));
@@ -184,7 +188,8 @@ class NetworkHandler {
       response = await http.post(url,
           headers: {
             "content-type": "application/json",
-            "accept": "application/json"
+            "accept": "application/json",
+            "X-PLATFORM": "mobile",
           },
           // headers: {"accept": "application/json"},
           body: json.encode(body));
@@ -247,6 +252,7 @@ class NetworkHandler {
     response = await http.put(url,
         headers: {
           "Content-type": "application/json",
+          "X-PLATFORM": "mobile",
           "Authorization": "Bearer $token"
         },
         body: jsonEncode(body));
@@ -273,6 +279,7 @@ class NetworkHandler {
     var response = await http.put(url,
         headers: {
           "Content-type": "application/json",
+          "X-PLATFORM": "mobile",
           "Authorization": "Bearer $token",
         },
         body: jsonEncode(data));

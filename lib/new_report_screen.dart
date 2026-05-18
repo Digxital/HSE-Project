@@ -713,13 +713,13 @@ class _ContentBodyState extends State<ContentBody> {
         children: [
           /// Hazard tag
           if (_showReportCategory)
-            // AnimatedOpacityWidget(
-            //   child: ReportCategoryTag(reportType: widget.reportType),
-            // ),
+            AnimatedOpacityWidget(
+              child: ReportCategoryTag(reportType: widget.reportType),
+            ),
 
-            /// Bot Message 1
-            if (_showFirstPrompt)
-              const AnimatedOpacityWidget(child: FirstPrompt()),
+          /// Bot Message 1
+          if (_showFirstPrompt)
+            const AnimatedOpacityWidget(child: FirstPrompt()),
 
           /// Transcription tag or Error tag (appears in second phase)
           if (_showTranscription)
