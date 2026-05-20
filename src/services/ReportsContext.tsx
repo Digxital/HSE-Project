@@ -21,7 +21,7 @@ export interface Action {
 export interface Comment {
   id: string;
   author: string;
-  role: 'Admin' | 'Supervisor';
+  role: 'Admin' | 'Supervisor' | 'Field User';
   text: string;
   timestamp: string;
 }
@@ -49,6 +49,7 @@ interface ReportsContextType {
   refreshReports: () => Promise<void>;
   closeReport: (reportId: string) => void;
   addComment: (reportId: string, text: string, role: 'admin' | 'supervisor') => void;
+  deleteComment: (reportId: string, commentId: string) => void;
   addAction: (reportId: string, actionData: {
     actionTitle: string;
     assignedTo: string;
@@ -158,37 +159,11 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  // Helper to load saved comments from localStorage
-  const loadSavedComments = (): Record<string, Comment[]> => {
-    try {
-      const saved = localStorage.getItem('aegix_report_comments');
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  };
-
-  // Helper to save comments to localStorage
-  const saveCommentsToStorage = (reportId: string, comments: Comment[]) => {
-    try {
-      const saved = loadSavedComments();
-      saved[reportId] = comments;
-      localStorage.setItem('aegix_report_comments', JSON.stringify(saved));
-    } catch (err) {
-      console.error('Failed to save comments to localStorage:', err);
-    }
-  };
-
-  // Merge saved and suggested actions into fetched reports
+  // Merge suggested actions into fetched reports
   const mergeWithActionsAndComments = (fetchedReports: Report[]): Report[] => {
     const savedActions = loadSavedActions();
-    const savedComments = loadSavedComments();
-    const closedReportIds = loadClosedReports();
     
     return fetchedReports.map(report => {
-      // Check if report is closed in localStorage
-      const isClosed = closedReportIds.includes(report.id);
-      
       // Merge actions: suggested + API + user-created
       const suggestedActions = generateSuggestedActions(report);
       const userCreatedActions = (savedActions[report.id] || []).filter(a => a.type === 'User-Created');
@@ -196,29 +171,10 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Combine all actions
       let allActions = [...suggestedActions, ...report.actions, ...userCreatedActions];
       
-      // If report is closed, mark all actions as Completed
-      if (isClosed) {
-        allActions = allActions.map(action => ({
-          ...action,
-          status: 'Completed' as ActionStatus
-        }));
-        console.log(`🔒 Report ${report.id} is closed - marking ${allActions.length} actions as Completed`);
-      }
-      
-      // Merge comments
-      const savedCommentsList = savedComments[report.id];
-      let finalComments = report.comments;
-      if (savedCommentsList && savedCommentsList.length > 0) {
-        const existingIds = new Set(report.comments.map(c => c.id));
-        const newComments = savedCommentsList.filter(c => !existingIds.has(c.id));
-        finalComments = [...newComments, ...report.comments];
-      }
-      
       return {
         ...report,
-        status: isClosed ? 'Closed' : report.status,
         actions: allActions,
-        comments: finalComments,
+        comments: report.comments,
       };
     });
   };
@@ -232,9 +188,14 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setReports(mergedReports);
 
       if (hasLoadedReportsRef.current) {
+        const currentUser = getUserData();
+        const currentEmail = currentUser?.email?.toLowerCase();
         const previousIds = previousReportIdsRef.current;
         const newReports = mergedReports.filter((report) => !previousIds.has(report.id));
         newReports.forEach((report) => {
+          const reporterEmail = report.reportedBy?.toLowerCase();
+          if (currentEmail && reporterEmail && currentEmail === reporterEmail) return;
+
           addNotification({
             type: 'report_submitted',
             title: 'New report submitted',
@@ -267,36 +228,20 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [fetchReports]);
 
-  // Load closed reports from localStorage
-  const loadClosedReports = (): string[] => {
-    try {
-      const stored = localStorage.getItem('aegix_report_closed');
-      return stored ? JSON.parse(stored) : [];
-    } catch (e) {
-      console.error('Failed to load closed reports:', e);
-      return [];
-    }
-  };
+  useEffect(() => {
+    if (!authService.isAuthenticated()) return;
+    const intervalId = setInterval(() => {
+      fetchReports();
+    }, 120000);
 
-  // Save closed reports to localStorage
-  const saveClosedReportsToStorage = (closedReportIds: string[]) => {
-    try {
-      localStorage.setItem('aegix_report_closed', JSON.stringify(closedReportIds));
-      // Emit storage event for cross-tab sync
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'aegix_report_closed',
-        newValue: JSON.stringify(closedReportIds),
-      }));
-    } catch (e) {
-      console.error('Failed to save closed reports:', e);
-    }
-  };
+    return () => clearInterval(intervalId);
+  }, [fetchReports]);
 
   // Listen for localStorage changes from other tabs (cross-tab sync)
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'aegix_report_comments' || e.key === 'aegix_report_actions' || e.key === 'aegix_report_closed') {
-        // Comments, actions, or closed status changed in another tab - refresh reports to pick up changes
+      if (e.key === 'aegix_report_actions') {
+        // Actions changed in another tab - refresh reports to pick up changes
         console.log(`📢 ${e.key} updated in another tab, syncing...`);
         fetchReports();
       }
@@ -313,14 +258,6 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // Find the report to get its backend _id
     const report = reports.find(r => r.id === reportId);
     const backendId = report?._id;
-
-    // Save to localStorage - this marks the report as closed
-    const closedReports = loadClosedReports();
-    if (!closedReports.includes(reportId)) {
-      closedReports.push(reportId);
-      saveClosedReportsToStorage(closedReports);
-      console.log(`💾 Report ${reportId} marked as closed in localStorage`);
-    }
 
     // Optimistic update - close report and mark all actions as completed
     setReports(prev =>
@@ -381,8 +318,6 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       prev.map(r => {
         if (r.id === reportId) {
           const updatedComments = [newComment, ...r.comments];
-          // Persist to localStorage
-          saveCommentsToStorage(reportId, updatedComments);
           return { ...r, comments: updatedComments };
         }
         return r;
@@ -390,24 +325,72 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     );
 
     if (report) {
-      addNotification({
-        type: 'report_commented',
-        title: `New comment on ${report.category}`,
-        description: text,
-        timestamp: newComment.timestamp,
-        data: {
-          reportId: report.id,
-          commentId: commentId,
-        },
-      });
+      const currentEmail = userData?.email?.toLowerCase();
+      const isSelfAction = Boolean(currentEmail);
+      if (!isSelfAction) {
+        addNotification({
+          type: 'report_commented',
+          title: `New comment on ${report.category}`,
+          description: text,
+          timestamp: newComment.timestamp,
+          data: {
+            reportId: report.id,
+            commentId: commentId,
+          },
+        });
+      }
     }
 
     if (backendId) {
       try {
         await reportService.addComment(backendId, text, role);
+        await fetchReports();
       } catch (err) {
         console.error('Failed to add comment on server:', err);
+        setError('Failed to save comment. Please try again.');
+        setReports(prev =>
+          prev.map(r => {
+            if (r.id === reportId) {
+              return { ...r, comments: r.comments.filter(c => c.id !== commentId) };
+            }
+            return r;
+          })
+        );
       }
+    } else {
+      setError('Comment saved locally but no server ID was found for this report.');
+    }
+  };
+
+  const deleteComment = async (reportId: string, commentId: string) => {
+    const report = reports.find(r => r.id === reportId);
+    const backendId = report?._id;
+    if (!report) return;
+
+    const previousComments = report.comments;
+
+    setReports(prev =>
+      prev.map(r => {
+        if (r.id === reportId) {
+          return { ...r, comments: r.comments.filter(c => c.id !== commentId) };
+        }
+        return r;
+      })
+    );
+
+    if (backendId) {
+      try {
+        await reportService.deleteComment(backendId, commentId);
+        await fetchReports();
+      } catch (err) {
+        console.error('Failed to delete comment on server:', err);
+        setError('Failed to delete comment. Please try again.');
+        setReports(prev =>
+          prev.map(r => (r.id === reportId ? { ...r, comments: previousComments } : r))
+        );
+      }
+    } else {
+      setError('Comment deleted locally but no server ID was found for this report.');
     }
   };
 
@@ -464,7 +447,7 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   return (
-    <ReportsContext.Provider value={{ reports, loading, error, refreshReports: fetchReports, closeReport, addComment, addAction }}>
+    <ReportsContext.Provider value={{ reports, loading, error, refreshReports: fetchReports, closeReport, addComment, deleteComment, addAction }}>
       {children}
     </ReportsContext.Provider>
   );

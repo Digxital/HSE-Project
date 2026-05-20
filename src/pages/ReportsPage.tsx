@@ -14,7 +14,7 @@ interface ReportsPageProps {
  
 export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
   const userData = getUserData();
-  const { reports, loading, error, refreshReports, closeReport, addComment, addAction } = useReports();
+  const { reports, loading, error, refreshReports, closeReport, addComment, deleteComment, addAction } = useReports();
   const [searchParams] = useSearchParams();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -36,6 +36,22 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
   useEffect(() => {
     refreshReports();
   }, [refreshReports]);
+
+  useEffect(() => {
+    const handleFocus = () => {
+      refreshReports();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [refreshReports]);
+
+  useEffect(() => {
+    if (!selectedReport) return;
+    refreshReports();
+  }, [refreshReports, selectedReport?.id]);
 
   // Keep selectedReport in sync with context data
   useEffect(() => {
@@ -89,6 +105,11 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
 
   const handleAddComment = (reportId: string, text: string) => {
     addComment(reportId, text, role);
+  };
+
+  const handleDeleteComment = (reportId: string, commentId: string) => {
+    if (role !== 'admin') return;
+    deleteComment(reportId, commentId);
   };
 
   const handleAddAction = (
@@ -336,6 +357,8 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
         onCloseReport={handleCloseReport}
         onAddAction={handleAddAction}
         onAddComment={handleAddComment}
+        onDeleteComment={handleDeleteComment}
+        canDeleteComments={role === 'admin'}
         report={selectedReport}
         highlightCommentId={searchParams.get('commentId') || undefined}
       />

@@ -12,7 +12,7 @@ interface Action {
 interface Comment {
   id: string;
   author: string;
-  role: 'Admin' | 'Supervisor';
+  role: 'Admin' | 'Supervisor' | 'Field User';
   text: string;
   timestamp: string;
 }
@@ -44,11 +44,13 @@ interface ReportDetailsModalProps {
     description: string;
   }) => void;
   onAddComment: (reportId: string, text: string) => void;
+  onDeleteComment: (reportId: string, commentId: string) => void;
   report: Report | null;
   highlightCommentId?: string;
+  canDeleteComments?: boolean;
 }
 
-export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, onClose, onCloseReport, onAddAction, onAddComment, report, highlightCommentId }) => {
+export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, onClose, onCloseReport, onAddAction, onAddComment, onDeleteComment, report, highlightCommentId, canDeleteComments = false }) => {
   const [isAddActionModalOpen, setIsAddActionModalOpen] = useState(false);
   const [newComment, setNewComment] = useState('');
 
@@ -331,11 +333,21 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                         comment.role === 'Admin'
                           ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                          : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
+                          : comment.role === 'Supervisor'
+                          ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
+                          : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                       }`}>
                         {comment.role}
                       </span>
                       <span className="text-xs text-gray-400 dark:text-gray-500">{comment.timestamp}</span>
+                      {canDeleteComments && (
+                        <button
+                          onClick={() => onDeleteComment(report.id, comment.id)}
+                          className="ml-auto text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{comment.text}</p>
                   </div>

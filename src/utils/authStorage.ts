@@ -10,6 +10,9 @@ export type UserData = {
 }
  
 export const setAuthToken = (token: string, remember: boolean = false) => {
+  // Ensure only one storage source is used at a time.
+  localStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
   const storage = remember ? localStorage : sessionStorage;
   storage.setItem(TOKEN_KEY, token);
 };
@@ -24,6 +27,8 @@ export const removeAuthToken = () => {
 };
 
 export const setRefreshToken = (token: string, remember: boolean = false) => {
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
   const storage = remember ? localStorage : sessionStorage;
   storage.setItem(REFRESH_TOKEN_KEY, token);
 };
@@ -34,6 +39,8 @@ export const removeRefreshToken = () => {
 };
 
 export const setUserData = (user: UserData, remember: boolean = false) => {
+  localStorage.removeItem(USER_KEY);
+  sessionStorage.removeItem(USER_KEY);
   const storage = remember ? localStorage : sessionStorage;
   storage.setItem(USER_KEY, JSON.stringify(user));
 };

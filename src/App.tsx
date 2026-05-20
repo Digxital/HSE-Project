@@ -58,42 +58,40 @@ const AppRoutes = () => {
   }, [navigate]);
 
   return (
-    <ReportsProvider>
-      <Routes> 
-        {/* Root route - redirect based on auth status and role */}
-        <Route 
-          path="/" 
-          element={
-            <RootRedirect />
-          } 
-        />
+    <Routes> 
+      {/* Root route - redirect based on auth status and role */}
+      <Route 
+        path="/" 
+        element={
+          <RootRedirect />
+        } 
+      />
 
-        {/* Admin routes */}
-        <Route path="/admin/login" element={<LoginPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/users" element={<UserManagementPage />} />
-        <Route path="/reports" element={<ReportsPage />} />
-        <Route path="/actions" element={<ActionsPage />} />
-        <Route path="/analytics" element={<AnalyticsPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/certification" element={<CertificationPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="/audit-log" element={<AuditLogPage />} />
+      {/* Admin routes */}
+      <Route path="/admin/login" element={<LoginPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/users" element={<UserManagementPage />} />
+      <Route path="/reports" element={<ReportsPage />} />
+      <Route path="/actions" element={<ActionsPage />} />
+      <Route path="/analytics" element={<AnalyticsPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/certification" element={<CertificationPage />} />
+      <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/notifications" element={<NotificationsPage />} />
+      <Route path="/audit-log" element={<AuditLogPage />} />
 
-        {/* Supervisor routes */}
-        <Route path="/supervisor/login" element={<SupervisorLoginPage />} />
-        <Route path="/supervisor/dashboard" element={<SupervisorDashboardPage />} />
-        <Route path="/supervisor/reports" element={<SupervisorReportsPage />} />
-        <Route path="/supervisor/actions" element={<SupervisorActionsPage />} />
-        <Route path="/supervisor/analytics" element={<SupervisorAnalyticsPage />} />
-        <Route path="/supervisor/profile" element={<SupervisorProfilePage />} />
-        <Route path="/supervisor/certification" element={<SupervisorCertificationPage />} />
-        <Route path="/supervisor/settings" element={<SupervisorSettingsPage />} />
-          
-      </Routes>
-    </ReportsProvider>
+      {/* Supervisor routes */}
+      <Route path="/supervisor/login" element={<SupervisorLoginPage />} />
+      <Route path="/supervisor/dashboard" element={<SupervisorDashboardPage />} />
+      <Route path="/supervisor/reports" element={<SupervisorReportsPage />} />
+      <Route path="/supervisor/actions" element={<SupervisorActionsPage />} />
+      <Route path="/supervisor/analytics" element={<SupervisorAnalyticsPage />} />
+      <Route path="/supervisor/profile" element={<SupervisorProfilePage />} />
+      <Route path="/supervisor/certification" element={<SupervisorCertificationPage />} />
+      <Route path="/supervisor/settings" element={<SupervisorSettingsPage />} />
+        
+    </Routes>
   );
 };
 
@@ -151,9 +149,11 @@ function App() {
     <ThemeProvider>
       <ToastProvider>
         <NotificationProvider>
-          <Router>
-            <AppRoutes />
-          </Router>
+          <ReportsProvider>
+            <Router>
+              <AppRoutes />
+            </Router>
+          </ReportsProvider>
         </NotificationProvider>
       </ToastProvider>
     </ThemeProvider>

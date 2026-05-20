@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Logo } from '@/components/ui/Logo';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { useToast } from '@/hooks/useToast';
+import { authService } from '@/services/authService';
+import { setAuthToken, setUserData } from '@/utils/authStorage';
 import engineerImage from '@/assets/images/engineer-technician-male-female.png';
 import darkLogo from '@/assets/images/aegix-darkmode-logo.png';
+import type { LoginResponse } from '@/types/auth';
 
 interface LoginError {
     message: string;
@@ -56,30 +58,69 @@ export const SupervisorLoginPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleLoginSuccess = (response: LoginResponse) => {
+    setAuthToken(response.data.token, rememberMe);
+    const userData = {
+      ...response.data.user,
+      role: response.data.role,
+    } as any;
+    setUserData(userData, rememberMe);
+
+    window.dispatchEvent(new CustomEvent('auth:login'));
+
+    showToast({
+      type: 'success',
+      message: 'Login successful! Redirecting to dashboard...',
+    });
+
+    if (response.data.role === 'SUPERVISOR') {
+      navigate('/supervisor/dashboard', { replace: true });
+    } else {
+      navigate('/dashboard', { replace: true });
+    }
+  };
+
+  const handleLoginError = (error: LoginError) => {
+    if (error.errors) {
+      const fieldErrors: Record<string, string> = {};
+      Object.entries(error.errors).forEach(([field, messages]) => {
+        fieldErrors[field] = messages[0];
+      });
+      setErrors(fieldErrors);
+    }
+
+    setApiError(error.message || 'Authentication failed. Please check your credentials.');
+    showToast({
+      type: 'error',
+      message: error.message || 'Login failed. Please try again.',
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Clear previous error
     setApiError(null);
 
-    // Validate form
     if (!validateForm()) {
       return;
     }
 
     setIsLoading(true);
 
-    // Mock login - just simulate a delay then navigate
-    setTimeout(() => {
-      showToast({
-        type: 'success',
-        message: 'Login successful! Redirecting to dashboard...',
+    try {
+      const response = await authService.login({
+        email: formData.email.trim(),
+        password: formData.password,
       });
 
-      // Navigate to supervisor dashboard
-      navigate('/supervisor/dashboard', { replace: true });
+      handleLoginSuccess(response as any);
+    } catch (error: any) {
+      handleLoginError(error.response?.data || {
+        message: 'Unable to connect to the server. Please check your internet connection.',
+      });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   if (isLoading) {

@@ -146,8 +146,16 @@ class NotificationService {
     try {
       const token = getAuthToken();
       if (!token) return;
-      
-      await api.post('/api/notifications', notification, {
+
+      const payload = {
+        type: notification.type,
+        title: notification.title,
+        description: notification.description,
+        read: notification.read,
+        data: notification.data,
+      };
+
+      await api.post('/api/notifications', payload, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
     } catch (error) {

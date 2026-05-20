@@ -11,10 +11,11 @@ interface ApiLocation {
 
 interface ApiReport {
   _id: string;
-  recordType: 'hazard' | 'incident';
+  recordType?: 'hazard' | 'incident';
+  recordCategory?: 'hazard' | 'incident';
   title: string;
   description: string;
-  riskLevel: 'high' | 'medium' | 'low';
+  riskLevel: 'high' | 'medium' | 'low' | 'critical';
   status: 'open' | 'in progress' | 'closed';
   eventDate: string;
   eventTime: string;
@@ -31,6 +32,8 @@ interface ApiReport {
   displayId?: string; // Will be provided by backend in future
   actions?: ApiAction[];
   comments?: ApiComment[];
+  adminComment?: ApiInlineComment[] | ApiInlineComment;
+  supervisorComment?: ApiInlineComment[] | ApiInlineComment;
 }
 
 interface ApiAction {
@@ -43,10 +46,28 @@ interface ApiAction {
 
 interface ApiComment {
   _id: string;
-  author: string;
-  role: string;
+  author?: string;
+  role?: string;
   text: string;
-  createdAt: string;
+  createdAt?: string;
+  commentedAt?: string;
+  commentedBy?: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    role?: string;
+  };
+}
+
+interface ApiInlineComment {
+  text: string;
+  commentedBy?: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  };
+  commentedAt?: string;
+  role?: string;
 }
 
 function formatLocation(location: ApiLocation): string {
@@ -74,6 +95,7 @@ function mapRiskLevel(risk: string): 'High' | 'Medium' | 'Low' {
     high: 'High',
     medium: 'Medium',
     low: 'Low',
+    critical: 'High',
   };
   return map[risk.toLowerCase()] || 'Medium';
 }
@@ -83,6 +105,7 @@ function mapStatus(status: string): 'Open' | 'In Progress' | 'Closed' {
     'open': 'Open',
     'in progress': 'In Progress',
     'closed': 'Closed',
+    'completed': 'Closed',
   };
   return map[status.toLowerCase()] || 'Open';
 }
@@ -97,7 +120,8 @@ function mapActionStatus(status: string): 'Open' | 'In Progress' | 'Completed' {
 }
 
 function mapApiReportToReport(apiReport: ApiReport): Report {
-  const type = apiReport.recordType === 'hazard' ? 'Hazard' : 'Incident';
+  const recordType = apiReport.recordType || apiReport.recordCategory || 'incident';
+  const type = recordType === 'hazard' ? 'Hazard' : 'Incident';
 
   // Generate display ID using the idGenerator service
   // When backend provides displayId field, this will automatically use it
@@ -111,13 +135,76 @@ function mapApiReportToReport(apiReport: ApiReport): Report {
     status: mapActionStatus(a.status),
   }));
 
-  const comments: Comment[] = (apiReport.comments || []).map((c, i) => ({
-    id: c._id || `CMT-${String(i + 1).padStart(3, '0')}`,
-    author: c.author,
-    role: (c.role === 'Admin' || c.role === 'Supervisor') ? c.role : 'Admin',
-    text: c.text,
-    timestamp: c.createdAt ? formatDate(c.createdAt) : '',
-  }));
+  const commentsFromList = (apiReport.comments || []).map((c, i) => {
+    const firstName = c.commentedBy?.firstName || '';
+    const lastName = c.commentedBy?.lastName || '';
+    const author = c.author || `${firstName} ${lastName}`.trim() || c.commentedBy?.email || 'User';
+    const backendRole = (c.role || c.commentedBy?.role || '').toLowerCase();
+    const role = backendRole === 'supervisor'
+      ? 'Supervisor'
+      : backendRole === 'admin'
+      ? 'Admin'
+      : backendRole === 'field_user' || backendRole === 'field user' || backendRole === 'fielduser'
+      ? 'Field User'
+      : 'Admin';
+    const rawTime = c.createdAt || c.commentedAt;
+    return {
+      id: c._id || `CMT-${String(i + 1).padStart(3, '0')}`,
+      author,
+      role,
+      text: c.text,
+      timestamp: rawTime ? formatDate(rawTime) : '',
+      rawTime,
+    };
+  });
+
+  const mapInlineComment = (inline: ApiInlineComment | undefined, roleFallback: 'Admin' | 'Supervisor', index: number) => {
+    if (!inline || !inline.text) return null;
+    const firstName = inline.commentedBy?.firstName || '';
+    const lastName = inline.commentedBy?.lastName || '';
+    const author = `${firstName} ${lastName}`.trim() || inline.commentedBy?.email || roleFallback;
+    const backendRole = inline.commentedBy?.role?.toLowerCase();
+    const roleFromBackend = backendRole === 'supervisor' ? 'Supervisor' : backendRole === 'admin' ? 'Admin' : undefined;
+    const role = inline.role === 'Supervisor' || inline.role === 'Admin'
+      ? inline.role
+      : roleFromBackend || roleFallback;
+    const rawTime = inline.commentedAt || apiReport.createdAt;
+    return {
+      id: inline._id || `CMT-INLINE-${roleFallback}-${index}`,
+      author,
+      role,
+      text: inline.text,
+      timestamp: rawTime ? formatDate(rawTime) : '',
+      rawTime,
+    };
+  };
+
+  const adminInlineList = Array.isArray(apiReport.adminComment)
+    ? apiReport.adminComment
+    : apiReport.adminComment
+    ? [apiReport.adminComment]
+    : [];
+  const supervisorInlineList = Array.isArray(apiReport.supervisorComment)
+    ? apiReport.supervisorComment
+    : apiReport.supervisorComment
+    ? [apiReport.supervisorComment]
+    : [];
+
+  const inlineComments = [
+    ...adminInlineList.map((comment, index) => mapInlineComment(comment, 'Admin', index + 1)),
+    ...supervisorInlineList.map((comment, index) => mapInlineComment(comment, 'Supervisor', index + 1)),
+  ].filter(Boolean) as Array<{
+    id: string;
+    author: string;
+    role: 'Admin' | 'Supervisor';
+    text: string;
+    timestamp: string;
+    rawTime: string;
+  }>;
+
+  const comments = [...commentsFromList, ...inlineComments]
+    .sort((a, b) => Date.parse(b.rawTime || '') - Date.parse(a.rawTime || ''))
+    .map(({ rawTime, ...comment }) => comment);
 
   return {
     id: displayId,
@@ -147,11 +234,15 @@ export const reportService = {
   },
 
   async closeReport(reportId: string): Promise<void> {
-    await api.patch(`/api/reports/${reportId}`, { status: 'closed' });
+    await api.patch(`/api/reports/${reportId}/status`, { status: 'completed' });
   },
 
   async addComment(reportId: string, text: string, role: string): Promise<void> {
-    await api.post(`/api/reports/${reportId}/comment`, { text, role });
+    await api.patch(`/api/reports/${reportId}/comment`, { comment: text, role });
+  },
+
+  async deleteComment(reportId: string, commentId: string): Promise<void> {
+    await api.delete(`/api/reports/${reportId}/comment/${commentId}`);
   },
 
   async addAction(reportId: string, actionData: {

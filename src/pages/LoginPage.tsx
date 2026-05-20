@@ -74,6 +74,8 @@ export const LoginPage: React.FC = () => {
     } as any;
     setUserData(userData, rememberMe);
 
+    window.dispatchEvent(new CustomEvent('auth:login'));
+
     // Show success message
     showToast({
       type: 'success',

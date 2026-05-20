@@ -31,9 +31,23 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setUnreadCount(notificationService.getUnreadCount());
     });
 
-    notificationService.fetchNotifications();
+    const fetchLatest = () => {
+      notificationService.fetchNotifications();
+    };
+
+    fetchLatest();
+
+    const handleLogin = () => fetchLatest();
+    const handleLogout = () => {
+      notificationService.clearAll();
+    };
+
+    window.addEventListener('auth:login', handleLogin);
+    window.addEventListener('auth:logout', handleLogout);
 
     return () => {
+      window.removeEventListener('auth:login', handleLogin);
+      window.removeEventListener('auth:logout', handleLogout);
       unsubscribe();
     };
   }, []);

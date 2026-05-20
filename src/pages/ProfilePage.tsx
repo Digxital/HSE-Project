@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import johnMatthewsImg from '@/assets/images/Jhn-Matthew-profileImg.jpg';
 import { getUserData } from '@/utils/authStorage';
+import { useReports } from '@/services/ReportsContext';
+import { certificationService } from '@/services/certificationService';
+import { userService, type UserResponse } from '@/services/userService';
+import { useToast } from '@/hooks/useToast';
 
 interface ProfilePageProps {
   role?: 'admin' | 'supervisor';
@@ -10,11 +14,21 @@ interface ProfilePageProps {
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
   const userData = getUserData();
+  const userId = userData?.id;
+  const userEmail = userData?.email;
+  const userName = userData?.name;
+  const userRole = userData?.role;
+  const { reports } = useReports();
+  const { showToast } = useToast();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [profileUser, setProfileUser] = useState<UserResponse | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [certCounts, setCertCounts] = useState({ valid: 0, expired: 0 });
 
   const displayName = userData?.name || 'User';
   const displayRole = userData?.role
@@ -35,19 +49,113 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
     location: 'Houston Office',
   });
 
-  // Mock user data
-  const user = {
-    name: 'John Matthews',
-    role: 'Role: Admin',
-    status: 'Active',
-    profileImage: johnMatthewsImg,
-    stats: {
-      reportsSubmitted: 15,
-      actionsAssigned: 0,
-      validCertifications: 4,
-      expiredCertifications: 1,
-    },
-  };
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!userId && !userEmail) {
+        setProfileError('Missing user profile data. Please sign in again.');
+        setProfileLoading(false);
+        return;
+      }
+
+      try {
+        setProfileLoading(true);
+        setProfileError(null);
+
+        const users = await userService.getUsers();
+        const match = users.find((u) => u._id === userId || u.id === userId || u.email === userEmail);
+        setProfileUser(match || null);
+      } catch (error: any) {
+        setProfileError(error?.message || 'Failed to load profile data.');
+        setProfileUser(null);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [userId, userEmail]);
+
+  useEffect(() => {
+    if (isEditMode) return;
+    if (!profileUser && !userName && !userEmail) return;
+    const firstName = profileUser?.firstName || userName?.split(' ')[0] || '';
+    const lastName = profileUser?.lastName || userName?.split(' ').slice(1).join(' ') || '';
+    setFormData({
+      firstName,
+      surname: lastName,
+      email: profileUser?.email || userEmail || '',
+      phoneNumber: '',
+      role: profileUser?.role || (userRole ? userRole.toUpperCase() : 'Admin'),
+      location: profileUser?.jobPosition || 'Not specified',
+    });
+  }, [
+    isEditMode,
+    profileUser?._id,
+    profileUser?.id,
+    profileUser?.firstName,
+    profileUser?.lastName,
+    profileUser?.email,
+    profileUser?.role,
+    profileUser?.jobPosition,
+    userName,
+    userEmail,
+    userRole,
+  ]);
+
+  useEffect(() => {
+    const loadCertifications = async () => {
+      const certUserId = profileUser?._id || profileUser?.id || userId;
+      if (!certUserId) return;
+      try {
+        const certs = await certificationService.getUserCertifications(certUserId);
+        const valid = certs.filter((c) => c.status === 'Valid').length;
+        const expired = certs.filter((c) => c.status === 'Expired').length;
+        setCertCounts({ valid, expired });
+      } catch {
+        setCertCounts({ valid: 0, expired: 0 });
+      }
+    };
+
+    loadCertifications();
+  }, [profileUser?._id, profileUser?.id, userId]);
+
+  const profileName = profileUser
+    ? `${profileUser.firstName || ''} ${profileUser.lastName || ''}`.trim() || userData?.name || 'User'
+    : userData?.name || 'User';
+
+  const profileRoleLabel = profileUser?.role
+    ? profileUser.role.replace(/_/g, ' ')
+    : userData?.role
+      ? userData.role.replace(/_/g, ' ')
+      : 'Admin';
+
+  const profileStatus = profileUser?.status
+    ? profileUser.status === 'active'
+      ? 'Active'
+      : profileUser.status === 'pending'
+      ? 'Pending'
+      : 'Deactivated'
+    : 'Active';
+
+  const userEmailLower = (profileUser?.email || userEmail || '').toLowerCase();
+
+  const stats = useMemo(() => {
+    const reportsSubmitted = userEmailLower
+      ? reports.filter((report) => report.reportedBy?.toLowerCase() === userEmailLower).length
+      : 0;
+    const actionsAssigned = userEmailLower
+      ? reports.reduce((count, report) => {
+          return count + report.actions.filter((action) => action.assignedTo?.toLowerCase() === userEmailLower).length;
+        }, 0)
+      : 0;
+
+    return {
+      reportsSubmitted,
+      actionsAssigned,
+      validCertifications: certCounts.valid,
+      expiredCertifications: certCounts.expired,
+    };
+  }, [reports, userEmailLower, certCounts]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -89,9 +197,39 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
   };
 
   const handleConfirmSave = () => {
-    // In real app, save to backend
-    setShowConfirmModal(false);
-    setIsEditMode(false);
+    const userId = profileUser?._id || profileUser?.id || userData?.id;
+    if (!userId) {
+      showToast({
+        type: 'error',
+        message: 'Unable to update profile. Please sign in again.',
+      });
+      setShowConfirmModal(false);
+      return;
+    }
+
+    userService.updateUser(userId, {
+      firstName: formData.firstName,
+      lastName: formData.surname,
+      email: formData.email,
+      jobPosition: formData.location,
+    })
+      .then((updated) => {
+        setProfileUser(updated);
+        showToast({
+          type: 'success',
+          message: 'Profile updated successfully',
+        });
+      })
+      .catch((error: any) => {
+        showToast({
+          type: 'error',
+          message: error?.message || 'Failed to update profile',
+        });
+      })
+      .finally(() => {
+        setShowConfirmModal(false);
+        setIsEditMode(false);
+      });
   };
 
   return (
@@ -119,6 +257,16 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
         {/* Main Content Area */}
         <main className="p-4 md:p-6 lg:p-8 bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors min-h-screen">
           <div className="max-w-4xl mx-auto space-y-6">
+            {profileLoading && (
+              <div className="bg-white dark:bg-[#121212] rounded-xl p-6 border border-gray-100 dark:border-gray-700">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Loading profile...</p>
+              </div>
+            )}
+            {profileError && (
+              <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-900/50 rounded-lg p-4">
+                <p className="text-red-600 dark:text-red-400 text-sm">{profileError}</p>
+              </div>
+            )}
             {/* Back Arrow - Only shown in edit mode */}
             {isEditMode && (
               <button
@@ -140,20 +288,36 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
                   {/* Profile Photo */}
                   <div className="relative">
                     <img
-                      src={user.profileImage}
-                      alt={user.name}
+                      src={johnMatthewsImg}
+                      alt={profileName}
                       className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-sm"
                     />
                   </div>
 
                   {/* Name, Role, Status */}
                   <div className="flex flex-col gap-2">
-                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{user.name}</h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{user.role}</p>
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{profileName}</h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Role: {profileRoleLabel}</p>
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium rounded-full">
-                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                        {user.status}
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-full ${
+                          profileStatus === 'Deactivated'
+                            ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                            : profileStatus === 'Pending'
+                            ? 'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+                            : 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            profileStatus === 'Deactivated'
+                              ? 'bg-red-500'
+                              : profileStatus === 'Pending'
+                              ? 'bg-yellow-500'
+                              : 'bg-green-500'
+                          }`}
+                        ></span>
+                        {profileStatus}
                       </span>
                     </div>
                   </div>
@@ -266,25 +430,25 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
               {/* Report Submitted */}
               <div className="bg-white dark:bg-[#121212] rounded-xl p-6 border border-gray-100 dark:border-gray-700">
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Report Submitted</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">{user.stats.reportsSubmitted}</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.reportsSubmitted}</p>
               </div>
 
               {/* Actions Assigned */}
               <div className="bg-white dark:bg-[#121212] rounded-xl p-6 border border-gray-100 dark:border-gray-700">
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Actions Assigned</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">{user.stats.actionsAssigned}</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.actionsAssigned}</p>
               </div>
 
               {/* Valid Certifications */}
               <div className="bg-white dark:bg-[#121212] rounded-xl p-6 border border-gray-100 dark:border-gray-700">
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Valid Certifications</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">{user.stats.validCertifications}</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.validCertifications}</p>
               </div>
 
               {/* Expired Certifications */}
               <div className="bg-white dark:bg-[#121212] rounded-xl p-6 border border-gray-100 dark:border-gray-700">
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Expired Certifications</p>
-                <p className="text-3xl font-bold text-[#C24438] dark:text-red-400">{user.stats.expiredCertifications}</p>
+                <p className="text-3xl font-bold text-[#C24438] dark:text-red-400">{stats.expiredCertifications}</p>
               </div>
             </div>
           </div>
