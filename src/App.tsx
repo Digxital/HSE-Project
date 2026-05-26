@@ -90,6 +90,7 @@ const AppRoutes = () => {
       <Route path="/supervisor/profile" element={<SupervisorProfilePage />} />
       <Route path="/supervisor/certification" element={<SupervisorCertificationPage />} />
       <Route path="/supervisor/settings" element={<SupervisorSettingsPage />} />
+      <Route path="/supervisor/notifications" element={<NotificationsPage role="supervisor" />} />
         
     </Routes>
   );

@@ -120,7 +120,6 @@ export const NotificationPreviewModal: React.FC<NotificationPreviewModalProps> =
                     </p>
                   </div>
 
-                  {/* Unread Indicator */}
                   {!notification.isRead && (
                     <div className="flex-shrink-0 w-2 h-2 bg-[#C24438] dark:bg-orange-500 rounded-full mt-1"></div>
                   )}
@@ -141,7 +140,7 @@ export const NotificationPreviewModal: React.FC<NotificationPreviewModalProps> =
         <div className="border-t border-gray-200 dark:border-gray-700 p-3 bg-[#FFF9F5] dark:bg-gray-800">
           <button
             onClick={() => {
-              navigate('/notifications');
+              navigate(`${routePrefix}/notifications`);
               onClose();
             }}
             className="w-full py-2 text-center text-sm font-medium text-[#C24438] dark:text-orange-500 hover:text-[#A63830] dark:hover:text-orange-400 transition-colors"

@@ -24,7 +24,7 @@ interface NotificationsPageProps {
 export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'admin' }) => {
   const navigate = useNavigate();
   const userData = getUserData();
-  const { notifications, markAsRead } = useNotifications();
+  const { notifications, markAsRead, markAllAsRead } = useNotifications();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -82,6 +82,8 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'ad
       userEmail,
     };
   });
+
+  const unreadCount = mappedNotifications.filter((notification) => !notification.isRead).length;
 
   // Check if mobile on mount and window resize
   useEffect(() => {
@@ -181,9 +183,23 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'ad
           <div className="max-w-2xl mx-auto">
             <div className="bg-[#FFFAF5] dark:bg-[#121212] rounded-xl p-6 md:p-8 border border-gray-100 dark:border-gray-700">
               {/* Page Header */}
-              <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Notification</h1>
-                <p className="text-gray-600 dark:text-gray-400">View and manage system updates and alerts</p>
+              <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Notification</h1>
+                  <p className="text-gray-600 dark:text-gray-400">View and manage system updates and alerts</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => markAllAsRead()}
+                  disabled={unreadCount === 0}
+                  className={`px-4 py-2 text-sm font-medium rounded-md border transition-colors ${
+                    unreadCount === 0
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 border-gray-200 dark:border-gray-700 cursor-not-allowed'
+                      : 'bg-white dark:bg-[#0D0D0D] text-gray-900 dark:text-white border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900'
+                  }`}
+                >
+                  Mark All as Read
+                </button>
               </div>
 
               {/* Notifications List */}
@@ -223,10 +239,13 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'ad
                             </p>
                           </div>
 
-                          {/* Unread Indicator */}
-                          {!notification.isRead && (
-                            <div className="flex-shrink-0 w-2 h-2 bg-[#C24438] dark:bg-orange-500 rounded-full mt-1"></div>
-                          )}
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                            notification.isRead
+                              ? 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
+                              : 'bg-[#C24438] dark:bg-orange-600 text-white'
+                          }`}>
+                            {notification.isRead ? 'Read' : 'Unread'}
+                          </span>
                         </div>
 
                         {/* Action Link */}

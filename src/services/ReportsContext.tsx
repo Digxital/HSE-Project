@@ -94,8 +94,8 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [error, setError] = useState<string | null>(null);
   const previousReportIdsRef = useRef<Set<string>>(new Set());
   const hasLoadedReportsRef = useRef(false);
+  const actionStatusOverridesRef = useRef<Map<string, ActionStatus>>(new Map());
 
-  // Merge reports with comments (actions are backend-driven)
   const mergeWithActionsAndComments = (fetchedReports: Report[]): Report[] => {
     return fetchedReports.map(report => ({
       ...report,
@@ -104,20 +104,35 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }));
   };
 
+  const applyActionStatusRules = (fetchedReports: Report[]): Report[] => {
+    return fetchedReports.map((report) => {
+      const updatedActions = report.actions.map((action) => {
+        if (report.status === 'Closed') {
+          return { ...action, status: 'Completed' as ActionStatus };
+        }
+        const overrideKey = `${report.id}:${action.id}`;
+        const overrideStatus = actionStatusOverridesRef.current.get(overrideKey);
+        return overrideStatus ? { ...action, status: overrideStatus } : action;
+      });
+      return { ...report, actions: updatedActions };
+    });
+  };
+
   const fetchReports = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       const data = await reportService.getReports();
       const mergedReports = mergeWithActionsAndComments(data);
-      setReports(mergedReports);
+      const normalizedReports = applyActionStatusRules(mergedReports);
+      setReports(normalizedReports);
 
       const currentUser = getUserData();
       const currentEmail = currentUser?.email?.toLowerCase();
 
       if (hasLoadedReportsRef.current) {
         const previousIds = previousReportIdsRef.current;
-        const newReports = mergedReports.filter((report) => !previousIds.has(report.id));
+        const newReports = normalizedReports.filter((report) => !previousIds.has(report.id));
         newReports.forEach((report) => {
           const reporterEmail = report.reportedBy?.toLowerCase();
           if (currentEmail && reporterEmail && currentEmail === reporterEmail) return;
@@ -134,7 +149,7 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
       } else {
         const lastSeenRaw = Number(localStorage.getItem('aegix_last_seen_reports_at') || 0);
-        const newReportsByTime = mergedReports.filter((report) => {
+        const newReportsByTime = normalizedReports.filter((report) => {
           const createdAtMs = report.rawCreatedAt ? Date.parse(report.rawCreatedAt) : 0;
           return createdAtMs > lastSeenRaw;
         });
@@ -154,14 +169,14 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
           });
         });
 
-        const latestCreatedAt = mergedReports
+        const latestCreatedAt = normalizedReports
           .map((report) => (report.rawCreatedAt ? Date.parse(report.rawCreatedAt) : 0))
           .reduce((max, value) => (value > max ? value : max), lastSeenRaw || 0);
 
         localStorage.setItem('aegix_last_seen_reports_at', String(latestCreatedAt || Date.now()));
       }
 
-      previousReportIdsRef.current = new Set(mergedReports.map((report) => report.id));
+      previousReportIdsRef.current = new Set(normalizedReports.map((report) => report.id));
       hasLoadedReportsRef.current = true;
     } catch (err) {
       console.error('Failed to fetch reports from API, using fallback data:', err);
@@ -209,6 +224,12 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     // Find the report to get its backend _id
     const report = reports.find(r => r.id === reportId);
     const backendId = report?._id;
+
+    if (report) {
+      report.actions.forEach((action) => {
+        actionStatusOverridesRef.current.set(`${report.id}:${action.id}`, 'Completed');
+      });
+    }
 
     // Optimistic update - close report and mark all actions as completed
     setReports(prev =>
@@ -346,6 +367,7 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   const updateActionStatus = (reportId: string, actionId: string, status: ActionStatus) => {
+    actionStatusOverridesRef.current.set(`${reportId}:${actionId}`, status);
     setReports(prev =>
       prev.map(report => {
         if (report.id !== reportId) return report;
