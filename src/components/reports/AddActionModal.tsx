@@ -10,9 +10,10 @@ interface AddActionModalProps {
     priority: string;
     description: string;
   }) => void;
+  assignedToEmail?: string;
 }
 
-export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose, onAddAction }) => {
+export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose, onAddAction, assignedToEmail }) => {
   const [formData, setFormData] = useState({
     actionTitle: '',
     assignedTo: '',
@@ -39,6 +40,11 @@ export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose,
       };
     }
   }, []);
+
+  React.useEffect(() => {
+    if (!assignedToEmail) return;
+    setFormData((prev) => ({ ...prev, assignedTo: assignedToEmail }));
+  }, [assignedToEmail, isOpen]);
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
@@ -157,23 +163,14 @@ export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose,
               {/* Assigned to */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2\">Assigned to</label>
-                <select
+                <input
+                  type="text"
                   value={formData.assignedTo}
-                  onChange={(e) => handleChange('assignedTo', e.target.value)}
-                  className={`w-full px-4 py-2.5 bg-white dark:bg-gray-800 border ${
+                  readOnly
+                  className={`w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border ${
                     errors.assignedTo ? 'border-red-500 dark:border-red-400' : 'border-gray-200 dark:border-gray-700'
-                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] dark:focus:ring-orange-500 focus:border-transparent text-sm appearance-none cursor-pointer text-gray-900 dark:text-white transition-colors`}
-                >
-                  <option value="">Select team</option>
-                  <option value="Maintenance Lead">Maintenance Lead</option>
-                  <option value="Safety Officer">Safety Officer</option>
-                  <option value="Operations Manager">Operations Manager</option>
-                  <option value="Technical Lead">Technical Lead</option>
-                  <option value="Field Engineer">Field Engineer</option>
-                  <option value="Safety Manager">Safety Manager</option>
-                  <option value="Team Lead">Team Lead</option>
-                  <option value="Operations Team">Operations Team</option>
-                </select>
+                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] dark:focus:ring-orange-500 focus:border-transparent text-sm text-gray-900 dark:text-white transition-colors`}
+                />
                 {errors.assignedTo && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.assignedTo}</p>}
               </div>
 

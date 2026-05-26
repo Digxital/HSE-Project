@@ -41,7 +41,15 @@ interface ApiAction {
   actionTitle: string;
   assignedTo: string;
   dueDate: string;
+  priority?: string;
+  description?: string;
   status: 'open' | 'in progress' | 'completed';
+  createdAt?: string;
+  createdBy?: {
+    id?: string;
+    role?: string;
+    email?: string;
+  };
 }
 
 interface ApiComment {
@@ -133,6 +141,10 @@ function mapApiReportToReport(apiReport: ApiReport): Report {
     assignedTo: a.assignedTo,
     dueDate: a.dueDate,
     status: mapActionStatus(a.status),
+    priority: a.priority,
+    description: a.description,
+    createdAt: a.createdAt,
+    createdBy: a.createdBy,
   }));
 
   const commentsFromList = (apiReport.comments || []).map((c, i) => {
@@ -216,6 +228,7 @@ function mapApiReportToReport(apiReport: ApiReport): Report {
     risk: mapRiskLevel(apiReport.riskLevel),
     status: mapStatus(apiReport.status),
     dateReported: formatDate(apiReport.createdAt),
+    rawCreatedAt: apiReport.createdAt,
     reportedBy: apiReport.reportedBy?.userId?.email || 'Unknown',
     equipmentInvolved: apiReport.equipmentInvolved || 'None',
     actions,

@@ -21,6 +21,10 @@ export const useNotifications = () => {
   return context;
 };
 
+export const useOptionalNotifications = () => {
+  return useContext(NotificationContext);
+};
+
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -45,9 +49,12 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     window.addEventListener('auth:login', handleLogin);
     window.addEventListener('auth:logout', handleLogout);
 
+    const intervalId = setInterval(fetchLatest, 120000);
+
     return () => {
       window.removeEventListener('auth:login', handleLogin);
       window.removeEventListener('auth:logout', handleLogout);
+      clearInterval(intervalId);
       unsubscribe();
     };
   }, []);

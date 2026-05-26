@@ -21,7 +21,7 @@ interface ActionsPageProps {
 
 export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
   const userData = getUserData();
-  const { reports, loading, error, refreshReports } = useReports();
+  const { reports, loading, error, refreshReports, updateActionStatus } = useReports();
   const [searchParams] = useSearchParams();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -38,6 +38,26 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
       ? 'Supervisor'
       : 'System Administrator';
 
+  const formatActionId = (id: string) => {
+    const trimmed = id.trim();
+    if (/^[a-f0-9]{24}$/i.test(trimmed)) {
+      return `ACT-${trimmed.slice(-6).toUpperCase()}`;
+    }
+    return trimmed;
+  };
+
+  const formatDueDate = (dateValue: string) => {
+    const parsed = new Date(dateValue);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toLocaleDateString('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric',
+      });
+    }
+    return dateValue;
+  };
+
   // Re-fetch reports every time the page is visited
   useEffect(() => {
     refreshReports();
@@ -52,7 +72,7 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
           aggregated.push({
             ...action,
             relatedReport: report.id,
-            priority: 'Medium' as PriorityLevel,
+            priority: (action.priority as PriorityLevel) || 'Medium',
           });
         });
       });
@@ -110,12 +130,12 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
   const buildActionDetails = (action: Action) => ({
     id: action.id,
     title: action.action,
-    description: 'Corrective action details',
+    description: action.description || 'Corrective action details',
     reportId: action.relatedReport,
     assignedTo: action.assignedTo,
     status: action.status,
-    createdOn: new Date().toLocaleDateString(),
-    dueDate: action.dueDate,
+    createdOn: action.createdAt ? new Date(action.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
+    dueDate: formatDueDate(action.dueDate),
     comments: 'Action from report system',
     timeline: [
       {
@@ -363,7 +383,7 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
                           className="bg-[#FFFAF5] dark:bg-[#121212] hover:bg-[#FFFEFB] dark:hover:bg-gray-800 transition-colors border-l-4 border-l-[#C24438] dark:border-l-orange-500 border-b border-b-gray-200 dark:border-b-gray-700 cursor-pointer"
                         >
                           <td className="py-3 md:py-4 px-3 md:px-4">
-                            <div className="font-medium text-gray-900 dark:text-white text-xs md:text-sm">{action.id}</div>
+                            <div className="font-medium text-gray-900 dark:text-white text-xs md:text-sm">{formatActionId(action.id)}</div>
                           </td>
                           <td className="py-3 md:py-4 px-3 md:px-4\">
                             <div className="text-gray-900 dark:text-gray-100 text-xs md:text-sm">{action.action}</div>
@@ -379,7 +399,7 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
                           </td>
                           <td className="hidden md:table-cell py-4 px-4">{getPriorityBadge(action.priority)}</td>
                           <td className="hidden md:table-cell py-4 px-4">
-                            <div className="text-gray-600 dark:text-gray-300 text-sm">{action.dueDate}</div>
+                            <div className="text-gray-600 dark:text-gray-300 text-sm">{formatDueDate(action.dueDate)}</div>
                           </td>
                           <td className="hidden lg:table-cell py-4 px-4">{getStatusBadge(action.status as ActionStatus)}</td>
                         </tr>
@@ -399,8 +419,9 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
         onClose={() => setSelectedAction(null)}
         action={selectedAction}
         onMarkCompleted={(actionId) => {
-          console.log('Mark as completed:', actionId);
-          // Update action status logic here
+          if (selectedAction?.reportId) {
+            updateActionStatus(selectedAction.reportId, actionId, 'Completed');
+          }
           setSelectedAction(null);
         }}
         onVerifyClose={(actionId) => {

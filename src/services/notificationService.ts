@@ -85,9 +85,17 @@ class NotificationService {
       });
 
       const payload = response.data;
-      const list = Array.isArray(payload)
+      const rawList = Array.isArray(payload)
         ? payload
         : payload?.data || payload?.notifications || payload?.results || payload?.items || payload?.records || [];
+
+      const list = Array.isArray(rawList)
+        ? rawList
+        : Array.isArray(rawList?.data)
+        ? rawList.data
+        : rawList && typeof rawList === 'object'
+        ? [rawList]
+        : [];
 
       if (!Array.isArray(list)) {
         return [];

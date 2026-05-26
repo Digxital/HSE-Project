@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { reportService } from '@/services/reportService';
 import { getUserData } from '@/utils/authStorage';
 import { authService } from '@/services/authService';
-import { useNotifications } from '@/contexts/NotificationContext';
+import { useOptionalNotifications } from '@/contexts/NotificationContext';
 
 // Types
 export type RiskLevel = 'High' | 'Medium' | 'Low';
@@ -16,6 +16,14 @@ export interface Action {
   dueDate: string;
   status: ActionStatus;
   type?: 'Suggested' | 'User-Created';
+  priority?: 'High' | 'Medium' | 'Low' | string;
+  description?: string;
+  createdAt?: string;
+  createdBy?: {
+    id?: string;
+    role?: string;
+    email?: string;
+  };
 }
  
 export interface Comment {
@@ -36,6 +44,7 @@ export interface Report {
   risk: RiskLevel;
   status: ReportStatus;
   dateReported: string;
+  rawCreatedAt?: string;
   reportedBy: string;
   equipmentInvolved: string;
   actions: Action[];
@@ -50,6 +59,7 @@ interface ReportsContextType {
   closeReport: (reportId: string) => void;
   addComment: (reportId: string, text: string, role: 'admin' | 'supervisor') => void;
   deleteComment: (reportId: string, commentId: string) => void;
+  updateActionStatus: (reportId: string, actionId: string, status: ActionStatus) => void;
   addAction: (reportId: string, actionData: {
     actionTitle: string;
     assignedTo: string;
@@ -69,114 +79,29 @@ export const useReports = () => {
   return context;
 };
 
+export const useOptionalReports = () => {
+  return useContext(ReportsContext);
+};
+
 // Use only backend API data - no mock data
 const initialReports: Report[] = [];
 
 export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { addNotification } = useNotifications();
+  const notificationApi = useOptionalNotifications();
+  const addNotification = notificationApi?.addNotification ?? (() => {});
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const previousReportIdsRef = useRef<Set<string>>(new Set());
   const hasLoadedReportsRef = useRef(false);
 
-  // Helper to generate suggested actions from report attributes
-  const generateSuggestedActions = (report: Report): Action[] => {
-    const suggestedActions: Action[] = [];
-    const now = new Date();
-    const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    
-    const formatDate = (date: Date) => {
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      return `${months[date.getMonth()]} ${String(date.getDate()).padStart(2, '0')}, ${date.getFullYear()}`;
-    };
-
-    if (report.risk === 'High') {
-      suggestedActions.push({
-        id: `ACT-SUGG-${report.id}-001`,
-        action: 'Investigate and mitigate high-risk hazard',
-        assignedTo: 'Safety Officer',
-        dueDate: formatDate(nextWeek),
-        status: 'Open',
-        type: 'Suggested',
-      });
-    }
-
-    if (report.risk === 'Medium') {
-      suggestedActions.push({
-        id: `ACT-SUGG-${report.id}-002`,
-        action: 'Review and assess impact',
-        assignedTo: 'Supervisor',
-        dueDate: formatDate(nextWeek),
-        status: 'Open',
-        type: 'Suggested',
-      });
-    }
-
-    if (report.type === 'Incident') {
-      suggestedActions.push({
-        id: `ACT-SUGG-${report.id}-003`,
-        action: 'Review incident and document lessons learned',
-        assignedTo: 'HSE Manager',
-        dueDate: formatDate(nextWeek),
-        status: 'Open',
-        type: 'Suggested',
-      });
-    }
-
-    if (report.status === 'Open') {
-      suggestedActions.push({
-        id: `ACT-SUGG-${report.id}-004`,
-        action: 'Review and prioritize response',
-        assignedTo: 'Operations Manager',
-        dueDate: formatDate(nextWeek),
-        status: 'Open',
-        type: 'Suggested',
-      });
-    }
-
-    return suggestedActions;
-  };
-
-  // Helper to load saved user-created actions from localStorage
-  const loadSavedActions = (): Record<string, Action[]> => {
-    try {
-      const saved = localStorage.getItem('aegix_report_actions');
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  };
-
-  // Helper to save user-created actions to localStorage
-  const saveActionsToStorage = (reportId: string, actions: Action[]) => {
-    try {
-      const saved = loadSavedActions();
-      saved[reportId] = actions.filter(a => a.type === 'User-Created');
-      localStorage.setItem('aegix_report_actions', JSON.stringify(saved));
-    } catch (err) {
-      console.error('Failed to save actions to localStorage:', err);
-    }
-  };
-
-  // Merge suggested actions into fetched reports
+  // Merge reports with comments (actions are backend-driven)
   const mergeWithActionsAndComments = (fetchedReports: Report[]): Report[] => {
-    const savedActions = loadSavedActions();
-    
-    return fetchedReports.map(report => {
-      // Merge actions: suggested + API + user-created
-      const suggestedActions = generateSuggestedActions(report);
-      const userCreatedActions = (savedActions[report.id] || []).filter(a => a.type === 'User-Created');
-      
-      // Combine all actions
-      let allActions = [...suggestedActions, ...report.actions, ...userCreatedActions];
-      
-      return {
-        ...report,
-        actions: allActions,
-        comments: report.comments,
-      };
-    });
+    return fetchedReports.map(report => ({
+      ...report,
+      actions: report.actions,
+      comments: report.comments,
+    }));
   };
 
   const fetchReports = useCallback(async () => {
@@ -187,9 +112,10 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const mergedReports = mergeWithActionsAndComments(data);
       setReports(mergedReports);
 
+      const currentUser = getUserData();
+      const currentEmail = currentUser?.email?.toLowerCase();
+
       if (hasLoadedReportsRef.current) {
-        const currentUser = getUserData();
-        const currentEmail = currentUser?.email?.toLowerCase();
         const previousIds = previousReportIdsRef.current;
         const newReports = mergedReports.filter((report) => !previousIds.has(report.id));
         newReports.forEach((report) => {
@@ -206,6 +132,33 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
             },
           });
         });
+      } else {
+        const lastSeenRaw = Number(localStorage.getItem('aegix_last_seen_reports_at') || 0);
+        const newReportsByTime = mergedReports.filter((report) => {
+          const createdAtMs = report.rawCreatedAt ? Date.parse(report.rawCreatedAt) : 0;
+          return createdAtMs > lastSeenRaw;
+        });
+
+        newReportsByTime.forEach((report) => {
+          const reporterEmail = report.reportedBy?.toLowerCase();
+          if (currentEmail && reporterEmail && currentEmail === reporterEmail) return;
+
+          addNotification({
+            type: 'report_submitted',
+            title: 'New report submitted',
+            description: `${report.category} reported at ${report.location}`,
+            timestamp: report.dateReported.replace('\n', ' '),
+            data: {
+              reportId: report.id,
+            },
+          });
+        });
+
+        const latestCreatedAt = mergedReports
+          .map((report) => (report.rawCreatedAt ? Date.parse(report.rawCreatedAt) : 0))
+          .reduce((max, value) => (value > max ? value : max), lastSeenRaw || 0);
+
+        localStorage.setItem('aegix_last_seen_reports_at', String(latestCreatedAt || Date.now()));
       }
 
       previousReportIdsRef.current = new Set(mergedReports.map((report) => report.id));
@@ -240,9 +193,7 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Listen for localStorage changes from other tabs (cross-tab sync)
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'aegix_report_actions') {
-        // Actions changed in another tab - refresh reports to pick up changes
-        console.log(`📢 ${e.key} updated in another tab, syncing...`);
+      if (e.key === 'aegix_last_seen_reports_at') {
         fetchReports();
       }
     };
@@ -394,6 +345,18 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  const updateActionStatus = (reportId: string, actionId: string, status: ActionStatus) => {
+    setReports(prev =>
+      prev.map(report => {
+        if (report.id !== reportId) return report;
+        const updatedActions = report.actions.map(action =>
+          action.id === actionId ? { ...action, status } : action
+        );
+        return { ...report, actions: updatedActions };
+      })
+    );
+  };
+
   const addAction = async (
     reportId: string,
     actionData: {
@@ -429,8 +392,6 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       prev.map(r => {
         if (r.id === reportId) {
           const updatedActions = [...r.actions, newAction];
-          // Persist user-created actions to localStorage
-          saveActionsToStorage(reportId, updatedActions);
           return { ...r, actions: updatedActions };
         }
         return r;
@@ -447,7 +408,7 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   };
 
   return (
-    <ReportsContext.Provider value={{ reports, loading, error, refreshReports: fetchReports, closeReport, addComment, deleteComment, addAction }}>
+    <ReportsContext.Provider value={{ reports, loading, error, refreshReports: fetchReports, closeReport, addComment, deleteComment, updateActionStatus, addAction }}>
       {children}
     </ReportsContext.Provider>
   );

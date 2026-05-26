@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { ReportDetailsModal } from '@/components/reports/ReportDetailsModal';
-import { useReports, type Report, type RiskLevel, type ReportStatus } from '@/services/ReportsContext';
+import { useOptionalReports, type Report, type RiskLevel, type ReportStatus } from '@/services/ReportsContext';
 import { getUserData } from '@/utils/authStorage';
  
 type ReportType = 'All' | 'Incidents' | 'Hazard';
@@ -14,7 +14,15 @@ interface ReportsPageProps {
  
 export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
   const userData = getUserData();
-  const { reports, loading, error, refreshReports, closeReport, addComment, deleteComment, addAction } = useReports();
+  const reportsApi = useOptionalReports();
+  const reports = reportsApi?.reports ?? [];
+  const loading = reportsApi?.loading ?? false;
+  const error = reportsApi?.error ?? null;
+  const refreshReports = reportsApi?.refreshReports ?? (async () => {});
+  const closeReport = reportsApi?.closeReport ?? (() => {});
+  const addComment = reportsApi?.addComment ?? (() => {});
+  const deleteComment = reportsApi?.deleteComment ?? (() => {});
+  const addAction = reportsApi?.addAction ?? (() => {});
   const [searchParams] = useSearchParams();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

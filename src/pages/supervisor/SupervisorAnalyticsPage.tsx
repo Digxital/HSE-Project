@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
-import { useReports } from '@/services/ReportsContext';
+import { useOptionalReports } from '@/services/ReportsContext';
 import { getUserData } from '@/utils/authStorage';
 import {
   AreaChart,
@@ -38,7 +38,8 @@ export const SupervisorAnalyticsPage: React.FC = () => {
   const [locationFilter, setLocationFilter] = useState<TimeFilter>('12 months');
 
   // Get real reports data
-  const { reports } = useReports();
+  const reportsApi = useOptionalReports();
+  const reports = reportsApi?.reports ?? [];
 
   // Calculate stat card values from real data
   const totalReportsCount = useMemo(() => reports.length, [reports]);
@@ -288,7 +289,7 @@ export const SupervisorAnalyticsPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background-light">
+    <div className="min-h-screen bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors">
       {/* Backdrop for mobile sidebar */}
       {isMobile && mobileMenuOpen && (
         <div
@@ -320,15 +321,15 @@ export const SupervisorAnalyticsPage: React.FC = () => {
         />
 
         {/* Main Content Area */}
-        <main className="p-4 md:p-6 lg:p-8">
+        <main className="p-4 md:p-6 lg:p-8 bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors">
           <div className="max-w-[1600px] mx-auto space-y-6">
 
             {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" data-aos="fade-up">
               {/* Total Reports */}
-              <div className="bg-white rounded-xl p-4 md:p-5 border border-gray-100 flex flex-col">
+              <div className="bg-[#fffaf5] dark:bg-[#121212] rounded-xl p-4 md:p-5 border border-gray-100 dark:border-gray-700 flex flex-col">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-1 h-6">
-                  <span className="text-sm text-gray-600">Total Reports</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Total Reports</span>
                   <span className="text-[#C24438] text-[10px] md:text-xs font-medium cursor-pointer hover:underline flex items-center gap-0.5 whitespace-nowrap">
                     View all reports
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -336,8 +337,8 @@ export const SupervisorAnalyticsPage: React.FC = () => {
                     </svg>
                   </span>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{totalReportsCount}</div>
-                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{totalReportsCount}</div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
                   +{reportsTrendCount} since last month
                   <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -346,12 +347,12 @@ export const SupervisorAnalyticsPage: React.FC = () => {
               </div>
 
               {/* Open Actions */}
-              <div className="bg-white rounded-xl p-4 md:p-5 border border-gray-100 flex flex-col">
+              <div className="bg-[#fffaf5] dark:bg-[#121212] rounded-xl p-4 md:p-5 border border-gray-100 dark:border-gray-700 flex flex-col">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-1 h-6">
-                  <span className="text-sm text-gray-600">Open Actions</span>
-                  <span className="text-green-600 bg-green-50 px-1.5 py-0.5 rounded text-[10px] md:text-xs w-fit whitespace-nowrap">See high-risk items</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Open Actions</span>
+                  <span className="text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/30 px-1.5 py-0.5 rounded text-[10px] md:text-xs w-fit whitespace-nowrap">See high-risk items</span>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{openActionsCount}</div>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{openActionsCount}</div>
                 <p className="text-xs mt-1 flex items-center gap-1">
                   <span className="text-[#C24438]">{overdueActionsCount} actions overdue</span>
                   <svg className="w-3 h-3 text-[#C24438]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -361,9 +362,9 @@ export const SupervisorAnalyticsPage: React.FC = () => {
               </div>
 
               {/* In-Progress Report */}
-              <div className="bg-white rounded-xl p-4 md:p-5 border border-gray-100 flex flex-col">
+              <div className="bg-[#fffaf5] dark:bg-[#121212] rounded-xl p-4 md:p-5 border border-gray-100 dark:border-gray-700 flex flex-col">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-1 h-6">
-                  <span className="text-sm text-gray-600">In-Progress Report</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">In-Progress Report</span>
                   <span className="text-[#C24438] text-[10px] md:text-xs font-medium cursor-pointer hover:underline flex items-center gap-0.5 whitespace-nowrap">
                     View reports
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -371,8 +372,8 @@ export const SupervisorAnalyticsPage: React.FC = () => {
                     </svg>
                   </span>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{inProgressActionsCount}</div>
-                <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{inProgressActionsCount}</div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
                   Actions underway
                   <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -381,19 +382,19 @@ export const SupervisorAnalyticsPage: React.FC = () => {
               </div>
 
               {/* Overdue Actions */}
-              <div className="bg-white rounded-xl p-4 md:p-5 border border-gray-100 flex flex-col">
+              <div className="bg-[#fffaf5] dark:bg-[#121212] rounded-xl p-4 md:p-5 border border-gray-100 dark:border-gray-700 flex flex-col">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-1 h-6">
-                  <span className="text-sm text-gray-600">Overdue Actions</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Overdue Actions</span>
                   <span className="text-[#C24438] text-[10px] md:text-xs font-medium cursor-pointer hover:underline whitespace-nowrap">Review & Prioritize</span>
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">{overdueActionsCount}</div>
-                <p className="text-xs text-gray-500 mt-1">Past due date</p>
+                <div className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{overdueActionsCount}</div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Past due date</p>
               </div>
             </div>
 
             {/* Report Trends */}
-            <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100" data-aos="fade-up" data-aos-delay="100">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Report Trends</h3>
+            <div className="bg-[#FFFAF5] dark:bg-[#121212] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700" data-aos="fade-up" data-aos-delay="100">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Report Trends</h3>
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                 <div className="flex flex-wrap items-center gap-2">
                   {timeFilters.map((filter) => (
@@ -403,7 +404,7 @@ export const SupervisorAnalyticsPage: React.FC = () => {
                       className={`px-3 py-1.5 text-xs md:text-sm rounded-lg transition-colors ${
                         trendsFilter === filter
                           ? 'bg-[#C24438] text-white'
-                          : 'bg-white text-gray-600 hover:bg-gray-100'
+                          : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                       }`}
                     >
                       {filter}
@@ -413,11 +414,11 @@ export const SupervisorAnalyticsPage: React.FC = () => {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-[#C24438]"></div>
-                    <span className="text-sm text-gray-600">Hazard</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Hazard</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-[#FF9500]"></div>
-                    <span className="text-sm text-gray-600">Incident</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Incident</span>
                   </div>
                 </div>
               </div>
@@ -462,11 +463,11 @@ export const SupervisorAnalyticsPage: React.FC = () => {
             </div>
 
             {/* Reports by Location - Full Width */}
-            <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100" data-aos="fade-up" data-aos-delay="150">
+            <div className="bg-[#FFFAF5] dark:bg-[#121212] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700" data-aos="fade-up" data-aos-delay="150">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Reports by Location</h3>
-                  <p className="text-sm text-gray-500">Locations with the highest number of reports</p>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Reports by Location</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Locations with the highest number of reports</p>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="flex flex-wrap items-center gap-2">
@@ -477,14 +478,14 @@ export const SupervisorAnalyticsPage: React.FC = () => {
                         className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
                           locationFilter === filter
                             ? 'bg-[#C24438] text-white'
-                            : 'bg-white text-gray-600 hover:bg-gray-100'
+                            : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                         }`}
                       >
                         {filter}
                       </button>
                     ))}
                   </div>
-                  <div className="hidden md:flex items-center gap-2 text-sm text-gray-500">
+                  <div className="hidden md:flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                     <div className="w-3 h-3 rounded-full bg-[#C24438]"></div>
                     Total Reports
                   </div>
@@ -495,10 +496,10 @@ export const SupervisorAnalyticsPage: React.FC = () => {
                 {reportsByLocationData.map((item) => (
                   <div key={item.name}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-gray-600">{item.name}</span>
-                      <span className="text-sm font-medium text-gray-900">{item.reports}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{item.name}</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{item.reports}</span>
                     </div>
-                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
                         style={{
@@ -510,7 +511,7 @@ export const SupervisorAnalyticsPage: React.FC = () => {
                   </div>
                 ))}
               </div>
-              <div className="flex items-center gap-1 mt-4 text-xs text-gray-400">
+              <div className="flex items-center gap-1 mt-4 text-xs text-gray-400 dark:text-gray-500">
                 {Array.from({ length: 11 }, (_, i) => Math.round((locationMaxValue / 10) * i)).map((value, index) => (
                   <React.Fragment key={index}>
                     <span>{value}</span>
@@ -523,9 +524,9 @@ export const SupervisorAnalyticsPage: React.FC = () => {
             {/* Risk Level Distribution & Reports by Category */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Risk Level Distribution */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100" data-aos="fade-up" data-aos-delay="200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Risk Level Distribution</h3>
-                <p className="text-sm text-gray-500 mb-6">Percentage of reports by risk level</p>
+              <div className="bg-[#FFFAF5] dark:bg-[#121212] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700" data-aos="fade-up" data-aos-delay="200">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Risk Level Distribution</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Percentage of reports by risk level</p>
                 <div className="flex items-center gap-6">
                   <div className="w-36 h-36">
                     <ResponsiveContainer width="100%" height="100%">
@@ -554,9 +555,9 @@ export const SupervisorAnalyticsPage: React.FC = () => {
                       <div key={item.name} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                          <span className="text-sm text-gray-600">{item.name}</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">{item.name}</span>
                         </div>
-                        <span className="text-sm font-medium text-gray-900">{item.value}%</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{item.value}%</span>
                       </div>
                     ))}
                   </div>
@@ -564,9 +565,9 @@ export const SupervisorAnalyticsPage: React.FC = () => {
               </div>
 
               {/* Reports by Category */}
-              <div className="bg-[#FFFAF5] rounded-xl p-4 md:p-6 border border-gray-100" data-aos="fade-up" data-aos-delay="250">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Reports by Category</h3>
-                <p className="text-sm text-gray-500 mb-6">Types of reported issues</p>
+              <div className="bg-[#FFFAF5] dark:bg-[#121212] rounded-xl p-4 md:p-6 border border-gray-100 dark:border-gray-700" data-aos="fade-up" data-aos-delay="250">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Reports by Category</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Types of reported issues</p>
                 <div className="flex items-center gap-6">
                   <div className="w-36 h-36">
                     <ResponsiveContainer width="100%" height="100%">
@@ -595,9 +596,9 @@ export const SupervisorAnalyticsPage: React.FC = () => {
                       <div key={item.name} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                          <span className="text-sm text-gray-600">{item.name}</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">{item.name}</span>
                         </div>
-                        <span className="text-sm font-medium text-gray-900">{item.value}%</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{item.value}%</span>
                       </div>
                     ))}
                   </div>

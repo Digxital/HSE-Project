@@ -54,6 +54,18 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
   const [isAddActionModalOpen, setIsAddActionModalOpen] = useState(false);
   const [newComment, setNewComment] = useState('');
 
+  const formatDueDate = (dateValue: string) => {
+    const parsed = new Date(dateValue);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toLocaleDateString('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric',
+      });
+    }
+    return dateValue;
+  };
+
   useEffect(() => {
     if (!isOpen || !highlightCommentId) return;
     const elementId = `comment-${highlightCommentId}`;
@@ -247,7 +259,7 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
                       <tr key={action.id} className="bg-[#FFFAF5] dark:bg-gray-800 hover:bg-[#FFFEFB] dark:hover:bg-gray-700 transition-colors border-l-4 border-l-[#C24438] dark:border-l-orange-500 border-b border-b-gray-200 dark:border-b-gray-700">
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{action.action}</td>
                         <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{action.assignedTo}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{action.dueDate}</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{formatDueDate(action.dueDate)}</td>
                         <td className="px-4 py-3">
                           <span
                             className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
@@ -372,6 +384,7 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
         isOpen={isAddActionModalOpen}
         onClose={() => setIsAddActionModalOpen(false)}
         onAddAction={handleAddAction}
+        assignedToEmail={report.reportedBy}
       />
     </>
   );
