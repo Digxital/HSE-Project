@@ -68,11 +68,13 @@ interface ApiComment {
 }
 
 interface ApiInlineComment {
+  _id?: string;
   text: string;
   commentedBy?: {
     firstName?: string;
     lastName?: string;
     email?: string;
+    role?: string;
   };
   commentedAt?: string;
   role?: string;
@@ -133,7 +135,11 @@ function mapApiReportToReport(apiReport: ApiReport): Report {
 
   // Generate display ID using the idGenerator service
   // When backend provides displayId field, this will automatically use it
-  const displayId = generateDisplayId(apiReport);
+  const displayId = generateDisplayId({
+    _id: apiReport._id,
+    recordType,
+    displayId: apiReport.displayId,
+  });
 
   const actions: Action[] = (apiReport.actions || []).map((a, i) => ({
     id: a._id || `ACT-${String(i + 1).padStart(3, '0')}`,
@@ -152,7 +158,7 @@ function mapApiReportToReport(apiReport: ApiReport): Report {
     const lastName = c.commentedBy?.lastName || '';
     const author = c.author || `${firstName} ${lastName}`.trim() || c.commentedBy?.email || 'User';
     const backendRole = (c.role || c.commentedBy?.role || '').toLowerCase();
-    const role = backendRole === 'supervisor'
+    const role: Comment['role'] = backendRole === 'supervisor'
       ? 'Supervisor'
       : backendRole === 'admin'
       ? 'Admin'
@@ -175,9 +181,9 @@ function mapApiReportToReport(apiReport: ApiReport): Report {
     const firstName = inline.commentedBy?.firstName || '';
     const lastName = inline.commentedBy?.lastName || '';
     const author = `${firstName} ${lastName}`.trim() || inline.commentedBy?.email || roleFallback;
-    const backendRole = inline.commentedBy?.role?.toLowerCase();
+    const backendRole = (inline.commentedBy?.role || inline.role || '').toLowerCase();
     const roleFromBackend = backendRole === 'supervisor' ? 'Supervisor' : backendRole === 'admin' ? 'Admin' : undefined;
-    const role = inline.role === 'Supervisor' || inline.role === 'Admin'
+    const role: Comment['role'] = inline.role === 'Supervisor' || inline.role === 'Admin'
       ? inline.role
       : roleFromBackend || roleFallback;
     const rawTime = inline.commentedAt || apiReport.createdAt;
