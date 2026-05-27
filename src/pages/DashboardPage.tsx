@@ -16,7 +16,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ role = 'admin' }) 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const userData = getUserData();
-  const { reports, loading } = useReports();
+  const { reports, loading, refreshReports } = useReports();
 
   const hasData = useMemo(() => !loading && reports.length > 0, [loading, reports.length]);
 
@@ -40,6 +40,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ role = 'admin' }) 
 
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  useEffect(() => {
+    refreshReports();
+  }, [refreshReports]);
 
   const handleMobileSidebarToggle = () => {
     setIsMobileSidebarOpen(!isMobileSidebarOpen);

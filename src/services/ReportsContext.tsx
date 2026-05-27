@@ -197,6 +197,26 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [fetchReports]);
 
   useEffect(() => {
+    const handleLogin = () => {
+      fetchReports();
+    };
+
+    const handleLogout = () => {
+      setReports([]);
+      setLoading(false);
+      setError(null);
+    };
+
+    window.addEventListener('auth:login', handleLogin);
+    window.addEventListener('auth:logout', handleLogout);
+
+    return () => {
+      window.removeEventListener('auth:login', handleLogin);
+      window.removeEventListener('auth:logout', handleLogout);
+    };
+  }, [fetchReports]);
+
+  useEffect(() => {
     if (!authService.isAuthenticated()) return;
     const intervalId = setInterval(() => {
       fetchReports();
