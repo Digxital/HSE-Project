@@ -23,7 +23,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
   const addComment = reportsApi?.addComment ?? (() => {});
   const deleteComment = reportsApi?.deleteComment ?? (() => {});
   const addAction = reportsApi?.addAction ?? (() => {});
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<ReportType>('All');
@@ -131,6 +131,14 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
     }
   ) => {
     addAction(reportId, actionData);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedReport(null);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('reportId');
+    nextParams.delete('commentId');
+    setSearchParams(nextParams, { replace: true });
   };
 
   const getRiskBadge = (risk: RiskLevel) => {
@@ -361,7 +369,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ role = 'admin' }) => {
       {/* Report Details Modal */}
       <ReportDetailsModal
         isOpen={selectedReport !== null}
-        onClose={() => setSelectedReport(null)}
+        onClose={handleCloseModal}
         onCloseReport={handleCloseReport}
         onAddAction={handleAddAction}
         onAddComment={handleAddComment}

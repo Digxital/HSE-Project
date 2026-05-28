@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { useNotifications } from '@/contexts/NotificationContext';
+import { useOptionalReports } from '@/services/ReportsContext';
 import { getUserData } from '@/utils/authStorage';
 
 interface Notification {
@@ -25,6 +26,8 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'ad
   const navigate = useNavigate();
   const userData = getUserData();
   const { notifications, markAsRead, markAllAsRead } = useNotifications();
+  const reportsApi = useOptionalReports();
+  const reports = reportsApi?.reports ?? [];
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -38,6 +41,19 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'ad
     : role === 'supervisor'
       ? 'Supervisor'
       : 'System Administrator';
+
+  const formatReportTimestamp = (value?: string) => {
+    if (!value) return null;
+    const parsed = Date.parse(value);
+    if (Number.isNaN(parsed)) return null;
+    return new Date(parsed).toLocaleString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
 
   const mappedNotifications: Notification[] = notifications.map((notification) => {
     const emailMatch = typeof notification.description === 'string'
@@ -61,21 +77,30 @@ export const NotificationsPage: React.FC<NotificationsPageProps> = ({ role = 'ad
       ? 'USER'
       : 'SYSTEM';
 
-    const targetId =
+    const reportId =
       notification.data?.reportId ||
       notification.data?.incidentId ||
+      notification.data?.report?.id ||
+      undefined;
+
+    const targetId =
+      reportId ||
       notification.data?.actionId ||
       notification.data?.userId ||
-      notification.data?.report?.id ||
       notification.data?.action?.id ||
       notification.data?.id;
+
+    const relatedReport = reportId
+      ? reports.find((report) => report.id === reportId || report._id === reportId)
+      : undefined;
+    const reportTimestamp = formatReportTimestamp(relatedReport?.rawCreatedAt);
 
     return {
       id: notification.id,
       type: mappedType,
       title: notification.title,
       description: notification.description,
-      timestamp: notification.timestamp,
+      timestamp: reportTimestamp || notification.timestamp,
       isRead: notification.read,
       targetId,
       commentId: notification.data?.commentId,

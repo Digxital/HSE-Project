@@ -30,7 +30,6 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedRole, setSelectedRole] = useState<string>('ALL');
   const [selectedAction, setSelectedAction] = useState<string>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
@@ -207,9 +206,7 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
       normalizeText(log.resourceName).toLowerCase().includes(query) ||
       normalizeText(log.details).toLowerCase().includes(query);
     
-    const matchesRole = selectedRole === 'ALL' || log.userRole === selectedRole;
-
-    return matchesSearch && matchesRole;
+      return matchesSearch;
   });
 
   const actionFilters = [
@@ -222,11 +219,6 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
     'CERTIFICATION_UPLOADED',
   ] as const;
 
-  // Get role counts
-  const roleCount = (roleType: string) => {
-    if (roleType === 'ALL') return auditLogs.length;
-    return auditLogs.filter(log => log.userRole === roleType).length;
-  };
 
   // Pagination
   const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
@@ -307,28 +299,8 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
               <p className="text-gray-600 dark:text-gray-400">Track all system activities.</p>
             </div>
 
-            {/* Role Filter Pills, Action Filter & Search */}
+            {/* Action Filter & Search */}
             <div className="mb-6 space-y-4">
-              {/* Role Filter Pills */}
-              <div className="flex flex-wrap gap-2">
-                {(['ALL', 'Admin', 'Supervisor', 'Field User', 'HSE Officer'] as const).map((roleFilter) => (
-                  <button
-                    key={roleFilter}
-                    onClick={() => {
-                      setSelectedRole(roleFilter === 'ALL' ? 'ALL' : roleFilter);
-                      setCurrentPage(1);
-                    }}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                      selectedRole === (roleFilter === 'ALL' ? 'ALL' : roleFilter)
-                        ? 'bg-[#C24438] dark:bg-orange-600 text-white'
-                        : 'bg-white dark:bg-[#121212] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                    }`}
-                  >
-                    {roleFilter} {roleFilter !== 'ALL' && `(${roleCount(roleFilter)})`}
-                  </button>
-                ))}
-              </div>
-
               {/* Action Filter Pills */}
               <div className="flex flex-wrap gap-2">
                 {actionFilters.map((actionFilter) => (

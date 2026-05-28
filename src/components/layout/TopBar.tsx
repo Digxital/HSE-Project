@@ -4,6 +4,7 @@ import { authService } from '@/services/authService';
 import { removeAuthToken, removeRefreshToken, removeUserData } from '@/utils/authStorage';
 import { useToast } from '@/hooks/useToast';
 import { useNotifications } from '@/contexts/NotificationContext';
+import { useOptionalReports } from '@/services/ReportsContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { NotificationPreviewModal } from '@/components/common/NotificationPreviewModal';
 
@@ -36,6 +37,8 @@ export const TopBar: React.FC<TopBarProps> = ({
   
   // Use notification context
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const reportsApi = useOptionalReports();
+  const reports = reportsApi?.reports ?? [];
   
   // Use theme context
   const { isDark, toggleDarkMode } = useTheme();
@@ -163,6 +166,19 @@ export const TopBar: React.FC<TopBarProps> = ({
     if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
     
     return date.toLocaleDateString();
+  };
+
+  const formatReportTimestamp = (value?: string) => {
+    if (!value) return null;
+    const parsed = Date.parse(value);
+    if (Number.isNaN(parsed)) return null;
+    return new Date(parsed).toLocaleString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   const getNotificationIcon = (type: string) => {
@@ -320,14 +336,20 @@ export const TopBar: React.FC<TopBarProps> = ({
                   ? 'USER'
                   : 'SYSTEM';
 
+                const reportId = notif.data?.reportId || notif.data?.incidentId || notif.data?.report?.id;
+                const relatedReport = reportId
+                  ? reports.find((report) => report.id === reportId || report._id === reportId)
+                  : undefined;
+                const reportTimestamp = formatReportTimestamp(relatedReport?.rawCreatedAt);
+
                 return {
                   id: notif.id,
                   type,
                   title: notif.title,
                   description: notif.description,
-                  timestamp: notif.timestamp,
+                  timestamp: reportTimestamp || notif.timestamp,
                   isRead: notif.read,
-                  targetId: notif.data?.reportId || notif.data?.incidentId || notif.data?.actionId || notif.data?.userId || notif.data?.report?.id || notif.data?.action?.id || notif.data?.id,
+                  targetId: reportId || notif.data?.actionId || notif.data?.userId || notif.data?.action?.id || notif.data?.id,
                   commentId: notif.data?.commentId,
                   userEmail,
                 };
