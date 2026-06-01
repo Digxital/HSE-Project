@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { userService } from '@/services/userService';
 
 interface AddActionModalProps {
   isOpen: boolean;
@@ -21,6 +22,11 @@ export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose,
     priority: '',
     description: '',
   });
+  const [assignedToQuery, setAssignedToQuery] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeUsers, setActiveUsers] = useState<Array<{ email: string; name: string }>>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [usersError, setUsersError] = useState<string | null>(null);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -44,7 +50,52 @@ export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose,
   React.useEffect(() => {
     if (!assignedToEmail) return;
     setFormData((prev) => ({ ...prev, assignedTo: assignedToEmail }));
+    setAssignedToQuery(assignedToEmail);
   }, [assignedToEmail, isOpen]);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    let isMounted = true;
+    const loadUsers = async () => {
+      try {
+        setUsersLoading(true);
+        setUsersError(null);
+        const users = await userService.getUsers();
+        if (!isMounted) return;
+        const normalized = users
+          .filter((user) => {
+            const status = (user.status || '').toUpperCase();
+            return status === 'ACTIVE';
+          })
+          .map((user) => ({
+            email: user.email,
+            name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        setActiveUsers(normalized);
+      } catch (error: any) {
+        if (!isMounted) return;
+        setUsersError(error?.message || 'Failed to load users');
+      } finally {
+        if (isMounted) {
+          setUsersLoading(false);
+        }
+      }
+    };
+
+    loadUsers();
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen]);
+
+  const filteredUsers = useMemo(() => {
+    const query = assignedToQuery.trim().toLowerCase();
+    if (!query) return activeUsers.slice(0, 6);
+    return activeUsers
+      .filter((user) => user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query))
+      .slice(0, 8);
+  }, [activeUsers, assignedToQuery]);
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
@@ -53,8 +104,9 @@ export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose,
       newErrors.actionTitle = 'Action title is required';
     }
 
-    if (!formData.assignedTo) {
-      newErrors.assignedTo = 'Please select who to assign this action to';
+    const assignedUser = activeUsers.find((user) => user.email.toLowerCase() === formData.assignedTo.toLowerCase());
+    if (!formData.assignedTo || !assignedUser) {
+      newErrors.assignedTo = 'Please select an active user from the list';
     }
 
     if (!formData.dueDate) {
@@ -97,6 +149,23 @@ export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose,
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: '' }));
     }
+  };
+
+  const handleAssignedToChange = (value: string) => {
+    setAssignedToQuery(value);
+    setFormData((prev) => ({ ...prev, assignedTo: '' }));
+    setShowSuggestions(true);
+    if (errors.assignedTo) {
+      setErrors((prev) => ({ ...prev, assignedTo: '' }));
+    }
+  };
+
+  const handleAssignedToSelect = (email: string) => {
+    const selected = activeUsers.find((user) => user.email === email);
+    if (!selected) return;
+    setAssignedToQuery(selected.name);
+    setFormData((prev) => ({ ...prev, assignedTo: selected.email }));
+    setShowSuggestions(false);
   };
 
   if (!isOpen) return null;
@@ -163,14 +232,41 @@ export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose,
               {/* Assigned to */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2\">Assigned to</label>
-                <input
-                  type="text"
-                  value={formData.assignedTo}
-                  readOnly
-                  className={`w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border ${
-                    errors.assignedTo ? 'border-red-500 dark:border-red-400' : 'border-gray-200 dark:border-gray-700'
-                  } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] dark:focus:ring-orange-500 focus:border-transparent text-sm text-gray-900 dark:text-white transition-colors`}
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={assignedToQuery}
+                    onChange={(e) => handleAssignedToChange(e.target.value)}
+                    onFocus={() => setShowSuggestions(true)}
+                    placeholder={usersLoading ? 'Loading users...' : 'Search by name or email'}
+                    className={`w-full px-4 py-2.5 bg-white dark:bg-gray-800 border ${
+                      errors.assignedTo ? 'border-red-500 dark:border-red-400' : 'border-gray-200 dark:border-gray-700'
+                    } rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C24438] dark:focus:ring-orange-500 focus:border-transparent text-sm text-gray-900 dark:text-white transition-colors`}
+                  />
+                  {showSuggestions && (assignedToQuery.trim().length > 0 || filteredUsers.length > 0) && (
+                    <div className="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#121212] shadow-lg">
+                      {usersError ? (
+                        <div className="px-4 py-2 text-sm text-red-500 dark:text-red-400">{usersError}</div>
+                      ) : filteredUsers.length > 0 ? (
+                        filteredUsers.map((user) => (
+                          <button
+                            key={user.email}
+                            type="button"
+                            onClick={() => handleAssignedToSelect(user.email)}
+                            className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                          >
+                            <div className="font-medium">{user.name}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">{user.email}</div>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+                          No active users found
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
                 {errors.assignedTo && <p className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.assignedTo}</p>}
               </div>
 

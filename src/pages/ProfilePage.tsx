@@ -30,6 +30,15 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
   const [profileError, setProfileError] = useState<string | null>(null);
   const [certCounts, setCertCounts] = useState({ valid: 0, expired: 0 });
 
+  const normalizeStatus = (value?: string) => {
+    if (!value) return undefined;
+    const normalized = value.toUpperCase();
+    if (normalized === 'ACTIVE') return 'active';
+    if (normalized === 'PENDING') return 'pending';
+    if (normalized === 'INACTIVE' || normalized === 'DEACTIVATED') return 'inactive';
+    return value.toLowerCase();
+  };
+
   const displayName = userData?.name || 'User';
   const displayRole = userData?.role
     ? userData.role === 'supervisor'
@@ -63,7 +72,15 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
 
         const users = await userService.getUsers();
         const match = users.find((u) => u._id === userId || u.id === userId || u.email === userEmail);
-        setProfileUser(match || null);
+        if (match) {
+          const normalizedStatus = normalizeStatus(match.status);
+          setProfileUser({
+            ...match,
+            status: (normalizedStatus || match.status) as UserResponse['status'],
+          });
+        } else {
+          setProfileUser(null);
+        }
       } catch (error: any) {
         setProfileError(error?.message || 'Failed to load profile data.');
         setProfileUser(null);
@@ -104,9 +121,18 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
 
   useEffect(() => {
     const loadCertifications = async () => {
+      const resolvedRole = (profileUser?.role || userRole || '').toUpperCase();
       const certUserId = profileUser?._id || profileUser?.id || userId;
-      if (!certUserId) return;
       try {
+        if (resolvedRole === 'ADMIN') {
+          const certs = await certificationService.getAllCertifications();
+          const valid = certs.filter((c) => c.status === 'Valid').length;
+          const expired = certs.filter((c) => c.status === 'Expired').length;
+          setCertCounts({ valid, expired });
+          return;
+        }
+
+        if (!certUserId) return;
         const certs = await certificationService.getUserCertifications(certUserId);
         const valid = certs.filter((c) => c.status === 'Valid').length;
         const expired = certs.filter((c) => c.status === 'Expired').length;
@@ -117,7 +143,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
     };
 
     loadCertifications();
-  }, [profileUser?._id, profileUser?.id, userId]);
+  }, [profileUser?._id, profileUser?.id, profileUser?.role, userId, userRole]);
 
   const profileName = profileUser
     ? `${profileUser.firstName || ''} ${profileUser.lastName || ''}`.trim() || userData?.name || 'User'
@@ -137,13 +163,18 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
       : 'Deactivated'
     : 'Active';
 
+  const isAdminProfile = (profileUser?.role || userRole || '').toUpperCase() === 'ADMIN';
   const userEmailLower = (profileUser?.email || userEmail || '').toLowerCase();
 
   const stats = useMemo(() => {
-    const reportsSubmitted = userEmailLower
+    const reportsSubmitted = isAdminProfile
+      ? reports.length
+      : userEmailLower
       ? reports.filter((report) => report.reportedBy?.toLowerCase() === userEmailLower).length
       : 0;
-    const actionsAssigned = userEmailLower
+    const actionsAssigned = isAdminProfile
+      ? reports.reduce((count, report) => count + report.actions.length, 0)
+      : userEmailLower
       ? reports.reduce((count, report) => {
           return count + report.actions.filter((action) => action.assignedTo?.toLowerCase() === userEmailLower).length;
         }, 0)
@@ -155,7 +186,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
       validCertifications: certCounts.valid,
       expiredCertifications: certCounts.expired,
     };
-  }, [reports, userEmailLower, certCounts]);
+  }, [reports, certCounts, isAdminProfile, userEmailLower]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -427,27 +458,35 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-4">
-              {/* Report Submitted */}
+              {/* Reports Submitted */}
               <div className="bg-white dark:bg-[#121212] rounded-xl p-6 border border-gray-100 dark:border-gray-700">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Report Submitted</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  {isAdminProfile ? 'All Reports Submitted' : 'Reports Submitted'}
+                </p>
                 <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.reportsSubmitted}</p>
               </div>
 
               {/* Actions Assigned */}
               <div className="bg-white dark:bg-[#121212] rounded-xl p-6 border border-gray-100 dark:border-gray-700">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Actions Assigned</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  {isAdminProfile ? 'All Actions Assigned' : 'Actions Assigned'}
+                </p>
                 <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.actionsAssigned}</p>
               </div>
 
               {/* Valid Certifications */}
               <div className="bg-white dark:bg-[#121212] rounded-xl p-6 border border-gray-100 dark:border-gray-700">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Valid Certifications</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  {isAdminProfile ? 'All Valid Certifications' : 'Valid Certifications'}
+                </p>
                 <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.validCertifications}</p>
               </div>
 
               {/* Expired Certifications */}
               <div className="bg-white dark:bg-[#121212] rounded-xl p-6 border border-gray-100 dark:border-gray-700">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Expired Certifications</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  {isAdminProfile ? 'All Expired Certifications' : 'Expired Certifications'}
+                </p>
                 <p className="text-3xl font-bold text-[#C24438] dark:text-red-400">{stats.expiredCertifications}</p>
               </div>
             </div>

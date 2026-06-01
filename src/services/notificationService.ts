@@ -124,16 +124,23 @@ class NotificationService {
 
       const now = Date.now();
       const mapped = list.map((item: any) => {
-        const rawTimestamp = item.timestamp || item.createdAt || item.updatedAt;
-        const parsedTimestamp = rawTimestamp ? Date.parse(rawTimestamp) : NaN;
-        const timestampMs = Number.isNaN(parsedTimestamp) ? now : parsedTimestamp;
-        const formattedTimestamp = new Date(timestampMs).toLocaleString('en-US', {
-          month: 'short',
-          day: '2-digit',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
+        const timestampCandidates = [item.timestamp, item.createdAt, item.updatedAt];
+        const rawTimestamp = timestampCandidates.find((value: unknown) => Boolean(value));
+        const parsedTimestamp = timestampCandidates
+          .map((value: unknown) => (typeof value === 'string' ? Date.parse(value) : NaN))
+          .find((value) => Number.isFinite(value));
+        const timestampMs = parsedTimestamp ?? 0;
+        const formattedTimestamp = Number.isFinite(parsedTimestamp ?? NaN)
+          ? new Date(parsedTimestamp as number).toLocaleString('en-US', {
+              month: 'short',
+              day: '2-digit',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : typeof rawTimestamp === 'string'
+          ? rawTimestamp
+          : '';
 
         const rawReadAt = item.readAt || item.updatedAt || (item.read ? rawTimestamp : undefined);
         const parsedReadAt = rawReadAt ? Date.parse(rawReadAt) : undefined;
