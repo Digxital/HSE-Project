@@ -40,9 +40,6 @@ class NotificationService {
     this.notifications = [newNotification, ...this.notifications];
     this.notifyListeners();
     
-    // Optional: Send to backend
-    this.syncToBackend(newNotification);
-    
     return newNotification;
   }
 
@@ -159,7 +156,17 @@ class NotificationService {
         } as Notification & { _rawTime: number };
       });
 
-      this.notifications = mapped
+      const deduped = Array.from(
+        new Map(
+          mapped.map((notification) => {
+            const reportRef = notification.data?.reportId || notification.data?.incidentId || '';
+            const key = `${notification.id}|${notification.type}|${notification.title}|${notification.timestamp}|${reportRef}`;
+            return [key, notification] as const;
+          })
+        ).values()
+      );
+
+      this.notifications = deduped
         .sort((a, b) => b._rawTime - a._rawTime)
         .map(({ _rawTime, ...rest }) => rest);
 
@@ -194,26 +201,6 @@ class NotificationService {
     }, 5 * 60 * 1000);
   }
 
-  private async syncToBackend(notification: Notification) {
-    try {
-      const token = getAuthToken();
-      if (!token) return;
-
-      const payload = {
-        type: notification.type,
-        title: notification.title,
-        description: notification.description,
-        read: notification.read,
-        data: notification.data,
-      };
-
-      await api.post('/api/notifications', payload, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-    } catch (error) {
-      console.error('Failed to sync notification to backend:', error);
-    }
-  }
 }
 
 export const notificationService = new NotificationService();

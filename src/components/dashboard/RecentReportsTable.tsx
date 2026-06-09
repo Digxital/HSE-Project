@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { EmptyState } from '../common/EmptyState';
 import { useReports } from '@/services/ReportsContext';
 
@@ -7,7 +8,10 @@ interface RecentReportsTableProps {
 }
 
 export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData = true }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { reports: allReports, loading } = useReports();
+  const routePrefix = location.pathname.startsWith('/supervisor') ? '/supervisor' : '';
 
   // Show the 3 most recent reports from the API context
   const reports = hasData ? allReports.slice(0, 3) : [];
@@ -100,6 +104,7 @@ export const RecentReportsTable: React.FC<RecentReportsTableProps> = ({ hasData 
                 {reports.map((report, index) => (
                   <tr
                     key={report.id}
+                    onClick={() => navigate(`${routePrefix}/reports?reportId=${encodeURIComponent(report.id)}`)}
                     className="bg-[#FFFAF5] dark:bg-[#121212] hover:bg-[#FFFEFB] dark:hover:bg-gray-800 transition-colors cursor-pointer"
                   >
                     {/* Red indicator line for first row */}

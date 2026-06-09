@@ -11,10 +11,9 @@ interface AddActionModalProps {
     priority: string;
     description: string;
   }) => void;
-  assignedToEmail?: string;
 }
 
-export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose, onAddAction, assignedToEmail }) => {
+export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose, onAddAction }) => {
   const [formData, setFormData] = useState({
     actionTitle: '',
     assignedTo: '',
@@ -48,10 +47,10 @@ export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose,
   }, []);
 
   React.useEffect(() => {
-    if (!assignedToEmail) return;
-    setFormData((prev) => ({ ...prev, assignedTo: assignedToEmail }));
-    setAssignedToQuery(assignedToEmail);
-  }, [assignedToEmail, isOpen]);
+    if (!isOpen) return;
+    setAssignedToQuery('');
+    setFormData((prev) => ({ ...prev, assignedTo: '' }));
+  }, [isOpen]);
 
   React.useEffect(() => {
     if (!isOpen) return;

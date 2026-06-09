@@ -127,46 +127,14 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const normalizedReports = applyActionStatusRules(mergedReports);
       setReports(normalizedReports);
 
-      const currentUser = getUserData();
-      const currentEmail = currentUser?.email?.toLowerCase();
-
       if (hasLoadedReportsRef.current) {
         const previousIds = previousReportIdsRef.current;
         const newReports = normalizedReports.filter((report) => !previousIds.has(report.id));
-        newReports.forEach((report) => {
-          const reporterEmail = report.reportedBy?.toLowerCase();
-          if (currentEmail && reporterEmail && currentEmail === reporterEmail) return;
-
-          addNotification({
-            type: 'report_submitted',
-            title: 'New report submitted',
-            description: `${report.category} reported at ${report.location}`,
-            timestamp: report.dateReported.replace('\n', ' '),
-            data: {
-              reportId: report.id,
-            },
-          });
-        });
       } else {
         const lastSeenRaw = Number(localStorage.getItem('aegix_last_seen_reports_at') || 0);
         const newReportsByTime = normalizedReports.filter((report) => {
           const createdAtMs = report.rawCreatedAt ? Date.parse(report.rawCreatedAt) : 0;
           return createdAtMs > lastSeenRaw;
-        });
-
-        newReportsByTime.forEach((report) => {
-          const reporterEmail = report.reportedBy?.toLowerCase();
-          if (currentEmail && reporterEmail && currentEmail === reporterEmail) return;
-
-          addNotification({
-            type: 'report_submitted',
-            title: 'New report submitted',
-            description: `${report.category} reported at ${report.location}`,
-            timestamp: report.dateReported.replace('\n', ' '),
-            data: {
-              reportId: report.id,
-            },
-          });
         });
 
         const latestCreatedAt = normalizedReports

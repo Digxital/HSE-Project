@@ -384,7 +384,6 @@ export const ReportDetailsModal: React.FC<ReportDetailsModalProps> = ({ isOpen, 
         isOpen={isAddActionModalOpen}
         onClose={() => setIsAddActionModalOpen(false)}
         onAddAction={handleAddAction}
-        assignedToEmail={report.reportedBy}
       />
     </>
   );
