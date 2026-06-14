@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { userService } from '@/services/userService';
+import { useToast } from '@/hooks/useToast';
 
 interface AddActionModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface AddActionModalProps {
 }
 
 export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose, onAddAction }) => {
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     actionTitle: '',
     assignedTo: '',
@@ -64,7 +66,8 @@ export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose,
         const normalized = users
           .filter((user) => {
             const status = (user.status || '').toUpperCase();
-            return status === 'ACTIVE';
+            const role = (user.role || '').toUpperCase();
+            return status === 'ACTIVE' && role === 'FIELD_USER';
           })
           .map((user) => ({
             email: user.email,
@@ -129,6 +132,10 @@ export const AddActionModal: React.FC<AddActionModalProps> = ({ isOpen, onClose,
 
     if (validateForm()) {
       onAddAction(formData);
+      showToast({
+        type: 'success',
+        message: 'Action created successfully! Notification sent to assigned user.',
+      });
       // Reset form
       setFormData({
         actionTitle: '',

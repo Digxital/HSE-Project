@@ -11,6 +11,7 @@ import { CertificationPage } from '@/pages/CertificationPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { NotificationsPage } from '@/pages/NotificationsPage';
 import { AuditLogPage } from '@/pages/AuditLogPage';
+import { LandingPage } from '@/pages/landing/LandingPage';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -96,30 +97,43 @@ const AppRoutes = () => {
   );
 };
 
-// Component to handle root redirect
+// Component to handle root redirect or show landing page
 const RootRedirect = () => {
   const navigate = useNavigate();
+  const [showLanding, setShowLanding] = useState(false);
   
   useEffect(() => {
     // Check if user data exists to determine role
     const userDataStr = localStorage.getItem('user_data') || sessionStorage.getItem('user_data');
+    const token = getAuthToken();
     
-    try {
-      if (userDataStr) {
+    // If user is authenticated, redirect to dashboard
+    if (token && userDataStr) {
+      try {
         const userData = JSON.parse(userDataStr);
         if (userData.role === 'supervisor') {
-          navigate('/supervisor/login', { replace: true });
+          navigate('/supervisor/dashboard', { replace: true });
           return;
         }
+      } catch (e) {
+        // JSON parse error, continue
       }
-    } catch (e) {
-      // JSON parse error, continue with admin login
+      
+      // Default to admin dashboard
+      navigate('/dashboard', { replace: true });
+      return;
     }
     
-    // Default to admin login
-    navigate('/admin/login', { replace: true });
+    // If not authenticated, show landing page
+    setShowLanding(true);
   }, [navigate]);
 
+  // Show landing page for unauthenticated users
+  if (showLanding) {
+    return <LandingPage />;
+  }
+
+  // Loading state while checking authentication
   return <LoadingScreen />;
 };
 

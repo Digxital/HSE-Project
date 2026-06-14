@@ -47,6 +47,7 @@ export interface Report {
   rawCreatedAt?: string;
   reportedBy: string;
   equipmentInvolved: string;
+  attachments?: string[];
   actions: Action[];
   comments: Comment[];
 }

@@ -1,4 +1,4 @@
-import api from '@/lib/axios';
+import api, { apiBaseUrl } from '@/lib/axios';
 import type { Report, Action, Comment } from '@/services/ReportsContext';
 import { generateDisplayId } from '@/services/idGenerator';
 
@@ -153,6 +153,42 @@ function mapApiReportToReport(apiReport: ApiReport): Report {
     createdBy: a.createdBy,
   }));
 
+  // Debug: Log attachments format
+  console.log('📎 Raw attachments from API:', apiReport.attachments);
+
+  const attachments: string[] = (apiReport.attachments || []).map((attachment: any) => {
+    let url = '';
+
+    // Handle different attachment formats
+    if (typeof attachment === 'string') {
+      // Already a string URL
+      url = attachment;
+    } else if (typeof attachment === 'object' && attachment !== null) {
+      // Backend sends objects with metadata
+      if (attachment.url) {
+        url = attachment.url;
+      } else if (attachment.path) {
+        url = attachment.path;
+      } else if (attachment.data) {
+        url = attachment.data;
+      }
+    }
+
+    // Normalize path separators (convert backslashes to forward slashes)
+    url = url.replace(/\\/g, '/');
+
+    // If URL is relative, prepend the API base URL
+    if (url && !url.startsWith('http')) {
+      // Remove leading slash to avoid double slashes
+      const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+      url = `${apiBaseUrl}/${cleanUrl}`;
+    }
+
+    return url;
+  }).filter(Boolean);
+
+  console.log('📎 Processed attachments with full URLs:', attachments);
+
   const commentsFromList = (apiReport.comments || []).map((c, i) => {
     const firstName = c.commentedBy?.firstName || '';
     const lastName = c.commentedBy?.lastName || '';
@@ -237,6 +273,7 @@ function mapApiReportToReport(apiReport: ApiReport): Report {
     rawCreatedAt: apiReport.createdAt,
     reportedBy: apiReport.reportedBy?.userId?.email || 'Unknown',
     equipmentInvolved: apiReport.equipmentInvolved || 'None',
+    attachments,
     actions,
     comments,
   };

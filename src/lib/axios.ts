@@ -60,4 +60,5 @@ api.interceptors.response.use(
   }
 );
 
+export { apiBaseUrl };
 export default api;
