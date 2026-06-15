@@ -127,24 +127,30 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
     return matchesFilter && matchesSearch;
   });
 
-  const buildActionDetails = (action: Action) => ({
-    id: action.id,
-    title: action.action,
-    description: action.description || 'Corrective action details',
-    reportId: action.relatedReport,
-    assignedTo: action.assignedTo,
-    status: action.status,
-    createdOn: action.createdAt ? new Date(action.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
-    dueDate: formatDueDate(action.dueDate),
-    comments: 'Action from report system',
-    timeline: [
-      {
-        date: `${new Date().toLocaleDateString()} - Action Created`,
-        title: `Assigned to ${action.assignedTo}`,
-        description: '',
-      },
-    ],
-  });
+  const buildActionDetails = (action: Action) => {
+    // Find the related report to get attachments
+    const relatedReport = reports.find(r => r.id === action.relatedReport);
+    
+    return {
+      id: action.id,
+      title: action.action,
+      description: action.description || 'Corrective action details',
+      reportId: action.relatedReport,
+      assignedTo: action.assignedTo,
+      status: action.status,
+      createdOn: action.createdAt ? new Date(action.createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
+      dueDate: formatDueDate(action.dueDate),
+      comments: 'Action from report system',
+      attachments: relatedReport?.attachments || [],
+      timeline: [
+        {
+          date: `${new Date().toLocaleDateString()} - Action Created`,
+          title: `Assigned to ${action.assignedTo}`,
+          description: '',
+        },
+      ],
+    };
+  };
 
   useEffect(() => {
     const actionId = searchParams.get('actionId');

@@ -53,7 +53,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     window.addEventListener('auth:logout', handleLogout);
     window.addEventListener('focus', handleFocus);
 
-    const intervalId = setInterval(fetchLatest, 30000); // Poll every 30 seconds instead of 2 minutes
+    const intervalId = setInterval(fetchLatest, 10000); // Poll every 10 seconds for faster updates
 
     return () => {
       window.removeEventListener('auth:login', handleLogin);

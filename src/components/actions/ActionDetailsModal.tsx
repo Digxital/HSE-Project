@@ -19,6 +19,7 @@ interface ActionDetails {
   dueDate: string;
   comments: string;
   timeline: TimelineEvent[];
+  attachments?: string[];
 }
 
 interface ActionDetailsModalProps {
@@ -135,20 +136,36 @@ export const ActionDetailsModal: React.FC<ActionDetailsModalProps> = ({
           {/* Evidence & Updates */}
           <div>
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Evidence & Updates</h3>
-            <div className="grid grid-cols-4 gap-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                  <svg className="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            {action.attachments && action.attachments.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                {action.attachments.map((url, index) => (
+                  <div key={index} className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex items-center justify-center">
+                    <img
+                      src={url}
+                      alt={`Evidence ${index + 1}`}
+                      className="w-full h-full object-cover hover:opacity-90 transition-opacity cursor-pointer"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = '';
+                        target.className = 'hidden';
+                      }}
                     />
-                  </svg>
-                </div>
-              ))}
-            </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <svg className="w-10 h-10 text-gray-400 dark:text-gray-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <p className="text-sm text-gray-500 dark:text-gray-400">No evidence attached</p>
+              </div>
+            )}
           </div>
 
           {/* Comments */}
