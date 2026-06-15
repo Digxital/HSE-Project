@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Logo } from '@/components/ui/Logo';
 import iPhoneMockup from '@/assets/images/iphone-14-pro-mockup.png';
 import iPhone14Pro2 from '@/assets/images/iPhone-14-Pro2.png';
@@ -15,7 +14,6 @@ import twitterIcon from '@/assets/images/akar-icons_twitter-v1-fill.png';
 import youtubeIcon from '@/assets/images/akar-icons_youtube-v1-fill.png';
 
 export const LandingPage: React.FC = () => {
-  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>('faq-1');
   const [contactForm, setContactForm] = useState({

@@ -129,14 +129,9 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setReports(normalizedReports);
 
       if (hasLoadedReportsRef.current) {
-        const previousIds = previousReportIdsRef.current;
-        const newReports = normalizedReports.filter((report) => !previousIds.has(report.id));
+        // Already loaded previously, skip notification logic
       } else {
         const lastSeenRaw = Number(localStorage.getItem('aegix_last_seen_reports_at') || 0);
-        const newReportsByTime = normalizedReports.filter((report) => {
-          const createdAtMs = report.rawCreatedAt ? Date.parse(report.rawCreatedAt) : 0;
-          return createdAtMs > lastSeenRaw;
-        });
 
         const latestCreatedAt = normalizedReports
           .map((report) => (report.rawCreatedAt ? Date.parse(report.rawCreatedAt) : 0))

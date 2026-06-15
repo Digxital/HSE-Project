@@ -36,7 +36,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   // Use notification context
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead } = useNotifications();
   const reportsApi = useOptionalReports();
   const reports = reportsApi?.reports ?? [];
   
@@ -152,22 +152,6 @@ export const TopBar: React.FC<TopBarProps> = ({
 
   const syncConfig = getSyncStatusConfig();
 
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    
-    return date.toLocaleDateString();
-  };
-
   const formatReportTimestamp = (value?: string) => {
     if (!value) return null;
     const parsed = Date.parse(value);
@@ -179,56 +163,6 @@ export const TopBar: React.FC<TopBarProps> = ({
       hour: '2-digit',
       minute: '2-digit',
     });
-  };
-
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'user_added':
-        return {
-          bg: 'bg-gray-100 dark:bg-gray-800',
-          icon: (
-            <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-            </svg>
-          )
-        };
-      case 'report_submitted':
-        return {
-          bg: 'bg-red-100 dark:bg-red-900/30',
-          icon: (
-            <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          )
-        };
-      case 'action_closed':
-        return {
-          bg: 'bg-orange-100 dark:bg-orange-900/30',
-          icon: (
-            <svg className="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          )
-        };
-      case 'action_progress':
-        return {
-          bg: 'bg-gray-100 dark:bg-gray-800',
-          icon: (
-            <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          )
-        };
-      default:
-        return {
-          bg: 'bg-gray-100 dark:bg-gray-800',
-          icon: (
-            <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          )
-        };
-    }
   };
 
   return (
@@ -365,12 +299,12 @@ export const TopBar: React.FC<TopBarProps> = ({
             >
               <div className="w-8 h-8 md:w-10 md:h-10 bg-primary-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-semibold text-sm md:text-base">
-                  {userName.charAt(0)}
+                  {(userName || 'U').charAt(0).toUpperCase()}
                 </span> 
               </div>
               <div className="hidden md:block text-left">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">{userName}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-300">{userRole}</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">{userName || 'User'}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-300">{userRole || 'User'}</p>
               </div>
               <svg className="hidden md:block w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />

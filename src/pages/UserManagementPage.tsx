@@ -682,8 +682,8 @@ export const UserManagementPage: React.FC = () => {
       <div className={`transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'}`}>
         <TopBar
           pageTitle="User Management"
-          userName={user.name}
-          userRole={user.role}
+          userName={user?.name || 'User'}
+          userRole={user?.role || 'admin'}
           syncStatus="synced"
           onMenuClick={handleMobileSidebarToggle} 
           showMenuButton={isMobile}
