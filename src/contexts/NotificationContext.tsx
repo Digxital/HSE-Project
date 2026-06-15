@@ -45,15 +45,20 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const handleLogout = () => {
       notificationService.clearAll();
     };
+    const handleFocus = () => {
+      fetchLatest();
+    };
 
     window.addEventListener('auth:login', handleLogin);
     window.addEventListener('auth:logout', handleLogout);
+    window.addEventListener('focus', handleFocus);
 
-    const intervalId = setInterval(fetchLatest, 120000);
+    const intervalId = setInterval(fetchLatest, 30000); // Poll every 30 seconds instead of 2 minutes
 
     return () => {
       window.removeEventListener('auth:login', handleLogin);
       window.removeEventListener('auth:logout', handleLogout);
+      window.removeEventListener('focus', handleFocus);
       clearInterval(intervalId);
       unsubscribe();
     };
