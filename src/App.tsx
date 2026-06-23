@@ -12,6 +12,9 @@ import { SettingsPage } from '@/pages/SettingsPage';
 import { NotificationsPage } from '@/pages/NotificationsPage';
 import { AuditLogPage } from '@/pages/AuditLogPage';
 import { LandingPage } from '@/pages/landing/LandingPage';
+import { SuperAdminLoginPage } from '@/pages/superadmin/SuperAdminLoginPage';
+import { SuperAdminLayout } from '@/pages/superadmin/SuperAdminLayout';
+import { SuperAdminDashboardPage } from '@/pages/superadmin/SuperAdminDashboardPage';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -67,6 +70,12 @@ const AppRoutes = () => {
           <RootRedirect />
         } 
       />
+
+      {/* Super Admin Routes */}
+      <Route path="/superadmin/login" element={<SuperAdminLoginPage />} />
+      <Route path="/superadmin" element={<SuperAdminLayout />}>
+        <Route path="dashboard" element={<SuperAdminDashboardPage />} />
+      </Route>
 
       {/* Admin routes */}
       <Route path="/admin/login" element={<LoginPage />} />

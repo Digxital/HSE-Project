@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { Logo } from '@/components/ui/Logo';
+import { CountryCodeDropdown } from '@/components/ui/CountryCodeDropdown';
+import { SocialIcons } from '@/components/ui/SocialIcons';
+import { getCountryCodesData } from '@/utils/countryCodeData';
 import iPhoneMockup from '@/assets/images/iphone-14-pro-mockup.png';
 import iPhone14Pro2 from '@/assets/images/iPhone-14-Pro2.png';
 import googlePlayIcon from '@/assets/images/google-play.png';
@@ -7,22 +13,21 @@ import appleIcon from '@/assets/images/Apple.png';
 import featureFrame1 from '@/assets/images/Frame-1000005758.png';
 import featureFrame2 from '@/assets/images/Frame-2.png';
 import featureFrame3 from '@/assets/images/Frame-3.png';
-import linkedInIcon from '@/assets/images/akar-icons_linkedin-v1-fill.png';
-import facebookIcon from '@/assets/images/akar-icons_facebook-v1-fill.png';
-import instagramIcon from '@/assets/images/akar-icons_instagram-v1-fill.png';
-import twitterIcon from '@/assets/images/akar-icons_twitter-v1-fill.png';
-import youtubeIcon from '@/assets/images/akar-icons_youtube-v1-fill.png';
+import reportImage from '@/assets/images/Report.png';
 
 export const LandingPage: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>('faq-1');
   const [contactForm, setContactForm] = useState({
+    countryCode: '+1',
     name: '',
     email: '',
     phone: '',
     subject: '',
     message: '',
   });
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const countryCodesData = getCountryCodesData();
 
   const navItems = [
     { label: 'Home', href: '#home' },
@@ -39,8 +44,51 @@ export const LandingPage: React.FC = () => {
     }
   };
 
+  const handleContactFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validation
+    if (!contactForm.name.trim() || !contactForm.email.trim() || !contactForm.phone.trim() || !contactForm.subject.trim() || !contactForm.message.trim()) {
+      toast.error('All fields are required', {
+        position: 'top-right',
+        autoClose: 3000,
+      });
+      return;
+    }
+    
+    setFormSubmitting(true);
+    
+    try {
+      await axios.post('https://hse-backend-n8d4.onrender.com/api/contact', {
+        name: contactForm.name,
+        email: contactForm.email,
+        phoneNumber: `${contactForm.countryCode}${contactForm.phone}`,
+        subject: contactForm.subject,
+        message: contactForm.message,
+      });
+      
+      toast.success('Message sent successfully! We\'ll get back to you soon.', {
+        position: 'top-right',
+        autoClose: 3000,
+      });
+      
+      setContactForm({ countryCode: '+1', name: '', email: '', phone: '', subject: '', message: '' });
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to send message. Please try again.',
+        {
+          position: 'top-right',
+          autoClose: 3000,
+        }
+      );
+    } finally {
+      setFormSubmitting(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-white" style={{ colorScheme: 'light' }}>
+    <div className="min-h-screen bg-white" style={{ colorScheme: 'light', fontFamily: 'Space Grotesk, sans-serif' }}>
+      <ToastContainer />
       <style>{`
         @keyframes slideDown {
           from {
@@ -58,117 +106,114 @@ export const LandingPage: React.FC = () => {
           animation: slideDown 0.3s ease-out;
         }
       `}</style>
-      {/* Peach/Cream section with navbar */}
-      <div className="bg-[#FFFAF5] px-4 sm:px-6 lg:px-8 py-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Navigation - Rounded container */}
-          <nav className="bg-white rounded-2xl px-6 py-4">
-            <div className="flex items-center justify-between">
-              {/* Logo */}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <Logo />
-                <span className="text-2xl font-bold text-[#C24438]">Aegix</span>
-              </div>
+      {/* Single container for navbar and hero section */}
+      <div className="bg-[#FFF4E6] w-[96%] mx-auto rounded-lg overflow-hidden">
+        {/* Navbar section */}
+        <div className="px-4 sm:px-6 lg:px-8 py-6">
+          <div className="w-full">
+            {/* Navigation - Rounded container */}
+            <nav className="bg-white rounded-2xl px-6 py-4">
+              <div className="flex items-center justify-between">
+                {/* Logo */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Logo />
+                  <span className="text-2xl font-bold text-[#C24438]">Aegix</span>
+                </div>
 
-              {/* Desktop Navigation */}
-              <div className="hidden md:flex items-center gap-8">
-                {navItems.map((item) => (
-                  <button
-                    key={item.label}
-                    onClick={() => handleNavClick(item.href)}
-                    className="text-gray-700 hover:text-gray-900 font-medium text-sm transition-colors"
-                  >
-                    {item.label}
+                {/* Desktop Navigation */}
+                <div className="hidden md:flex items-center gap-8">
+                  {navItems.map((item) => (
+                    <button
+                      key={item.label}
+                      onClick={() => handleNavClick(item.href)}
+                      className="text-gray-700 hover:text-gray-900 font-medium text-sm transition-colors"
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Desktop Download Button */}
+                <div className="hidden md:block">
+                  <button className="flex items-center gap-2 px-6 py-2 bg-[#200500] hover:bg-[#A83309] text-white rounded-lg font-medium transition-colors">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download App
                   </button>
-                ))}
-              </div>
+                </div>
 
-              {/* Desktop Download Button */}
-              <div className="hidden md:block">
-                <button className="flex items-center gap-2 px-6 py-2 bg-[#C2410C] hover:bg-[#A83309] text-white rounded-lg font-medium transition-colors">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Download App
-                </button>
-              </div>
-
-              {/* Mobile Menu Button */}
-              <div className="md:hidden">
-                <button
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="text-gray-700 hover:text-gray-900"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Mobile Navigation Menu */}
-            {mobileMenuOpen && (
-              <div className="md:hidden mt-4 pt-4 border-t border-gray-200 space-y-2">
-                {navItems.map((item) => (
+                {/* Mobile Menu Button */}
+                <div className="md:hidden">
                   <button
-                    key={item.label}
-                    onClick={() => handleNavClick(item.href)}
-                    className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    className="text-gray-700 hover:text-gray-900"
                   >
-                    {item.label}
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
                   </button>
-                ))}
-                <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#C2410C] hover:bg-[#A83309] text-white rounded-lg font-medium transition-colors">
-                  <img src={googlePlayIcon} alt="Google Play" className="w-4 h-4" />
-                  Download App
-                </button>
+                </div>
               </div>
-            )}
-          </nav>
+
+              {/* Mobile Navigation Menu */}
+              {mobileMenuOpen && (
+                <div className="md:hidden mt-4 pt-4 border-t border-gray-200 space-y-2">
+                  {navItems.map((item) => (
+                    <button
+                      key={item.label}
+                      onClick={() => handleNavClick(item.href)}
+                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                  <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#C2410C] hover:bg-[#A83309] text-white rounded-lg font-medium transition-colors">
+                    <img src={googlePlayIcon} alt="Google Play" className="w-4 h-4" />
+                    Download App
+                  </button>
+                </div>
+              )}
+            </nav>
+          </div>
         </div>
-      </div>
 
-      {/* Hero Section */}
-      <section id="home" className="min-h-[calc(100vh-200px)] flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 sm:py-20 bg-[#FFFAF5]">
-        <div className="max-w-7xl mx-auto w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            {/* Left Side - Text & Buttons */}
-            <div className="text-center lg:text-left">
-              {/* Main Heading */}
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                Report Hazards, Incidents, and Safety Issues Faster
-              </h1>
-
-              {/* Subheading - with line breaks */}
-              <p className="text-lg sm:text-xl text-gray-600 mb-12 leading-relaxed">
-                Easily report hazards, incidents, and safety<br />
-                concerns directly from your mobile device.
-              </p>
-
-              {/* Download Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                {/* Google Play Button */}
-                <button className="flex items-center justify-center gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-[#C2410C] hover:bg-[#A83309] text-white rounded-lg font-semibold transition-colors group">
-                  <img src={googlePlayIcon} alt="Google Play" className="w-5 h-5 sm:w-6 sm:h-6" />
-                  <div className="text-left">
-                    <div className="text-xs sm:text-sm opacity-75">Download on</div>
-                    <div className="text-sm sm:text-base font-bold">Google Play</div>
-                  </div>
-                </button>
-
-                {/* App Store Button */}
-                <button className="flex items-center justify-center gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-[#C2410C] hover:bg-[#A83309] text-white rounded-lg font-semibold transition-colors group">
-                  <img src={appleIcon} alt="Apple" className="w-5 h-5 sm:w-6 sm:h-6" />
-                  <div className="text-left">
-                    <div className="text-xs sm:text-sm opacity-75">Download on</div>
-                    <div className="text-sm sm:text-base font-bold">App Store</div>
-                  </div>
-                </button>
+        {/* Hero Section */}
+        <section id="home" className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
+          <div className="w-full text-center">
+            {/* Main Heading */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight w-full" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+              <div className="inline-block">
+                <span className="text-[#9B8B7E]">Streamline Workplace Safety</span>
               </div>
+              <br />
+              <div className="inline-block">
+                <span className="text-black">Reporting</span> <span className="text-[#9B8B7E]">and </span> <span className="text-black">Action Management</span>
+              </div>
+            </h1>
+
+            {/* Subheading */}
+            <p className="text-base sm:text-lg text-gray-600 mb-12 leading-relaxed max-w-2xl mx-auto">
+              Aegix helps organizations capture safety observations, hazards, and incidents in real time, enabling faster response, improved compliance, and better safety outcomes.
+            </p>
+
+            {/* Download Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center mb-16">
+              {/* Google Play Button */}
+              <button className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#200500] hover:bg-[#1a0400] text-white rounded-2xl font-medium transition-colors text-sm">
+                <img src={googlePlayIcon} alt="Google Play" className="w-4 h-4" />
+                Download on Google Play
+              </button>
+
+              {/* App Store Button */}
+              <button className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#200500] hover:bg-[#1a0400] text-white rounded-2xl font-medium transition-colors text-sm">
+                <img src={appleIcon} alt="Apple" className="w-4 h-4" />
+                Download on App Store
+              </button>
             </div>
 
-            {/* Right Side - iPhone Mockup */}
-            <div className="flex justify-center lg:justify-end">
+            {/* iPhone Mockup - Centered below */}
+            <div className="flex justify-center">
               <div className="w-full max-w-sm">
                 <img
                   src={iPhoneMockup}
@@ -178,19 +223,46 @@ export const LandingPage: React.FC = () => {
               </div>
             </div>
           </div>
+        </section>
+      </div>
+
+      {/* About Aegix Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="w-[85%] mx-auto bg-white rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+            {/* Left Content */}
+            <div className='self-start'>
+              <div className="inline-block border-2 border-gray-800 rounded-full px-6 py-2 mb-8 w-fit">
+                <span className="text-sm font-semibold text-gray-800">ABOUT AEGIX</span>
+              </div>
+              
+              <p className="text-lg text-gray-700 leading-relaxed">
+                Aegix is a workplace safety reporting platform designed to help organizations identify risks, manage incidents, track corrective actions, and strengthen safety performance across operations.
+              </p>
+            </div>
+
+            {/* Right Image */}
+            <div className="flex justify-center self-end">
+              <img
+                src={reportImage}
+                alt="Aegix Reports Dashboard"
+                className="w-full h-auto rounded-lg shadow-xl"
+              />
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-[#FFFAF5]">
-        <div className="max-w-7xl mx-auto">
+      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+        <div className="w-[85%] mx-auto bg-white rounded-lg">
           {/* Section Header */}
-          <div className="text-center mb-16">
+          <div className="mb-16">
             <div className="inline-block border border-gray-400 rounded-full px-6 py-2 mb-8">
               <span className="text-sm font-semibold text-gray-800">FEATURES</span>
             </div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-gray-900">
-              Why Choose Aegix?
+            <h2 className="text-4xl sm:text-5xl font-bold text-[#9B8B7E]">
+              Everything You Need to Manage<br />Workplace Safety
             </h2>
           </div>
 
@@ -231,7 +303,7 @@ export const LandingPage: React.FC = () => {
 
       {/* How It Works Section */}
       <section id="how-it-works" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-6xl mx-auto">
+        <div className="w-[85%] mx-auto bg-white rounded-lg">
           {/* Section Header */}
           <div className="text-center mb-16">
             <div className="inline-block border border-gray-400 rounded-full px-6 py-2 mb-8">
@@ -286,8 +358,8 @@ export const LandingPage: React.FC = () => {
 
       {/* CTA Section - Mobile App Download */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-[#200500]">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="w-[80%] mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:gap-2 items-center">
             {/* Left Side - iPhone Mockup */}
             <div className="flex justify-center lg:justify-start order-2 lg:order-1">
               <div className="w-full max-w-sm">
@@ -302,34 +374,19 @@ export const LandingPage: React.FC = () => {
             {/* Right Side - CTA Content */}
             <div className="text-white order-1 lg:order-2">
               <h2 className="text-4xl sm:text-5xl font-bold mb-6 leading-tight">
-                Want a Faster Way to Report Safety Issues?
+                Ready to Strengthen Your Safety Program?
               </h2>
               <p className="text-lg text-gray-200 mb-8 leading-relaxed">
-                Get the app and quickly report hazards, incidents, and unsafe conditions from your mobile device.
+                Download the Aegix mobile application and enable faster reporting, better visibility, and improved management of workplace safety issues.
               </p>
               
-              {/* Download Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                {/* Google Play Button */}
-                <button className="flex items-center justify-center gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-[#FFF4E6] hover:bg-[#FFE8CC] text-gray-900 rounded-lg font-semibold transition-colors">
-                  <img src={googlePlayIcon} alt="Google Play" className="w-5 h-5 sm:w-6 sm:h-6" />
-                  <div className="text-left">
-                    <div className="text-xs opacity-75">Download on</div>
-                    <div className="text-sm font-bold">Google Play</div>
-                  </div>
-                </button>
-
-                {/* App Store Button */}
-                <button className="flex items-center justify-center gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-[#FFF4E6] hover:bg-[#FFE8CC] text-gray-900 rounded-lg font-semibold transition-colors">
-                  <div className="flex items-center justify-center w-6 h-6 bg-gray-900 rounded-full">
-                    <img src={appleIcon} alt="Apple" className="w-4 h-4" />
-                  </div>
-                  <div className="text-left">
-                    <div className="text-xs opacity-75">Download on</div>
-                    <div className="text-sm font-bold">App Store</div>
-                  </div>
-                </button>
-              </div>
+              {/* Download Button */}
+              <button className="flex items-center justify-center gap-2 px-8 py-3 bg-[#FFF4E6] hover:bg-[#FFE8CC] text-gray-900 rounded-lg font-semibold transition-colors w-fit">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download App
+              </button>
             </div>
           </div>
         </div>
@@ -337,9 +394,9 @@ export const LandingPage: React.FC = () => {
 
       {/* FAQs Section */}
       <section id="faqs" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-3xl mx-auto">
+        <div className="w-[85%] mx-auto">
           {/* Section Header */}
-          <div className="text-center mb-16">
+          <div className="mb-16">
             <div className="inline-block border border-gray-400 rounded-full px-6 py-2 mb-8">
               <span className="text-sm font-semibold text-gray-800">Frequently Asked Questions</span>
             </div>
@@ -351,17 +408,17 @@ export const LandingPage: React.FC = () => {
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <button
                 onClick={() => setExpandedFAQ(expandedFAQ === 'faq-1' ? null : 'faq-1')}
-                className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center gap-4 p-6 hover:bg-gray-50 transition-colors"
               >
-                <span className="text-lg font-bold text-gray-900 text-left">What is Aegix?</span>
-                <span className={`text-2xl text-blue-500 transition-transform ${expandedFAQ === 'faq-1' ? 'rotate-45' : ''}`}>
+                <span className={`text-2xl text-blue-500 transition-transform flex-shrink-0 ${expandedFAQ === 'faq-1' ? 'rotate-45' : ''}`}>
                   +
                 </span>
+                <span className="text-lg font-bold text-gray-900 text-left">What is Aegix?</span>
               </button>
               {expandedFAQ === 'faq-1' && (
                 <div className="px-6 pb-6 border-l-4 border-blue-500 ml-4 faq-content">
                   <p className="text-gray-600 leading-relaxed">
-                    Aegix is a workplace safety app that makes it easy to report hazards, incidents, and safety concerns. It helps teams respond faster, track corrective actions, and create a safer working environment for everyone.
+                    Aegix is a workplace safety reporting and action management platform that helps organizations identify risks, manage incidents, track corrective actions, and strengthen safety performance across operations.
                   </p>
                 </div>
               )}
@@ -371,17 +428,17 @@ export const LandingPage: React.FC = () => {
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <button
                 onClick={() => setExpandedFAQ(expandedFAQ === 'faq-2' ? null : 'faq-2')}
-                className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center gap-4 p-6 hover:bg-gray-50 transition-colors"
               >
-                <span className="text-lg font-bold text-gray-900 text-left">What can I report with Aegix?</span>
-                <span className={`text-2xl text-blue-500 transition-transform ${expandedFAQ === 'faq-2' ? 'rotate-45' : ''}`}>
+                <span className={`text-2xl text-blue-500 transition-transform flex-shrink-0 ${expandedFAQ === 'faq-2' ? 'rotate-45' : ''}`}>
                   +
                 </span>
+                <span className="text-lg font-bold text-gray-900 text-left">Who should use Aegix?</span>
               </button>
               {expandedFAQ === 'faq-2' && (
                 <div className="px-6 pb-6 border-l-4 border-blue-500 ml-4 faq-content">
                   <p className="text-gray-600 leading-relaxed">
-                    You can report hazards (potential dangers), incidents (events that occurred), and safety concerns of any kind. Whether it's equipment issues, unsafe conditions, near-misses, or actual accidents, Aegix helps you document and share them quickly with your safety team.
+                    Any organization that values workplace safety can use Aegix. It's ideal for safety managers, frontline workers, supervisors, and compliance teams who need to report incidents, manage corrective actions, and maintain a proactive safety culture across their organization.
                   </p>
                 </div>
               )}
@@ -391,17 +448,17 @@ export const LandingPage: React.FC = () => {
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <button
                 onClick={() => setExpandedFAQ(expandedFAQ === 'faq-3' ? null : 'faq-3')}
-                className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center gap-4 p-6 hover:bg-gray-50 transition-colors"
               >
-                <span className="text-lg font-bold text-gray-900 text-left">Do I need to type my report?</span>
-                <span className={`text-2xl text-blue-500 transition-transform ${expandedFAQ === 'faq-3' ? 'rotate-45' : ''}`}>
+                <span className={`text-2xl text-blue-500 transition-transform flex-shrink-0 ${expandedFAQ === 'faq-3' ? 'rotate-45' : ''}`}>
                   +
                 </span>
+                <span className="text-lg font-bold text-gray-900 text-left">Can reports be submitted from the field?</span>
               </button>
               {expandedFAQ === 'faq-3' && (
                 <div className="px-6 pb-6 border-l-4 border-blue-500 ml-4 faq-content">
                   <p className="text-gray-600 leading-relaxed">
-                    No! Aegix supports voice-based reporting, so you can simply speak naturally and describe the hazard or incident. The system will organize your voice input into a structured report. You can also type if you prefer, or combine both methods.
+                    Yes! Aegix is designed for mobile-first reporting. Employees can submit safety reports directly from the field using the mobile app via voice input, text, or photos. This enables real-time incident documentation without delays.
                   </p>
                 </div>
               )}
@@ -411,17 +468,17 @@ export const LandingPage: React.FC = () => {
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <button
                 onClick={() => setExpandedFAQ(expandedFAQ === 'faq-4' ? null : 'faq-4')}
-                className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center gap-4 p-6 hover:bg-gray-50 transition-colors"
               >
-                <span className="text-lg font-bold text-gray-900 text-left">Can I upload photos as evidence?</span>
-                <span className={`text-2xl text-blue-500 transition-transform ${expandedFAQ === 'faq-4' ? 'rotate-45' : ''}`}>
+                <span className={`text-2xl text-blue-500 transition-transform flex-shrink-0 ${expandedFAQ === 'faq-4' ? 'rotate-45' : ''}`}>
                   +
                 </span>
+                <span className="text-lg font-bold text-gray-900 text-left">How are corrective actions managed?</span>
               </button>
               {expandedFAQ === 'faq-4' && (
                 <div className="px-6 pb-6 border-l-4 border-blue-500 ml-4 faq-content">
                   <p className="text-gray-600 leading-relaxed">
-                    Absolutely! You can attach photos and other evidence directly from your mobile device to support your report. This helps provide visual context and makes it easier for the safety team to understand and respond to the issue.
+                    Once a report is submitted, safety teams can assign corrective actions directly in Aegix. The platform tracks action status, deadlines, and responsible parties. All stakeholders receive updates and notifications, ensuring accountability and timely resolution of safety issues.
                   </p>
                 </div>
               )}
@@ -431,57 +488,17 @@ export const LandingPage: React.FC = () => {
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <button
                 onClick={() => setExpandedFAQ(expandedFAQ === 'faq-5' ? null : 'faq-5')}
-                className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
+                className="w-full flex items-center gap-4 p-6 hover:bg-gray-50 transition-colors"
               >
-                <span className="text-lg font-bold text-gray-900 text-left">How do I track my reports?</span>
-                <span className={`text-2xl text-blue-500 transition-transform ${expandedFAQ === 'faq-5' ? 'rotate-45' : ''}`}>
+                <span className={`text-2xl text-blue-500 transition-transform flex-shrink-0 ${expandedFAQ === 'faq-5' ? 'rotate-45' : ''}`}>
                   +
                 </span>
+                <span className="text-lg font-bold text-gray-900 text-left">Is Aegix available on iOS and Android?</span>
               </button>
               {expandedFAQ === 'faq-5' && (
                 <div className="px-6 pb-6 border-l-4 border-blue-500 ml-4 faq-content">
                   <p className="text-gray-600 leading-relaxed">
-                    Once you submit a report, you can track its status in real time through the Aegix app. You'll receive updates on review status, assigned corrective actions, and resolution progress. Stay informed every step of the way.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* FAQ 6 */}
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <button
-                onClick={() => setExpandedFAQ(expandedFAQ === 'faq-6' ? null : 'faq-6')}
-                className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
-              >
-                <span className="text-lg font-bold text-gray-900 text-left">Is the app available on iPhone and Android?</span>
-                <span className={`text-2xl text-blue-500 transition-transform ${expandedFAQ === 'faq-6' ? 'rotate-45' : ''}`}>
-                  +
-                </span>
-              </button>
-              {expandedFAQ === 'faq-6' && (
-                <div className="px-6 pb-6 border-l-4 border-blue-500 ml-4 faq-content">
-                  <p className="text-gray-600 leading-relaxed">
-                    Yes! Aegix is available on both iPhone (iOS) and Android devices. You can download the app from the Apple App Store or Google Play Store to start reporting safety issues right away.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* FAQ 7 */}
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <button
-                onClick={() => setExpandedFAQ(expandedFAQ === 'faq-7' ? null : 'faq-7')}
-                className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
-              >
-                <span className="text-lg font-bold text-gray-900 text-left">Will I be notified when action is taken?</span>
-                <span className={`text-2xl text-blue-500 transition-transform ${expandedFAQ === 'faq-7' ? 'rotate-45' : ''}`}>
-                  +
-                </span>
-              </button>
-              {expandedFAQ === 'faq-7' && (
-                <div className="px-6 pb-6 border-l-4 border-blue-500 ml-4 faq-content">
-                  <p className="text-gray-600 leading-relaxed">
-                    Yes! You'll receive instant notifications when actions are assigned to your report, when corrective measures are taken, and when the issue is resolved. Stay connected and informed throughout the entire process.
+                    Yes! Aegix is available on both iOS and Android platforms. You can download the app from the Apple App Store or Google Play Store to start reporting safety issues and managing corrective actions immediately.
                   </p>
                 </div>
               )}
@@ -506,7 +523,7 @@ export const LandingPage: React.FC = () => {
 
             {/* Right Side - Contact Form */}
             <div>
-              <form className="space-y-6">
+              <form className="space-y-6" onSubmit={handleContactFormSubmit}>
                 {/* Name & Email */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="flex flex-col">
@@ -514,7 +531,7 @@ export const LandingPage: React.FC = () => {
                     <input
                       type="text"
                       placeholder="Enter your name"
-                      className="px-4 py-3 bg-[#F5E8E8] text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C]"
+                      className="px-4 py-3 bg-[#FFF4E64D] text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C]"
                       value={contactForm.name}
                       onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                     />
@@ -524,35 +541,45 @@ export const LandingPage: React.FC = () => {
                     <input
                       type="email"
                       placeholder="Enter your e-mail address"
-                      className="px-4 py-3 bg-[#F5E8E8] text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C]"
+                      className="px-4 py-3 bg-[#FFF4E64D] text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C]"
                       value={contactForm.email}
                       onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
                     />
                   </div>
                 </div>
 
-                {/* Phone & Subject */}
+                {/* Country Code & Phone */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="flex flex-col">
+                    <label className="text-sm font-bold text-gray-900 mb-2">Country Code</label>
+                    <CountryCodeDropdown
+                      countries={countryCodesData}
+                      value={contactForm.countryCode}
+                      onChange={(callingCode) => setContactForm({ ...contactForm, countryCode: callingCode })}
+                    />
+                  </div>
                   <div className="flex flex-col">
                     <label className="text-sm font-bold text-gray-900 mb-2">Phone Number</label>
                     <input
                       type="tel"
                       placeholder="Enter your Phone Number"
-                      className="px-4 py-3 bg-[#F5E8E8] text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C]"
+                      className="px-4 py-3 bg-[#FFF4E64D] text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C]"
                       value={contactForm.phone}
                       onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
                     />
                   </div>
-                  <div className="flex flex-col">
-                    <label className="text-sm font-bold text-gray-900 mb-2">Subject</label>
-                    <input
-                      type="text"
-                      placeholder="Enter the subject of your message"
-                      className="px-4 py-3 bg-[#F5E8E8] text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C]"
-                      value={contactForm.subject}
-                      onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
-                    />
-                  </div>
+                </div>
+
+                {/* Subject */}
+                <div className="flex flex-col">
+                  <label className="text-sm font-bold text-gray-900 mb-2">Subject</label>
+                  <input
+                    type="text"
+                    placeholder="Enter your subject"
+                    className="px-4 py-3 bg-[#FFF4E64D] text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C]"
+                    value={contactForm.subject}
+                    onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
+                  />
                 </div>
 
                 {/* Message */}
@@ -561,7 +588,7 @@ export const LandingPage: React.FC = () => {
                   <textarea
                     placeholder="Enter your Message"
                     rows={6}
-                    className="px-4 py-3 bg-[#F5E8E8] text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C] resize-none"
+                    className="px-4 py-3 bg-[#FFF4E64D] text-gray-900 placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C] resize-none"
                     value={contactForm.message}
                     onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
                   />
@@ -570,9 +597,10 @@ export const LandingPage: React.FC = () => {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className="w-full px-8 py-4 bg-[#200500] hover:bg-[#1a0400] text-white font-semibold rounded-lg transition-colors"
+                  disabled={formSubmitting}
+                  className="w-full px-8 py-4 bg-[#200500] hover:bg-[#1a0400] disabled:bg-gray-400 text-white font-semibold rounded-lg transition-colors"
                 >
-                  Submit
+                  {formSubmitting ? 'Submitting...' : 'Submit'}
                 </button>
               </form>
             </div>
@@ -632,23 +660,7 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Social Media Icons */}
-          <div className="flex justify-center gap-6 mb-8">
-            <a href="#" className="w-12 h-12 flex items-center justify-center border-2 border-[#C2410C] rounded-full hover:bg-[#C2410C] hover:bg-opacity-10 transition-all">
-              <img src={linkedInIcon} alt="LinkedIn" className="w-6 h-6 object-contain" />
-            </a>
-            <a href="#" className="w-12 h-12 flex items-center justify-center border-2 border-[#C2410C] rounded-full hover:bg-[#C2410C] hover:bg-opacity-10 transition-all">
-              <img src={youtubeIcon} alt="YouTube" className="w-6 h-6 object-contain" />
-            </a>
-            <a href="#" className="w-12 h-12 flex items-center justify-center border-2 border-[#C2410C] rounded-full hover:bg-[#C2410C] hover:bg-opacity-10 transition-all">
-              <img src={twitterIcon} alt="Twitter" className="w-6 h-6 object-contain" />
-            </a>
-            <a href="#" className="w-12 h-12 flex items-center justify-center border-2 border-[#C2410C] rounded-full hover:bg-[#C2410C] hover:bg-opacity-10 transition-all">
-              <img src={instagramIcon} alt="Instagram" className="w-6 h-6 object-contain" />
-            </a>
-            <a href="#" className="w-12 h-12 flex items-center justify-center border-2 border-[#C2410C] rounded-full hover:bg-[#C2410C] hover:bg-opacity-10 transition-all">
-              <img src={facebookIcon} alt="Facebook" className="w-6 h-6 object-contain" />
-            </a>
-          </div>
+          <SocialIcons />
 
           {/* Copyright */}
           <div className="pt-8 border-t border-gray-200 text-center text-gray-600 text-sm">
