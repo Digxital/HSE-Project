@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useToast } from '@/hooks/useToast';
+import { organizationService } from '@/services/organizationService';
 
 interface CreateOrganizationFlowProps {
   isOpen: boolean;
@@ -10,7 +12,6 @@ type FlowStep = 'organization' | 'subscription' | 'branding';
 
 interface OrganizationData {
   organizationName: string;
-  organizationSlug: string;
   primaryContactName: string;
   contactEmail: string;
   contactPhone: string;
@@ -29,13 +30,14 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
   onClose,
   onOrganizationCreated,
 }) => {
+  const { showToast } = useToast();
   const [currentStep, setCurrentStep] = useState<FlowStep>('organization');
   const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('left');
   const [organizationData, setOrganizationData] = useState<OrganizationData | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Organization form state
   const [organizationName, setOrganizationName] = useState('');
-  const [organizationSlug, setOrganizationSlug] = useState('');
   const [primaryContactName, setPrimaryContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
@@ -61,7 +63,6 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
 
     const newErrors: Record<string, string> = {};
     if (!organizationName.trim()) newErrors.organizationName = 'Organization name is required';
-    if (!organizationSlug.trim()) newErrors.organizationSlug = 'Organization ID/Slug is required';
     if (!primaryContactName.trim()) newErrors.primaryContactName = 'Contact person name is required';
     if (!contactEmail.trim() || !/\S+@\S+\.\S+/.test(contactEmail))
       newErrors.contactEmail = 'Valid email is required';
@@ -75,7 +76,6 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
 
     const data: OrganizationData = {
       organizationName,
-      organizationSlug,
       primaryContactName,
       contactEmail,
       contactPhone,
@@ -107,23 +107,41 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
 
     if (!organizationData) return;
 
-    const completeData = {
-      ...organizationData,
-      subscriptionPlan,
-      dataRetentionPeriod,
-      maximumAllowedUsers,
-      reportsStorageLimit,
-      uploadedFile,
-      uploadedFileName,
-      primaryThemeColor,
-      secondaryThemeColor,
-      customApplicationTitle,
-      status,
+    setIsSubmitting(true);
+
+    // Prepare payload for API (only send fields that the backend expects)
+    const payload = {
+      organizationName: organizationData.organizationName,
+      primaryContactPersonName: organizationData.primaryContactName,
+      contactEmail: organizationData.contactEmail,
+      contactPhoneNumber: organizationData.contactPhone,
+      organizationAddress: organizationData.organizationAddress,
     };
 
-    console.log('Organization created with complete settings:', completeData);
-    onOrganizationCreated(completeData);
-    handleClose();
+    organizationService
+      .createOrganization(payload)
+      .then((response) => {
+        showToast({
+          type: 'success',
+          message: 'Organization created successfully!',
+        });
+
+        // Emit event to trigger context refresh
+        window.dispatchEvent(new CustomEvent('organizationUpdated'));
+
+        // Call the callback with the created organization data
+        onOrganizationCreated(response.data);
+        handleClose();
+      })
+      .catch((error) => {
+        showToast({
+          type: 'error',
+          message: error.message || 'Failed to create organization. Please try again.',
+        });
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,10 +161,10 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
     setCurrentStep('organization');
     setSlideDirection('left');
     setOrganizationData(null);
+    setIsSubmitting(false);
     
     // Reset forms
     setOrganizationName('');
-    setOrganizationSlug('');
     setPrimaryContactName('');
     setContactEmail('');
     setContactPhone('');
@@ -209,44 +227,24 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
               {/* Form */}
               <form onSubmit={handleOrganizationSubmit} className="p-6">
                 <div className="space-y-4">
-                  {/* Organization Name and Slug */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Organization Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={organizationName}
-                        onChange={(e) => {
-                          setOrganizationName(e.target.value);
-                          if (orgErrors.organizationName) setOrgErrors(prev => ({ ...prev, organizationName: '' }));
-                        }}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C] focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:border-gray-700 ${
-                          orgErrors.organizationName ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                        placeholder="Enter organization name"
-                      />
-                      {orgErrors.organizationName && <p className="text-red-500 text-xs mt-1">{orgErrors.organizationName}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Organization ID / Slug <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={organizationSlug}
-                        onChange={(e) => {
-                          setOrganizationSlug(e.target.value);
-                          if (orgErrors.organizationSlug) setOrgErrors(prev => ({ ...prev, organizationSlug: '' }));
-                        }}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C] focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:border-gray-700 ${
-                          orgErrors.organizationSlug ? 'border-red-500' : 'border-gray-300'
-                        }`}
-                        placeholder="org-slug"
-                      />
-                      {orgErrors.organizationSlug && <p className="text-red-500 text-xs mt-1">{orgErrors.organizationSlug}</p>}
-                    </div>
+                  {/* Organization Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Organization Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={organizationName}
+                      onChange={(e) => {
+                        setOrganizationName(e.target.value);
+                        if (orgErrors.organizationName) setOrgErrors(prev => ({ ...prev, organizationName: '' }));
+                      }}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C] focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:border-gray-700 ${
+                        orgErrors.organizationName ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Enter organization name"
+                    />
+                    {orgErrors.organizationName && <p className="text-red-500 text-xs mt-1">{orgErrors.organizationName}</p>}
                   </div>
 
                   {/* Primary Contact Person Name */}
@@ -616,12 +614,24 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 text-sm font-medium text-white bg-[#C2410C] border border-transparent rounded-lg hover:bg-[#a83409] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C2410C] transition-colors flex items-center gap-2"
+                    disabled={isSubmitting}
+                    className="px-4 py-2 text-sm font-medium text-white bg-[#C2410C] border border-transparent rounded-lg hover:bg-[#a83409] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C2410C] transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Save & Create
+                    {isSubmitting ? (
+                      <>
+                        <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        Save & Create
+                      </>
+                    )}
                   </button>
                 </div>
               </form>

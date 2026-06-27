@@ -34,6 +34,7 @@ import { SupervisorProfilePage } from '@/pages/supervisor/SupervisorProfilePage'
 import { SupervisorReportsPage } from '@/pages/supervisor/SupervisorReportsPage';
 import { SupervisorSettingsPage } from '@/pages/supervisor/SupervisorSettingsPage';
 import { ReportsProvider } from '@/services/ReportsContext';
+import { OrganizationsProvider } from '@/services/OrganizationContext';
 
 // Create a separate component for the authenticated routes
 const AppRoutes = () => {
@@ -178,9 +179,11 @@ function App() {
       <ToastProvider>
         <NotificationProvider>
           <ReportsProvider>
-            <Router>
-              <AppRoutes />
-            </Router>
+            <OrganizationsProvider>
+              <Router>
+                <AppRoutes />
+              </Router>
+            </OrganizationsProvider>
           </ReportsProvider>
         </NotificationProvider>
       </ToastProvider>

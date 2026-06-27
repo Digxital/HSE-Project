@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import darkLogo from '@/assets/images/aegix-darkmode-logo.png';
 import engineerImage from '@/assets/images/engineer-cooperation-img.png';
+import { superAdminAuthService } from '@/services/superAdminAuthService';
 
 export const SuperAdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -15,26 +16,32 @@ export const SuperAdminLoginPage: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simple validation
+    // Validation
     if (!email || !password) {
       setError('Please fill in all fields');
       return;
     }
 
-    setIsLoading(true);
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
 
-    // TODO: Replace with actual API call to super admin login endpoint
+    setIsLoading(true);
+    setError('');
+
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      localStorage.setItem('superadmin_token', 'dummy-token');
-      if (rememberMe) {
-        localStorage.setItem('superadmin_email', email);
-      }
+      await superAdminAuthService.login({
+        email,
+        password,
+      });
+
+      // Navigate to dashboard on successful login
       navigate('/superadmin/dashboard');
     } catch (err) {
-      setError('Login failed. Please try again.');
+      setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -170,11 +177,21 @@ export const SuperAdminLoginPage: React.FC = () => {
                     disabled={isLoading}
                     className="w-full px-4 py-3 bg-[#C2410C] hover:bg-[#a83409] disabled:bg-gray-400 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
                   >
-                    <span>{isLoading ? 'Proceeding...' : 'Proceed'}</span>
-                    {!isLoading && (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
+                    {isLoading ? (
+                      <>
+                        <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={2} opacity={0.2} />
+                          <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        <span>Logging in...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Proceed</span>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </>
                     )}
                   </button>
                 </form>

@@ -87,6 +87,15 @@ export const useOptionalReports = () => {
 // Use only backend API data - no mock data
 const initialReports: Report[] = [];
 
+// Helper function to check if user is a SuperAdmin
+const isSuperAdminUser = (): boolean => {
+  const userData = getUserData();
+  const role = userData?.role?.toLowerCase();
+  const isSuperAdmin = role === 'superadmin' || role === 'super_admin' || role === 'super admin';
+  console.log('[ReportsContext] User role:', role, 'Is SuperAdmin:', isSuperAdmin);
+  return isSuperAdmin;
+};
+
 export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const notificationApi = useOptionalNotifications();
   const addNotification = notificationApi?.addNotification ?? (() => {});
@@ -153,11 +162,13 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, []);
 
   useEffect(() => {
-    if (authService.isAuthenticated()) {
-      fetchReports();
-    } else {
+    // Skip fetching reports if user is a SuperAdmin
+    if (!authService.isAuthenticated() || isSuperAdminUser()) {
       setLoading(false);
+      return;
     }
+    
+    fetchReports();
   }, [fetchReports]);
 
   useEffect(() => {
@@ -181,7 +192,9 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [fetchReports]);
 
   useEffect(() => {
-    if (!authService.isAuthenticated()) return;
+    // Skip polling for SuperAdmin users
+    if (!authService.isAuthenticated() || isSuperAdminUser()) return;
+    
     const intervalId = setInterval(() => {
       fetchReports();
     }, 120000);
@@ -191,6 +204,9 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Listen for localStorage changes from other tabs (cross-tab sync)
   useEffect(() => {
+    // Skip for SuperAdmin users
+    if (isSuperAdminUser()) return;
+    
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'aegix_last_seen_reports_at') {
         fetchReports();

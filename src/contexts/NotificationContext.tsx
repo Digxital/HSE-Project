@@ -35,31 +35,33 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setUnreadCount(notificationService.getUnreadCount());
     });
 
-    const fetchLatest = () => {
-      notificationService.fetchNotifications();
-    };
+    // TODO: Enable when backend notification endpoints are ready
+    // const fetchLatest = () => {
+    //   notificationService.fetchNotifications();
+    // };
+    // fetchLatest();
 
-    fetchLatest();
-
-    const handleLogin = () => fetchLatest();
+    // const handleLogin = () => fetchLatest();
     const handleLogout = () => {
       notificationService.clearAll();
     };
-    const handleFocus = () => {
-      fetchLatest();
-    };
+    // const handleFocus = () => {
+    //   fetchLatest();
+    // };
 
-    window.addEventListener('auth:login', handleLogin);
+    // TODO: Re-enable event listeners when notification backend is ready
+    // window.addEventListener('auth:login', handleLogin);
     window.addEventListener('auth:logout', handleLogout);
-    window.addEventListener('focus', handleFocus);
+    // window.addEventListener('focus', handleFocus);
 
-    const intervalId = setInterval(fetchLatest, 10000); // Poll every 10 seconds for faster updates
+    // TODO: Re-enable polling when notification backend is ready
+    // const intervalId = setInterval(fetchLatest, 10000); // Poll every 10 seconds for faster updates
 
     return () => {
-      window.removeEventListener('auth:login', handleLogin);
+      // window.removeEventListener('auth:login', handleLogin);
       window.removeEventListener('auth:logout', handleLogout);
-      window.removeEventListener('focus', handleFocus);
-      clearInterval(intervalId);
+      // window.removeEventListener('focus', handleFocus);
+      // clearInterval(intervalId);
       unsubscribe();
     };
   }, []);

@@ -3,33 +3,27 @@ import { SuperAdminSidebar } from '@/components/layout/SuperAdminSidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { CreateOrganizationFlow } from '@/components/superadmin/CreateOrganizationFlow';
 import { OrganizationDetailsModal } from '@/components/superadmin/OrganizationDetailsModal';
+import { useToast } from '@/hooks/useToast';
+import { useOrganizations } from '@/services/OrganizationContext';
 
 type OrganizationStatus = 'All' | 'Active' | 'Pending' | 'Suspended';
 
 interface Organization {
-  id: string;
-  name: string;
-  status: 'Active' | 'Pending' | 'Suspended';
-  subscriptionPlan: 'Enterprise' | 'Premium' | 'Basic' | 'Free';
-  createdDate: string;
-  tenantId?: string;
-  primaryColor?: string;
-  secondaryColor?: string;
-  image?: string;
-  reportsSubmitted?: number;
-  totalReports?: number;
-  openActions?: number;
-  activeCertifications?: number;
-  primaryContactName?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  registeredAddress?: string;
-  maximumUsers?: number;
-  reportsStorageLimit?: string;
-  dataRetentionPeriod?: string;
+  _id: string;
+  organizationName: string;
+  organizationId: string;
+  primaryContactPersonName: string;
+  contactEmail: string;
+  contactPhoneNumber: string;
+  organizationAddress: string;
+  status: 'ACTIVE' | 'PENDING' | 'SUSPENDED' | 'INACTIVE';
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const SuperAdminOrganizationPage: React.FC = () => {
+  const { showToast } = useToast();
+  const { organizations, loading: contextLoading, error: contextError } = useOrganizations();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -39,86 +33,17 @@ export const SuperAdminOrganizationPage: React.FC = () => {
   const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-  // Dummy Data matching user's image exactly
-  const organizations: Organization[] = [
-    {
-      id: '1',
-      name: 'Acme Manufacturing Ltd',
-      status: 'Active',
-      subscriptionPlan: 'Enterprise',
-      createdDate: '12 Jul 2025',
-      tenantId: 'TN - 500801',
-      primaryColor: '#D05230',
-      secondaryColor: '#5E7EB',
-      reportsSubmitted: 145,
-      totalReports: 632,
-      openActions: 38,
-      activeCertifications: 112,
-      primaryContactName: 'John Smith',
-      contactEmail: 'john.smith@acmemanufacturing.com',
-      contactPhone: '+44 7700 900123',
-      registeredAddress: '45 Industrial Park Road, Manchester, United Kingdom',
-      maximumUsers: 600,
-      reportsStorageLimit: '10,000 Reports',
-      dataRetentionPeriod: '36 Months',
-    },
-    {
-      id: '2',
-      name: 'GreenField Logistics',
-      status: 'Active',
-      subscriptionPlan: 'Premium',
-      createdDate: '08 Jul 2025',
-    },
-    {
-      id: '3',
-      name: 'BrightCare Healthcare',
-      status: 'Pending',
-      subscriptionPlan: 'Basic',
-      createdDate: '05 Jul 2025',
-      tenantId: 'TN - 500802',
-      primaryColor: '#2563EB',
-      secondaryColor: '#06B6D4',
-      reportsSubmitted: 0,
-      totalReports: 0,
-      openActions: 0,
-      activeCertifications: 0,
-      primaryContactName: 'Sarah Johnson',
-      contactEmail: 'sarah.johnson@brightcare.com',
-      contactPhone: '+44 7700 900456',
-      registeredAddress: '123 Healthcare Ave, London, United Kingdom',
-      maximumUsers: 150,
-      reportsStorageLimit: '5,000 Reports',
-      dataRetentionPeriod: '12 Months',
-    },
-    {
-      id: '4',
-      name: 'BrightCare Healthcare',
-      status: 'Suspended',
-      subscriptionPlan: 'Free',
-      createdDate: '27 May 2025',
-      tenantId: 'TN - 500803',
-      primaryColor: '#EF4444',
-      secondaryColor: '#DC2626',
-      reportsSubmitted: 89,
-      totalReports: 450,
-      openActions: 12,
-      activeCertifications: 45,
-      primaryContactName: 'Michael Brown',
-      contactEmail: 'michael.brown@brightcare.com',
-      contactPhone: '+44 7700 900789',
-      registeredAddress: '456 Hospital Street, Glasgow, United Kingdom',
-      maximumUsers: 50,
-      reportsStorageLimit: '2,000 Reports',
-      dataRetentionPeriod: '6 Months',
-    },
-  ];
+  // Close modal when organization is deleted
+  useEffect(() => {
+    const handleOrganizationDeleted = () => {
+      setIsDetailsModalOpen(false);
+    };
 
-  // Derive counts for tabs
-  const allCount = organizations.length;
-  const activeCount = organizations.filter(o => o.status === 'Active').length;
-  const pendingCount = organizations.filter(o => o.status === 'Pending').length;
-  const suspendedCount = organizations.filter(o => o.status === 'Suspended').length;
+    window.addEventListener('organizationDeleted', handleOrganizationDeleted);
+    return () => window.removeEventListener('organizationDeleted', handleOrganizationDeleted);
+  }, []);
 
+  // Check mobile responsiveness
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
     checkMobile();
@@ -134,13 +59,36 @@ export const SuperAdminOrganizationPage: React.FC = () => {
     setIsDetailsModalOpen(true);
   };
 
+  // Derive counts for tabs
+  const allCount = organizations.length;
+  const activeCount = organizations.filter(o => o.status === 'ACTIVE').length;
+  const pendingCount = organizations.filter(o => o.status === 'PENDING').length;
+  const suspendedCount = organizations.filter(o => o.status === 'SUSPENDED' || o.status === 'INACTIVE').length;
+
+  // Convert tab status to API status
+  const getApiStatus = (tabStatus: OrganizationStatus): string | null => {
+    switch (tabStatus) {
+      case 'Active':
+        return 'ACTIVE';
+      case 'Pending':
+        return 'PENDING';
+      case 'Suspended':
+        return 'SUSPENDED';
+      default:
+        return null;
+    }
+  };
+
   // Filtering based on status and search query
   let filteredOrgs = organizations;
   if (selectedStatus !== 'All') {
-    filteredOrgs = filteredOrgs.filter(org => org.status === selectedStatus);
+    const apiStatus = getApiStatus(selectedStatus);
+    if (apiStatus) {
+      filteredOrgs = filteredOrgs.filter(org => org.status === apiStatus);
+    }
   }
   if (searchQuery.trim()) {
-    filteredOrgs = filteredOrgs.filter(org => org.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    filteredOrgs = filteredOrgs.filter(org => org.organizationName.toLowerCase().includes(searchQuery.toLowerCase()));
   }
 
   return (
@@ -246,48 +194,52 @@ export const SuperAdminOrganizationPage: React.FC = () => {
 
           {/* Table */}
           <div className="bg-[#FFFAF5] dark:bg-[#121212] rounded-xl overflow-hidden mt-4">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-gray-200 dark:border-gray-800 bg-[#FFF4E64D] dark:bg-gray-800/50">
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Subscription Plan</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Created Date</th>
-                    <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase text-center tracking-wider">Action</th>
-                  </tr>
-                </thead>
+            {contextLoading ? (
+              <div className="flex items-center justify-center p-12">
+                <div className="text-center">
+                  <svg className="w-8 h-8 animate-spin mx-auto mb-3 text-[#C2410C]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth={2} opacity={0.2} />
+                    <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <p className="text-gray-600 dark:text-gray-400">Loading organizations...</p>
+                </div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-800 bg-[#FFF4E64D] dark:bg-gray-800/50">
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Subscription Plan</th>
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Created Date</th>
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase text-center tracking-wider">Action</th>
+                    </tr>
+                  </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
                   {filteredOrgs.map((org, idx) => (
                     <tr 
-                      key={org.id} 
+                      key={org._id} 
                       onClick={() => handleOrganizationRowClick(org)}
                       className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors border-l-2 border-l-[#C2410C] cursor-pointer"
                     >
                       <td className="px-6 py-5 whitespace-nowrap">
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">{org.name}</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{org.organizationName}</span>
                       </td>
                       <td className="px-6 py-5 whitespace-nowrap">
                         <span className={`inline-flex items-center px-3 py-1 rounded-md text-xs font-medium ${
-                          org.status === 'Active' ? 'bg-green-100 text-green-700 dark:bg-green-900/30' :
-                          org.status === 'Pending' ? 'bg-yellow-50 text-yellow-600 dark:bg-yellow-900/30' :
+                          org.status === 'ACTIVE' ? 'bg-green-100 text-green-700 dark:bg-green-900/30' :
+                          org.status === 'PENDING' ? 'bg-yellow-50 text-yellow-600 dark:bg-yellow-900/30' :
                           'bg-red-50 text-red-500 dark:bg-red-900/30'
                         }`}>
-                          {org.status}
+                          {org.status === 'ACTIVE' ? 'Active' : org.status === 'PENDING' ? 'Pending' : org.status === 'INACTIVE' ? 'Inactive' : 'Suspended'}
                         </span>
                       </td>
                       <td className="px-6 py-5 whitespace-nowrap">
-                        <span className={`text-sm font-medium ${
-                          org.subscriptionPlan === 'Enterprise' ? 'text-[#C2410C]' :
-                          org.subscriptionPlan === 'Premium' ? 'text-yellow-500' :
-                          org.subscriptionPlan === 'Basic' ? 'text-blue-500' :
-                          'text-purple-500'
-                        }`}>
-                          {org.subscriptionPlan}
-                        </span>
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">-</span>
                       </td>
                       <td className="px-6 py-5 whitespace-nowrap">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">{org.createdDate}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">{new Date(org.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                       </td>
                       <td className="px-6 py-5 whitespace-nowrap text-center">
                         <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center mx-auto bg-white dark:bg-gray-800 transition-colors">
@@ -298,7 +250,7 @@ export const SuperAdminOrganizationPage: React.FC = () => {
                       </td>
                     </tr>
                   ))}
-                  {filteredOrgs.length === 0 && (
+                  {filteredOrgs.length === 0 && !contextLoading && (
                     <tr>
                       <td colSpan={5} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                         No organizations found matching the criteria.
@@ -307,7 +259,8 @@ export const SuperAdminOrganizationPage: React.FC = () => {
                   )}
                 </tbody>
               </table>
-            </div>
+              </div>
+            )}
           </div>
 
         </div>
@@ -317,9 +270,8 @@ export const SuperAdminOrganizationPage: React.FC = () => {
       <CreateOrganizationFlow
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onOrganizationCreated={(orgData) => {
-          console.log('Organization created:', orgData);
-          // TODO: Call API to create organization
+        onOrganizationCreated={() => {
+          // Context will auto-refresh via the organizationUpdated event
           setIsCreateModalOpen(false);
         }}
       />
