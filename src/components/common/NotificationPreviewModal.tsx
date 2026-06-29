@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 interface Notification {
   id: string;
-  type: 'REPORT' | 'ACTION' | 'USER' | 'SYSTEM';
+  type: 'REPORT' | 'ACTION' | 'USER' | 'SYSTEM' | 'ORGANIZATION';
   title: string;
   description: string;
   timestamp: string;
@@ -54,6 +54,8 @@ export const NotificationPreviewModal: React.FC<NotificationPreviewModalProps> =
           return `/users?email=${encodeURIComponent(notification.userEmail)}`;
         }
         return '/users';
+      case 'ORGANIZATION':
+        return `${routePrefix}/notifications`;
       case 'SYSTEM':
         return `${routePrefix}/settings`;
       default:

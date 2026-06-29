@@ -1,10 +1,42 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Component } from 'react';
 import { SuperAdminSidebar } from '@/components/layout/SuperAdminSidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { CreateOrganizationFlow } from '@/components/superadmin/CreateOrganizationFlow';
 import { OrganizationDetailsModal } from '@/components/superadmin/OrganizationDetailsModal';
 import { useToast } from '@/hooks/useToast';
 import { useOrganizations } from '@/services/OrganizationContext';
+
+// Error boundary to prevent context errors from crashing the entire page
+class OrganizationPageErrorBoundary extends Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-[#FFFAF5] dark:bg-[#0D0D0D] flex items-center justify-center">
+          <div className="text-center p-8">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">Something went wrong loading this page.</p>
+            <button
+              onClick={() => { this.setState({ hasError: false }); window.location.reload(); }}
+              className="px-4 py-2 bg-[#C2410C] text-white rounded-lg text-sm font-medium hover:bg-[#a83409]"
+            >
+              Reload Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 type OrganizationStatus = 'All' | 'Active' | 'Pending' | 'Suspended';
 
@@ -23,7 +55,7 @@ interface Organization {
 
 export const SuperAdminOrganizationPage: React.FC = () => {
   const { showToast } = useToast();
-  const { organizations, loading: contextLoading, error: contextError } = useOrganizations();
+  const { organizations, loading: contextLoading, error: contextError, refreshOrganizations } = useOrganizations();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -32,6 +64,7 @@ export const SuperAdminOrganizationPage: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Close modal when organization is deleted
   useEffect(() => {
@@ -50,6 +83,18 @@ export const SuperAdminOrganizationPage: React.FC = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshOrganizations();
+      showToast({ type: 'success', message: 'Organizations refreshed successfully' });
+    } catch (error) {
+      showToast({ type: 'error', message: 'Failed to refresh organizations' });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleMobileSidebarToggle = () => setIsMobileSidebarOpen(!isMobileSidebarOpen);
   const closeMobileSidebar = () => setIsMobileSidebarOpen(false);
@@ -179,6 +224,15 @@ export const SuperAdminOrganizationPage: React.FC = () => {
                 </svg>
               </div>
 
+              <button 
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="flex items-center justify-center w-9 h-9 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-[#121212] text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Refresh organizations"
+              >
+                <svg className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              </button>
+
               <button className="flex items-center justify-center w-9 h-9 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-[#121212] text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/></svg>
               </button>
@@ -194,6 +248,17 @@ export const SuperAdminOrganizationPage: React.FC = () => {
 
           {/* Table */}
           <div className="bg-[#FFFAF5] dark:bg-[#121212] rounded-xl overflow-hidden mt-4">
+            {contextError && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 mb-4 rounded-lg">
+                <p className="text-red-700 dark:text-red-300 text-sm">Error: {contextError}</p>
+                <button 
+                  onClick={handleRefresh}
+                  className="mt-2 text-red-600 hover:text-red-700 dark:text-red-400 text-sm font-medium"
+                >
+                  Try Again
+                </button>
+              </div>
+            )}
             {contextLoading ? (
               <div className="flex items-center justify-center p-12">
                 <div className="text-center">
@@ -285,3 +350,12 @@ export const SuperAdminOrganizationPage: React.FC = () => {
     </div>
   );
 };
+
+// Wrap with error boundary so context/HMR issues never crash the whole app
+export default function SuperAdminOrganizationPageWithBoundary() {
+  return (
+    <OrganizationPageErrorBoundary>
+      <SuperAdminOrganizationPage />
+    </OrganizationPageErrorBoundary>
+  );
+}

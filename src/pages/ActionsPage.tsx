@@ -58,10 +58,12 @@ export const ActionsPage: React.FC<ActionsPageProps> = ({ role = 'admin' }) => {
     return dateValue;
   };
 
-  // Re-fetch reports every time the page is visited
+  // Re-fetch reports when the page is visited (only if data is stale or missing)
   useEffect(() => {
-    refreshReports();
-  }, [refreshReports]);
+    if (reports.length === 0 && !loading) {
+      refreshReports();
+    }
+  }, []);
 
   // Aggregate all actions from all reports
   const allActions = useMemo(() => {

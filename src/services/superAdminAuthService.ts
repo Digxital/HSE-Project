@@ -73,12 +73,14 @@ class SuperAdminAuthService {
 
 export const superAdminAuthService = new SuperAdminAuthService();
 
-// Global logout handler for when token becomes invalid
+// Global logout handler for when SuperAdmin token becomes invalid (called by organizationService on 401)
 export const handleLogout = () => {
   localStorage.removeItem('auth_token');
   sessionStorage.removeItem('auth_token');
   localStorage.removeItem('user_data');
   sessionStorage.removeItem('user_data');
-  console.log('Session expired. Redirecting to login...');
+  // Dispatch event so OrganizationContext and other providers clean up
+  window.dispatchEvent(new CustomEvent('auth:logout'));
+  console.log('SuperAdmin session expired. Redirecting to login...');
   window.location.href = '/superadmin/login';
 };

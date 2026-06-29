@@ -14,9 +14,10 @@ import { AuditLogPage } from '@/pages/AuditLogPage';
 import { LandingPage } from '@/pages/landing/LandingPage';
 import { SuperAdminLoginPage } from '@/pages/superadmin/SuperAdminLoginPage';
 import { SuperAdminDashboardPage } from '@/pages/superadmin/SuperAdminDashboardPage';
-import { SuperAdminOrganizationPage } from '@/pages/superadmin/organization/OrganizationListPage';
+import SuperAdminOrganizationPageWithBoundary from '@/pages/superadmin/organization/OrganizationListPage';
 import { default as SuperAdminProfilePage } from '@/pages/superadmin/profile/SuperAdminProfilePage';
 import { default as SuperAdminSettingsPage } from '@/pages/superadmin/settings/SuperAdminSettingsPage';
+import { SuperAdminNotificationsPage } from '@/pages/superadmin/SuperAdminNotificationsPage';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -41,25 +42,34 @@ const AppRoutes = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check token expiration on app load
+    // Check token expiration on app load (admin/supervisor only)
     const checkAuth = () => {
+      const currentPath = window.location.pathname;
+
+      // SuperAdmin has its own session handling via organizationService 401 → handleLogout()
+      // Do NOT interfere with SuperAdmin routes
+      if (currentPath.startsWith('/superadmin')) return;
+
       const isAuthenticated = authService.isAuthenticated();
-      
+
       if (!isAuthenticated) {
         const token = getAuthToken();
         if (token) {
-          // Token exists but is expired
+          // Token exists but is expired — log out and redirect to correct login page
           console.log('🔐 Token expired. Logging out...');
           authService.logout();
-          navigate('/admin/login');
+          const loginPath = currentPath.startsWith('/supervisor')
+            ? '/supervisor/login'
+            : '/admin/login';
+          navigate(loginPath);
         }
       }
     };
 
     checkAuth();
 
-    // Optional: Check token expiration periodically
-    const interval = setInterval(checkAuth, 60000); // Check every minute
+    // Check token expiration periodically (every 5 minutes — gives enough buffer)
+    const interval = setInterval(checkAuth, 300000);
 
     return () => clearInterval(interval);
   }, [navigate]);
@@ -79,8 +89,9 @@ const AppRoutes = () => {
       <Route path="/superadmin/dashboard" element={<SuperAdminDashboardPage />} />
       <Route path="/superadmin/profile" element={<SuperAdminProfilePage />} />
       <Route path="/superadmin/settings" element={<SuperAdminSettingsPage />} />
-      <Route path="/superadmin/organization" element={<SuperAdminOrganizationPage />} />
-      <Route path="/superadmin/organization/list" element={<SuperAdminOrganizationPage />} />
+      <Route path="/superadmin/notifications" element={<SuperAdminNotificationsPage />} />
+      <Route path="/superadmin/organization" element={<SuperAdminOrganizationPageWithBoundary />} />
+      <Route path="/superadmin/organization/list" element={<SuperAdminOrganizationPageWithBoundary />} />
 
       {/* Admin routes */}
       <Route path="/admin/login" element={<LoginPage />} />

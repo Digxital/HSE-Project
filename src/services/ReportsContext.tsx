@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { reportService } from '@/services/reportService';
-import { getUserData } from '@/utils/authStorage';
-import { authService } from '@/services/authService';
+import { getUserData, getAuthToken } from '@/utils/authStorage';
 import { useOptionalNotifications } from '@/contexts/NotificationContext';
 
 // Types
@@ -162,8 +161,8 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, []);
 
   useEffect(() => {
-    // Skip fetching reports if user is a SuperAdmin
-    if (!authService.isAuthenticated() || isSuperAdminUser()) {
+    // Skip fetching reports if no token or user is a SuperAdmin
+    if (!getAuthToken() || isSuperAdminUser()) {
       setLoading(false);
       return;
     }
@@ -173,7 +172,10 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   useEffect(() => {
     const handleLogin = () => {
-      fetchReports();
+      // Only refetch for admin/supervisor users, not SuperAdmin
+      if (!isSuperAdminUser()) {
+        fetchReports();
+      }
     };
 
     const handleLogout = () => {
@@ -193,7 +195,7 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   useEffect(() => {
     // Skip polling for SuperAdmin users
-    if (!authService.isAuthenticated() || isSuperAdminUser()) return;
+    if (!getAuthToken() || isSuperAdminUser()) return;
     
     const intervalId = setInterval(() => {
       fetchReports();
@@ -204,8 +206,8 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Listen for localStorage changes from other tabs (cross-tab sync)
   useEffect(() => {
-    // Skip for SuperAdmin users
-    if (isSuperAdminUser()) return;
+    // Skip for SuperAdmin users or when no token
+    if (!getAuthToken() || isSuperAdminUser()) return;
     
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'aegix_last_seen_reports_at') {

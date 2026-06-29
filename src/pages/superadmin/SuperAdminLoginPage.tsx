@@ -38,6 +38,9 @@ export const SuperAdminLoginPage: React.FC = () => {
         password,
       });
 
+      // Fire auth:login event so all context providers (OrganizationContext, etc.) refetch
+      window.dispatchEvent(new Event('auth:login'));
+
       // Navigate to dashboard on successful login
       navigate('/superadmin/dashboard');
     } catch (err) {

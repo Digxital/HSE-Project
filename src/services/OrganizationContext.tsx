@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { organizationService } from '@/services/organizationService';
-import { authService } from '@/services/authService';
+import { getAuthToken } from '@/utils/authStorage';
 
 // Types
 export interface Organization {
@@ -29,14 +29,19 @@ interface OrganizationsContextType {
   };
 }
 
-const OrganizationsContext = createContext<OrganizationsContextType | null>(null);
+// Safe default so useOrganizations never throws when context is temporarily unavailable
+const defaultContextValue: OrganizationsContextType = {
+  organizations: [],
+  loading: true,
+  error: null,
+  refreshOrganizations: async () => {},
+  getOrganizationStats: () => ({ total: 0, active: 0, pending: 0, suspended: 0 }),
+};
+
+const OrganizationsContext = createContext<OrganizationsContextType>(defaultContextValue);
 
 export const useOrganizations = () => {
-  const context = useContext(OrganizationsContext);
-  if (!context) {
-    throw new Error('useOrganizations must be used within an OrganizationsProvider');
-  }
-  return context;
+  return useContext(OrganizationsContext);
 };
 
 export const useOptionalOrganizations = () => {
@@ -73,9 +78,14 @@ export const OrganizationsProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Fetch on mount if authenticated
   useEffect(() => {
-    if (authService.isAuthenticated()) {
+    console.log('[OrganizationContext] Mount: checking if should fetch organizations');
+    const token = getAuthToken();
+    console.log('[OrganizationContext] Auth token present:', !!token);
+    if (token) {
+      console.log('[OrganizationContext] Fetching organizations on mount');
       fetchOrganizations();
     } else {
+      console.log('[OrganizationContext] No auth token, skipping fetch');
       setLoading(false);
     }
   }, [fetchOrganizations]);
@@ -104,7 +114,8 @@ export const OrganizationsProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Polling every 2 minutes
   useEffect(() => {
-    if (!authService.isAuthenticated()) return;
+    const token = getAuthToken();
+    if (!token) return;
 
     console.log('[OrganizationContext] Starting 2-minute polling interval');
     const intervalId = setInterval(() => {

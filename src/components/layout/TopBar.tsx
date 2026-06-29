@@ -251,7 +251,7 @@ export const TopBar: React.FC<TopBarProps> = ({
               notifications={window.location.pathname.startsWith('/superadmin') ? [
                 {
                   id: '1',
-                  type: 'SYSTEM',
+                  type: 'ORGANIZATION',
                   title: 'New Organization Created',
                   description: 'Acme Manufacturing Ltd has been successfully added to the platform.',
                   timestamp: '2 minutes ago',
@@ -259,7 +259,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 },
                 {
                   id: '2',
-                  type: 'SYSTEM',
+                  type: 'ORGANIZATION',
                   title: 'Organization Activated',
                   description: 'GreenField Logistics is now active and can access the platform.',
                   timestamp: '15 minutes ago',
@@ -267,7 +267,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 },
                 {
                   id: '3',
-                  type: 'SYSTEM',
+                  type: 'ORGANIZATION',
                   title: 'Organization Suspended',
                   description: 'Access for Nova Energy Solutions has been suspended.',
                   timestamp: 'Today at 9:42 AM',

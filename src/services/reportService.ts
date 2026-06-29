@@ -39,7 +39,8 @@ interface ApiReport {
 interface ApiAction {
   _id: string;
   actionTitle: string;
-  assignedTo: string;
+  // Backend may send a string OR a populated user object
+  assignedTo: string | { _id?: string; firstName?: string; lastName?: string; email?: string; role?: string; status?: string; name?: string };
   dueDate: string;
   priority?: string;
   description?: string;
@@ -129,6 +130,18 @@ function mapActionStatus(status: string): 'Open' | 'In Progress' | 'Completed' {
   return map[status.toLowerCase()] || 'Open';
 }
 
+function resolveAssignedTo(raw: ApiAction['assignedTo']): string {
+  if (!raw) return 'Unassigned';
+  if (typeof raw === 'string') return raw || 'Unassigned';
+  // Backend returned a populated user object
+  if (raw.name) return raw.name;
+  const fullName = `${raw.firstName || ''} ${raw.lastName || ''}`.trim();
+  if (fullName) return fullName;
+  if (raw.email) return raw.email;
+  if (raw.role) return raw.role;
+  return 'Unassigned';
+}
+
 function mapApiReportToReport(apiReport: ApiReport): Report {
   const recordType = apiReport.recordType || apiReport.recordCategory || 'incident';
   const type = recordType === 'hazard' ? 'Hazard' : 'Incident';
@@ -144,7 +157,7 @@ function mapApiReportToReport(apiReport: ApiReport): Report {
   const actions: Action[] = (apiReport.actions || []).map((a, i) => ({
     id: a._id || `ACT-${String(i + 1).padStart(3, '0')}`,
     action: a.actionTitle,
-    assignedTo: a.assignedTo,
+    assignedTo: resolveAssignedTo(a.assignedTo),
     dueDate: a.dueDate,
     status: mapActionStatus(a.status),
     priority: a.priority,
