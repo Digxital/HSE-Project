@@ -55,7 +55,7 @@ export const OrganizationsProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const hasLoadedOrganizationsRef = useRef(false);
-  const refreshTimeoutRef = useRef<NodeJS.Timeout>();
+  const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const fetchOrganizations = useCallback(async () => {
     try {

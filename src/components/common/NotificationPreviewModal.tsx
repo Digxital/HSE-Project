@@ -35,7 +35,6 @@ export const NotificationPreviewModal: React.FC<NotificationPreviewModalProps> =
 
   // Show only last 3 notifications
   const recentNotifications = notifications.slice(0, 3);
-  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const getNotificationLink = (notification: Notification) => {
     switch (notification.type) {

@@ -19,7 +19,7 @@ interface Notification {
 export const SuperAdminNotificationsPage: React.FC = () => {
   const navigate = useNavigate();
   const userData = getUserData();
-  const { notifications: contextNotifications, markAsRead, markAllAsRead } = useNotifications();
+  useNotifications();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);

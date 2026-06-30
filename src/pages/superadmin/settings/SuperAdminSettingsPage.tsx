@@ -173,7 +173,13 @@ const SuperAdminSettingsPage: React.FC = () => {
           isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'
         }`}
       >
-        <TopBar />
+        <TopBar
+          pageTitle="Settings"
+          userName="Peter Omogbolahan"
+          userRole="Admin"
+          onMenuClick={() => setIsMobileSidebarOpen(true)}
+          showMenuButton={isMobile}
+        />
 
         <main className="p-6 md:p-8 max-w-4xl mx-auto">
           {/* Page Header */}

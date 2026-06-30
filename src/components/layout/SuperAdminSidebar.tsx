@@ -20,7 +20,12 @@ export const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
   const navigate = useNavigate();
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
-  const menuItems = [
+  const menuItems: {
+    label: string;
+    path: string;
+    icon: React.ReactElement;
+    submenu?: { label: string; path: string }[];
+  }[] = [
     {
       label: 'Dashboard',
       path: '/superadmin/dashboard',

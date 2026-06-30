@@ -18,13 +18,6 @@ interface OrganizationData {
   organizationAddress: string;
 }
 
-interface SubscriptionData {
-  subscriptionPlan: string;
-  dataRetentionPeriod: string;
-  maximumAllowedUsers: string;
-  reportsStorageLimit: string;
-}
-
 export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
   isOpen,
   onClose,
@@ -51,7 +44,6 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
   const [reportsStorageLimit, setReportsStorageLimit] = useState('');
 
   // Branding form state
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState('');
   const [primaryThemeColor, setPrimaryThemeColor] = useState('');
   const [secondaryThemeColor, setSecondaryThemeColor] = useState('');
@@ -147,7 +139,6 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setUploadedFile(file);
       setUploadedFileName(file.name);
     }
   };
@@ -174,7 +165,6 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
     setDataRetentionPeriod('6 Months');
     setMaximumAllowedUsers('100');
     setReportsStorageLimit('');
-    setUploadedFile(null);
     setUploadedFileName('');
     setPrimaryThemeColor('');
     setSecondaryThemeColor('');

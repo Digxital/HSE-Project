@@ -43,7 +43,7 @@ export const OrganizationDetailsModal: React.FC<OrganizationDetailsModalProps> =
         .then((response) => {
           setDetailedOrg(response.data);
         })
-        .catch((error) => {
+        .catch(() => {
           showToast({
             type: 'error',
             message: 'Failed to load organization details.',
