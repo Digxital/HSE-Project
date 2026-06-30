@@ -16,6 +16,7 @@ interface OrganizationData {
   contactEmail: string;
   contactPhone: string;
   organizationAddress: string;
+  password: string;
 }
 
 export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
@@ -35,6 +36,8 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [organizationAddress, setOrganizationAddress] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [confirmAdminPassword, setConfirmAdminPassword] = useState('');
   const [orgErrors, setOrgErrors] = useState<Record<string, string>>({});
 
   // Subscription form state
@@ -60,6 +63,9 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
       newErrors.contactEmail = 'Valid email is required';
     if (!contactPhone.trim()) newErrors.contactPhone = 'Phone number is required';
     if (!organizationAddress.trim()) newErrors.organizationAddress = 'Address is required';
+    if (!adminPassword) newErrors.adminPassword = 'Admin password is required';
+    else if (adminPassword.length < 8) newErrors.adminPassword = 'Password must be at least 8 characters';
+    if (adminPassword !== confirmAdminPassword) newErrors.confirmAdminPassword = 'Passwords do not match';
 
     if (Object.keys(newErrors).length > 0) {
       setOrgErrors(newErrors);
@@ -72,6 +78,7 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
       contactEmail,
       contactPhone,
       organizationAddress,
+      password: adminPassword,
     };
 
     setOrganizationData(data);
@@ -108,6 +115,7 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
       contactEmail: organizationData.contactEmail,
       contactPhoneNumber: organizationData.contactPhone,
       organizationAddress: organizationData.organizationAddress,
+      password: organizationData.password,
     };
 
     organizationService
@@ -160,6 +168,8 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
     setContactEmail('');
     setContactPhone('');
     setOrganizationAddress('');
+    setAdminPassword('');
+    setConfirmAdminPassword('');
     setOrgErrors({});
     setSubscriptionPlan('');
     setDataRetentionPeriod('6 Months');
@@ -294,6 +304,52 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
                         placeholder="Enter phone number"
                       />
                       {orgErrors.contactPhone && <p className="text-red-500 text-xs mt-1">{orgErrors.contactPhone}</p>}
+                    </div>
+                  </div>
+
+                  {/* Admin Password and Confirm Password */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Admin Password <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        value={adminPassword}
+                        onChange={(e) => {
+                          setAdminPassword(e.target.value);
+                          if (orgErrors.adminPassword) setOrgErrors(prev => ({ ...prev, adminPassword: '' }));
+                        }}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C] focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:border-gray-700 ${
+                          orgErrors.adminPassword ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        placeholder="Enter password for organization admin"
+                      />
+                      {orgErrors.adminPassword ? (
+                        <p className="text-red-500 text-xs mt-1">{orgErrors.adminPassword}</p>
+                      ) : (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Used by the contact email above to log in as this organization's admin.
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Confirm Password <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        value={confirmAdminPassword}
+                        onChange={(e) => {
+                          setConfirmAdminPassword(e.target.value);
+                          if (orgErrors.confirmAdminPassword) setOrgErrors(prev => ({ ...prev, confirmAdminPassword: '' }));
+                        }}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C] focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:border-gray-700 ${
+                          orgErrors.confirmAdminPassword ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        placeholder="Re-enter password"
+                      />
+                      {orgErrors.confirmAdminPassword && <p className="text-red-500 text-xs mt-1">{orgErrors.confirmAdminPassword}</p>}
                     </div>
                   </div>
 

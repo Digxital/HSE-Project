@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { SuperAdminSidebar } from '@/components/layout/SuperAdminSidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { useToast } from '@/hooks/useToast';
+import { getUserData } from '@/utils/authStorage';
 
 interface SettingsData {
   currentPassword: string;
@@ -32,6 +33,10 @@ const SuperAdminSettingsPage: React.FC = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const userData = getUserData();
+  const displayName = userData?.name || 'Super Admin';
+  const displayRole = userData?.role || 'Super Admin';
 
   useEffect(() => {
     const checkMobile = () => {
@@ -175,8 +180,8 @@ const SuperAdminSettingsPage: React.FC = () => {
       >
         <TopBar
           pageTitle="Settings"
-          userName="Peter Omogbolahan"
-          userRole="Admin"
+          userName={displayName}
+          userRole={displayRole}
           onMenuClick={() => setIsMobileSidebarOpen(true)}
           showMenuButton={isMobile}
         />

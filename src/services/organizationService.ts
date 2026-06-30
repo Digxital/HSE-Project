@@ -22,6 +22,7 @@ export interface CreateOrganizationPayload {
   contactEmail: string;
   contactPhoneNumber: string;
   organizationAddress: string;
+  password: string;
 }
 
 export interface OrganizationsResponse {

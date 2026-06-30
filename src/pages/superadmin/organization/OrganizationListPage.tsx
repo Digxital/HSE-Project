@@ -5,6 +5,7 @@ import { CreateOrganizationFlow } from '@/components/superadmin/CreateOrganizati
 import { OrganizationDetailsModal } from '@/components/superadmin/OrganizationDetailsModal';
 import { useToast } from '@/hooks/useToast';
 import { useOrganizations } from '@/services/OrganizationContext';
+import { getUserData } from '@/utils/authStorage';
 
 // Error boundary to prevent context errors from crashing the entire page
 class OrganizationPageErrorBoundary extends Component<
@@ -65,6 +66,10 @@ export const SuperAdminOrganizationPage: React.FC = () => {
   const [selectedOrganization, setSelectedOrganization] = useState<Organization | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const userData = getUserData();
+  const displayName = userData?.name || 'Super Admin';
+  const displayRole = userData?.role || 'Super Admin';
 
   // Close modal when organization is deleted
   useEffect(() => {
@@ -159,8 +164,8 @@ export const SuperAdminOrganizationPage: React.FC = () => {
         {/* Top Bar */}
         <TopBar
           pageTitle="Organization Management"
-          userName="Peter Omogbolahan"
-          userRole="Admin"
+          userName={displayName}
+          userRole={displayRole}
           syncStatus="synced"
           onMenuClick={handleMobileSidebarToggle}
           showMenuButton={isMobile}

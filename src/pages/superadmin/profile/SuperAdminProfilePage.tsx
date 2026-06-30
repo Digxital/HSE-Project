@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { SuperAdminSidebar } from '@/components/layout/SuperAdminSidebar';
 import { TopBar } from '@/components/layout/TopBar';
+import { getUserData } from '@/utils/authStorage';
+import { useOrganizations } from '@/services/OrganizationContext';
 
 interface ProfileData {
   firstName: string;
@@ -10,26 +12,26 @@ interface ProfileData {
   role: string;
   location: string;
   status: 'Active' | 'Inactive';
-  totalOrganizations: number;
-  activeOrganizations: number;
-  pendingOrganizations: number;
-  suspendedOrganizations: number;
 }
 
-const SuperAdminProfilePage: React.FC = () => {
-  const [profileData, setProfileData] = useState<ProfileData>({
-    firstName: 'John',
-    surname: 'Matthews',
-    email: 'john.matthews@example.com',
-    phoneNumber: '+1 (555) 123-4567',
-    role: 'Super Admin',
-    location: 'Houston Office',
+const buildProfileFromUser = (): ProfileData => {
+  const userData = getUserData();
+  const [firstName = '', ...rest] = (userData?.name || 'Super Admin').split(' ');
+  return {
+    firstName,
+    surname: rest.join(' '),
+    email: userData?.email || '',
+    phoneNumber: '',
+    role: userData?.role || 'Super Admin',
+    location: '',
     status: 'Active',
-    totalOrganizations: 12,
-    activeOrganizations: 9,
-    pendingOrganizations: 2,
-    suspendedOrganizations: 1,
-  });
+  };
+};
+
+const SuperAdminProfilePage: React.FC = () => {
+  const { getOrganizationStats } = useOrganizations();
+  const stats = getOrganizationStats();
+  const [profileData, setProfileData] = useState<ProfileData>(buildProfileFromUser);
 
   const [hasChanges, setHasChanges] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -104,8 +106,8 @@ const SuperAdminProfilePage: React.FC = () => {
                 <div className="flex items-center gap-4">
                   {/* Avatar */}
                   <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#C2410C] to-[#a83409] flex items-center justify-center text-white text-2xl font-bold">
-                    {profileData.firstName.charAt(0)}
-                    {profileData.surname.charAt(0)}
+                    {profileData.firstName.charAt(0).toUpperCase()}
+                    {profileData.surname.charAt(0).toUpperCase()}
                   </div>
 
                   <div>
@@ -218,6 +220,7 @@ const SuperAdminProfilePage: React.FC = () => {
                     onChange={(e) => handleInputChange('location', e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C2410C] focus:border-transparent"
                   >
+                    <option value="">Select location</option>
                     <option value="Houston Office">Houston Office</option>
                     <option value="New York Office">New York Office</option>
                     <option value="London Office">London Office</option>
@@ -241,7 +244,7 @@ const SuperAdminProfilePage: React.FC = () => {
                     Total Organizations
                   </p>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white">
-                    {profileData.totalOrganizations}
+                    {stats.total}
                   </p>
                 </div>
 
@@ -251,7 +254,7 @@ const SuperAdminProfilePage: React.FC = () => {
                     Active Organizations
                   </p>
                   <p className="text-3xl font-bold text-green-600 dark:text-green-400">
-                    {profileData.activeOrganizations}
+                    {stats.active}
                   </p>
                 </div>
 
@@ -261,7 +264,7 @@ const SuperAdminProfilePage: React.FC = () => {
                     Pending Organizations
                   </p>
                   <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
-                    {profileData.pendingOrganizations}
+                    {stats.pending}
                   </p>
                 </div>
 
@@ -271,7 +274,7 @@ const SuperAdminProfilePage: React.FC = () => {
                     Suspended Organizations
                   </p>
                   <p className="text-3xl font-bold text-red-600 dark:text-red-400">
-                    {profileData.suspendedOrganizations}
+                    {stats.suspended}
                   </p>
                 </div>
               </div>

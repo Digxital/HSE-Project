@@ -3,6 +3,7 @@ import { SuperAdminSidebar } from '@/components/layout/SuperAdminSidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { OrganizationDetailsModal } from '@/components/superadmin/OrganizationDetailsModal';
 import { useOrganizations } from '@/services/OrganizationContext';
+import { getUserData } from '@/utils/authStorage';
 
 interface Organization {
   _id: string;
@@ -27,6 +28,10 @@ export const SuperAdminDashboardPage: React.FC = () => {
 
   // Get stats from context
   const stats = getOrganizationStats();
+
+  const userData = getUserData();
+  const displayName = userData?.name || 'Super Admin';
+  const displayRole = userData?.role || 'Super Admin';
 
   // Check if mobile on mount and window resize
   useEffect(() => {
@@ -85,8 +90,8 @@ export const SuperAdminDashboardPage: React.FC = () => {
         {/* Top Bar */}
         <TopBar
           pageTitle="Dashboard"
-          userName="Peter Omogbolahan"
-          userRole="Admin"
+          userName={displayName}
+          userRole={displayRole}
           syncStatus="synced"
           onMenuClick={handleMobileSidebarToggle}
           showMenuButton={isMobile}
