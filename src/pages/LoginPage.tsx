@@ -68,9 +68,16 @@ export const LoginPage: React.FC = () => {
     setAuthToken(response.data.token, rememberMe);
     
     // Store user data with role (non-sensitive information)
+    // Always ensure name is populated — backend may return firstName/lastName separately
+    const u = response.data.user;
+    const resolvedName =
+      u.name ||
+      [u.firstName, u.lastName].filter(Boolean).join(' ') ||
+      u.email;
     const userData = {
-      ...response.data.user,
-      role: response.data.role
+      ...u,
+      role: response.data.role,
+      name: resolvedName,
     } as any;
     setUserData(userData, rememberMe);
 
@@ -99,18 +106,27 @@ export const LoginPage: React.FC = () => {
     if (error.errors) {
       const fieldErrors: Record<string, string> = {};
       Object.entries(error.errors).forEach(([field, messages]) => {
-        fieldErrors[field] = messages[0]; // Take first error message
+        fieldErrors[field] = messages[0];
       });
       setErrors(fieldErrors);
     }
 
-    // Set general API error message
-    setApiError(error.message || 'Authentication failed. Please check your credentials.');
+    // Detect pending-org error and surface a helpful message
+    const msg = error.message || '';
+    const isPending =
+      msg.toLowerCase().includes('pending') ||
+      msg.toLowerCase().includes('not activated') ||
+      msg.toLowerCase().includes('not active');
 
-    // Show toast for better UX
+    const displayMessage = isPending
+      ? 'Your organization account is pending activation by the super admin. Please contact your administrator.'
+      : msg || 'Authentication failed. Please check your credentials.';
+
+    setApiError(displayMessage);
+
     showToast({
       type: 'error',
-      message: error.message || 'Login failed. Please try again.',
+      message: displayMessage,
     });
   };
 

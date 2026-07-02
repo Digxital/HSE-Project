@@ -17,12 +17,11 @@ import { SuperAdminDashboardPage } from '@/pages/superadmin/SuperAdminDashboardP
 import SuperAdminOrganizationPageWithBoundary from '@/pages/superadmin/organization/OrganizationListPage';
 import { default as SuperAdminProfilePage } from '@/pages/superadmin/profile/SuperAdminProfilePage';
 import { default as SuperAdminSettingsPage } from '@/pages/superadmin/settings/SuperAdminSettingsPage';
-import { SuperAdminNotificationsPage } from '@/pages/superadmin/SuperAdminNotificationsPage';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { authService } from '@/services/authService';
-import { getAuthToken } from '@/utils/authStorage';
+import { getAuthToken, getUserData } from '@/utils/authStorage';
 import { NotificationProvider } from '@/contexts/NotificationContext';
  
 import AOS from 'aos';
@@ -46,16 +45,18 @@ const AppRoutes = () => {
     const checkAuth = () => {
       const currentPath = window.location.pathname;
 
-      // SuperAdmin has its own session handling via organizationService 401 → handleLogout()
-      // Do NOT interfere with SuperAdmin routes
+      // SuperAdmin has its own session handling — never interfere
       if (currentPath.startsWith('/superadmin')) return;
+
+      // Also skip if a superadmin token is stored, regardless of current path
+      const storedRole = getUserData()?.role?.toLowerCase() ?? '';
+      if (storedRole.includes('superadmin') || storedRole.includes('super_admin') || storedRole.includes('super-admin')) return;
 
       const isAuthenticated = authService.isAuthenticated();
 
       if (!isAuthenticated) {
         const token = getAuthToken();
         if (token) {
-          // Token exists but is expired — log out and redirect to correct login page
           console.log('🔐 Token expired. Logging out...');
           authService.logout();
           const loginPath = currentPath.startsWith('/supervisor')
@@ -89,7 +90,6 @@ const AppRoutes = () => {
       <Route path="/superadmin/dashboard" element={<SuperAdminDashboardPage />} />
       <Route path="/superadmin/profile" element={<SuperAdminProfilePage />} />
       <Route path="/superadmin/settings" element={<SuperAdminSettingsPage />} />
-      <Route path="/superadmin/notifications" element={<SuperAdminNotificationsPage />} />
       <Route path="/superadmin/organization" element={<SuperAdminOrganizationPageWithBoundary />} />
       <Route path="/superadmin/organization/list" element={<SuperAdminOrganizationPageWithBoundary />} />
 
@@ -136,14 +136,19 @@ const RootRedirect = () => {
     if (token && userDataStr) {
       try {
         const userData = JSON.parse(userDataStr);
-        if (userData.role === 'supervisor') {
+        const role = (userData.role ?? '').toLowerCase();
+        if (role.includes('superadmin') || role.includes('super_admin') || role.includes('super-admin')) {
+          navigate('/superadmin/dashboard', { replace: true });
+          return;
+        }
+        if (role === 'supervisor') {
           navigate('/supervisor/dashboard', { replace: true });
           return;
         }
       } catch (e) {
         // JSON parse error, continue
       }
-      
+
       // Default to admin dashboard
       navigate('/dashboard', { replace: true });
       return;

@@ -15,11 +15,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ role = 'admin' }) =>
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Password fields
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-
   // Notification toggles
   const [notifications, setNotifications] = useState({
     reportNotifications: false,
@@ -135,47 +130,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ role = 'admin' }) =>
             <div className="mb-6">
               <h2 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">Settings</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Manage your account preferences and security settings.</p>
-            </div>
-
-            {/* Change Password Section */}
-            <div className="mb-8">
-              <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Change Password</h3>
-              
-              {/* Current Password */}
-              <div className="mb-4 md:w-[calc(50%-0.5rem)]">
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Current Password</label>
-                <input
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-[#FFF9F5] dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                  placeholder=""
-                />
-              </div>
-
-              {/* New Password & Confirm Password */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">New Password</label>
-                  <input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-[#FFF9F5] dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                    placeholder=""
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Confirm New Password</label>
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-[#FFF9F5] dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-                    placeholder=""
-                  />
-                </div>
-              </div>
             </div>
 
             {/* Notification Section */}

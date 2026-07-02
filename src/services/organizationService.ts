@@ -1,4 +1,4 @@
-import { getAuthToken } from '@/utils/authStorage';
+import { getAuthToken, getSuperAdminAuthToken } from '@/utils/authStorage';
 import { handleLogout } from './superAdminAuthService';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
@@ -46,8 +46,34 @@ export interface OrganizationResponse {
 }
 
 class OrganizationService {
+  private normalizeCreatePayload(payload: CreateOrganizationPayload): CreateOrganizationPayload {
+    return {
+      ...payload,
+      organizationName: payload.organizationName.trim(),
+      primaryContactPersonName: payload.primaryContactPersonName.trim(),
+      contactEmail: payload.contactEmail.trim().toLowerCase(),
+      contactPhoneNumber: payload.contactPhoneNumber.trim(),
+      organizationAddress: payload.organizationAddress.trim(),
+      password: payload.password,
+    };
+  }
+
+  private async parseErrorMessage(response: Response, fallback: string): Promise<string> {
+    const contentType = response.headers.get('content-type') || '';
+    try {
+      if (contentType.includes('application/json')) {
+        const error = await response.json();
+        return error?.message || error?.error || fallback;
+      }
+      const text = await response.text();
+      return text || fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
   private getHeaders() {
-    const token = getAuthToken();
+    const token = getSuperAdminAuthToken() || getAuthToken();
     return {
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
@@ -56,13 +82,18 @@ class OrganizationService {
 
   async createOrganization(payload: CreateOrganizationPayload): Promise<OrganizationResponse> {
     try {
+      const normalizedPayload = this.normalizeCreatePayload(payload);
+
+      const token = getSuperAdminAuthToken() || getAuthToken();
       const response = await fetch(`${API_BASE_URL}/api/organizations`, {
         method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify(payload),
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify(normalizedPayload),
       });
 
-      // Handle unauthorized
       if (response.status === 401) {
         console.warn('Token expired or invalid. Logging out...');
         handleLogout();
@@ -70,8 +101,8 @@ class OrganizationService {
       }
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create organization');
+        const message = await this.parseErrorMessage(response, 'Failed to create organization');
+        throw new Error(message);
       }
 
       return await response.json();
@@ -91,11 +122,12 @@ class OrganizationService {
         }
       );
 
-      // Handle unauthorized - token expired or invalid
       if (response.status === 401) {
-        console.warn('Token expired or invalid. Logging out...');
-        handleLogout();
-        throw new Error('Session expired. Please log in again.');
+        // Throw with status attached — let OrganizationContext decide whether to logout
+        // (don't auto-logout here: this method is used by background polling)
+        const err = new Error('Session expired. Please log in again.') as any;
+        err.status = 401;
+        throw err;
       }
 
       if (!response.ok) {

@@ -5,7 +5,7 @@ import { CreateOrganizationFlow } from '@/components/superadmin/CreateOrganizati
 import { OrganizationDetailsModal } from '@/components/superadmin/OrganizationDetailsModal';
 import { useToast } from '@/hooks/useToast';
 import { useOrganizations } from '@/services/OrganizationContext';
-import { getUserData } from '@/utils/authStorage';
+import { getSuperAdminUserData } from '@/utils/authStorage';
 
 // Error boundary to prevent context errors from crashing the entire page
 class OrganizationPageErrorBoundary extends Component<
@@ -67,7 +67,7 @@ export const SuperAdminOrganizationPage: React.FC = () => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const userData = getUserData();
+  const userData = getSuperAdminUserData();
   const displayName = userData?.name || 'Super Admin';
   const displayRole = userData?.role || 'Super Admin';
 
@@ -281,7 +281,7 @@ export const SuperAdminOrganizationPage: React.FC = () => {
                     <tr className="border-b border-gray-200 dark:border-gray-800 bg-[#FFF4E64D] dark:bg-gray-800/50">
                       <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Name</th>
                       <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Subscription Plan</th>
+                      <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Email</th>
                       <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Created Date</th>
                       <th className="px-6 py-4 text-xs font-semibold text-gray-400 uppercase text-center tracking-wider">Action</th>
                     </tr>
@@ -306,7 +306,7 @@ export const SuperAdminOrganizationPage: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-5 whitespace-nowrap">
-                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">-</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">{org.contactEmail || '—'}</span>
                       </td>
                       <td className="px-6 py-5 whitespace-nowrap">
                         <span className="text-sm text-gray-600 dark:text-gray-400">{new Date(org.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>

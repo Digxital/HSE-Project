@@ -39,14 +39,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
     return value.toLowerCase();
   };
 
-  const displayName = userData?.name || 'User';
-  const displayRole = userData?.role
-    ? userData.role === 'supervisor'
-      ? 'Supervisor'
-      : 'System Administrator'
-    : role === 'supervisor'
-      ? 'Supervisor'
-      : 'System Administrator';
 
   // Form state for edit mode
   const [formData, setFormData] = useState({
@@ -281,8 +273,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
           pageTitle="Profile"
           onMenuClick={() => setMobileMenuOpen(true)}
           showMenuButton={true}
-          userName={displayName}
-          userRole={displayRole}
+          userName={profileName}
+          userRole={profileRoleLabel}
         />
 
         {/* Main Content Area */}

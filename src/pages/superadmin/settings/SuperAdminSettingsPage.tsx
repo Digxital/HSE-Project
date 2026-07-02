@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { SuperAdminSidebar } from '@/components/layout/SuperAdminSidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { useToast } from '@/hooks/useToast';
-import { getUserData } from '@/utils/authStorage';
+import { getSuperAdminUserData, getAuthToken } from '@/utils/authStorage';
 
 interface SettingsData {
   currentPassword: string;
@@ -33,8 +33,9 @@ const SuperAdminSettingsPage: React.FC = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-  const userData = getUserData();
+  const userData = getSuperAdminUserData();
   const displayName = userData?.name || 'Super Admin';
   const displayRole = userData?.role || 'Super Admin';
 
@@ -56,57 +57,53 @@ const SuperAdminSettingsPage: React.FC = () => {
     }));
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (!settings.currentPassword) {
-      showToast({
-        type: 'error',
-        message: 'Please enter your current password',
-      });
+      showToast({ type: 'error', message: 'Please enter your current password' });
       return;
     }
-
     if (!settings.newPassword) {
-      showToast({
-        type: 'error',
-        message: 'Please enter your new password',
-      });
+      showToast({ type: 'error', message: 'Please enter your new password' });
       return;
     }
-
     if (settings.newPassword !== settings.confirmPassword) {
-      showToast({
-        type: 'error',
-        message: 'New passwords do not match',
-      });
+      showToast({ type: 'error', message: 'New passwords do not match' });
       return;
     }
-
     if (settings.newPassword.length < 8) {
-      showToast({
-        type: 'error',
-        message: 'Password must be at least 8 characters',
-      });
+      showToast({ type: 'error', message: 'Password must be at least 8 characters' });
       return;
     }
 
-    // TODO: API call to change password
-    console.log('Password change request:', {
-      currentPassword: settings.currentPassword,
-      newPassword: settings.newPassword,
-    });
+    setIsChangingPassword(true);
+    try {
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://hse-backend-n8d4.onrender.com';
+      const token = getAuthToken();
+      const response = await fetch(`${baseURL}/api/superadmin/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify({
+          currentPassword: settings.currentPassword,
+          newPassword: settings.newPassword,
+        }),
+      });
 
-    showToast({
-      type: 'success',
-      message: 'Password changed successfully',
-    });
+      const data = await response.json();
 
-    // Reset password fields
-    setSettings((prev) => ({
-      ...prev,
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
-    }));
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to change password');
+      }
+
+      showToast({ type: 'success', message: 'Password changed successfully' });
+      setSettings(prev => ({ ...prev, currentPassword: '', newPassword: '', confirmPassword: '' }));
+    } catch (error: any) {
+      showToast({ type: 'error', message: error.message || 'Failed to change password. Please try again.' });
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   const handleSaveNotifications = () => {
@@ -250,9 +247,10 @@ const SuperAdminSettingsPage: React.FC = () => {
 
               <button
                 onClick={handleChangePassword}
-                className="mt-4 px-6 py-2 bg-[#C2410C] hover:bg-[#a83409] text-white font-semibold rounded-lg transition-colors"
+                disabled={isChangingPassword}
+                className="mt-4 px-6 py-2 bg-[#C2410C] hover:bg-[#a83409] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
               >
-                Update Password
+                {isChangingPassword ? 'Updating...' : 'Update Password'}
               </button>
             </div>
           </div>

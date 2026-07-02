@@ -1,5 +1,5 @@
 import api from '@/lib/axios';
-import { setAuthToken, setUserData, getAuthToken } from '@/utils/authStorage';
+import { setAuthToken, setUserData, getAuthToken, removeAuthToken, removeUserData } from '@/utils/authStorage';
 import type { LoginResponse } from '@/types/auth';
 
 interface LoginCredentials {
@@ -37,23 +37,24 @@ export const authService = {
 
  
   async logout() {
+    // Never clear a superadmin session from this method — superadmin has its own logout flow
+    if (window.location.pathname.startsWith('/superadmin')) return;
+
     try {
       const token = getAuthToken();
       if (token) {
         await api.post('/api/auth/logout', {}, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { 'Authorization': `Bearer ${token}` }
         });
       }
     } catch (error) {
       console.error('Logout API error:', error);
     } finally {
-      // Clear all auth data
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // Dispatch logout event
+      // Remove only auth-specific keys — never nuke all of localStorage
+      removeAuthToken();
+      removeUserData();
+      localStorage.removeItem('refresh_token');
+      sessionStorage.removeItem('refresh_token');
       window.dispatchEvent(new CustomEvent('auth:logout'));
     }
   },
@@ -87,15 +88,19 @@ export const authService = {
   isAuthenticated(): boolean {
     const token = getAuthToken();
     if (!token) return false;
-    
+
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const exp = payload.exp * 1000; 
+      // JWTs use base64url (- and _ instead of + and /) — atob needs standard base64
+      const base64url = token.split('.')[1];
+      const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(atob(base64));
+      const exp = payload.exp * 1000;
       return Date.now() < exp;
     } catch {
+      // If we can't decode the token treat it as expired
       return false;
     }
-  } 
+  }
 
   
 };

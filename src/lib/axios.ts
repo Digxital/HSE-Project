@@ -47,13 +47,19 @@ api.interceptors.response.use(
     // Handle token refresh or logout on 401
     if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+
+      // Superadmin has its own session management (organizationService → handleLogout).
+      // Never let the axios interceptor wipe the superadmin token — doing so would
+      // silently invalidate the session whenever an org-scoped endpoint returns 401.
+      if (window.location.pathname.startsWith('/superadmin')) {
+        return Promise.reject(error);
+      }
+
       console.log('🔐 Token expired or invalid. Logging out...');
-      // Clear all auth data
       removeAuthToken();
       removeUserData();
-      // Dispatch custom event for logout — useAuth hook listens for this and navigates to /login
       window.dispatchEvent(new CustomEvent('auth:logout'));
-      
+
       return Promise.reject(error);
     }
     return Promise.reject(error);

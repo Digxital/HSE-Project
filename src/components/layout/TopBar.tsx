@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '@/services/authService';
-import { removeAuthToken, removeRefreshToken, removeUserData } from '@/utils/authStorage';
+import {
+  removeAuthToken,
+  removeRefreshToken,
+  removeSuperAdminAuthToken,
+  removeSuperAdminUserData,
+  removeUserData,
+} from '@/utils/authStorage';
+import { handleLogout as handleSuperAdminLogout } from '@/services/superAdminAuthService';
 import { useToast } from '@/hooks/useToast';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useOptionalReports } from '@/services/ReportsContext';
@@ -46,6 +53,14 @@ export const TopBar: React.FC<TopBarProps> = ({
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
+
+      const isSuperAdminRoute = window.location.pathname.includes('/superadmin');
+
+      if (isSuperAdminRoute) {
+        // Use superadmin-specific logout flow.
+        handleSuperAdminLogout();
+        return;
+      }
       
       // Call logout API
       await authService.logout();
@@ -80,6 +95,8 @@ export const TopBar: React.FC<TopBarProps> = ({
       removeAuthToken();
       removeRefreshToken();
       removeUserData();
+      removeSuperAdminAuthToken();
+      removeSuperAdminUserData();
       
       showToast({
         type: 'error',
@@ -222,107 +239,75 @@ export const TopBar: React.FC<TopBarProps> = ({
             <span className={`font-medium ${syncConfig.textColor}`}>{syncConfig.text}</span>
           </div>
 
-          {/* Notifications */}
-          <div className="relative">
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-            >
-              <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
-              </svg>
-              {(window.location.pathname.startsWith('/superadmin') ? 2 : unreadCount) > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 md:w-5 md:h-5 bg-red-500 dark:bg-red-600 text-white dark:text-white text-xs font-bold flex items-center justify-center rounded-full shadow-md">
-                  {window.location.pathname.startsWith('/superadmin') ? 2 : unreadCount}
-                </span>
-              )}
-            </button>
+          {/* Notifications — hidden for superadmin */}
+          {!window.location.pathname.startsWith('/superadmin') && (
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  />
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-4 h-4 md:w-5 md:h-5 bg-red-500 dark:bg-red-600 text-white text-xs font-bold flex items-center justify-center rounded-full shadow-md">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
 
-            {/* Notification Preview Modal */}
-            <NotificationPreviewModal 
-              isOpen={showNotifications}
-              onClose={() => setShowNotifications(false)}
-              onMarkAsRead={markAsRead}
-              notifications={window.location.pathname.startsWith('/superadmin') ? [
-                {
-                  id: '1',
-                  type: 'ORGANIZATION',
-                  title: 'New Organization Created',
-                  description: 'Acme Manufacturing Ltd has been successfully added to the platform.',
-                  timestamp: '2 minutes ago',
-                  isRead: false
-                },
-                {
-                  id: '2',
-                  type: 'ORGANIZATION',
-                  title: 'Organization Activated',
-                  description: 'GreenField Logistics is now active and can access the platform.',
-                  timestamp: '15 minutes ago',
-                  isRead: false
-                },
-                {
-                  id: '3',
-                  type: 'ORGANIZATION',
-                  title: 'Organization Suspended',
-                  description: 'Access for Nova Energy Solutions has been suspended.',
-                  timestamp: 'Today at 9:42 AM',
-                  isRead: true
-                },
-                {
-                  id: '4',
-                  type: 'USER',
-                  title: 'Admin Account Created',
-                  description: 'An administrator account has been created for BrightCare Healthcare.',
-                  timestamp: 'Today at 9:42 AM',
-                  isRead: true
-                }
-              ] : notifications.map(notif => {
-                const emailMatch = typeof notif.description === 'string'
-                  ? notif.description.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)
-                  : null;
-                const userEmail = notif.data?.userEmail || notif.data?.email || notif.data?.user?.email || emailMatch?.[0];
-                const hasReportTarget = Boolean(notif.data?.reportId || notif.data?.incidentId || notif.data?.report?.id);
-                const hasActionTarget = Boolean(notif.data?.actionId || notif.data?.action?.id);
-                const hasUserTarget = Boolean(notif.data?.userId || userEmail);
-                const type = hasReportTarget
-                  ? 'REPORT'
-                  : hasActionTarget
-                  ? 'ACTION'
-                  : hasUserTarget
-                  ? 'USER'
-                  : notif.type === 'report_submitted' || notif.type === 'report_commented'
-                  ? 'REPORT'
-                  : notif.type === 'action_closed' || notif.type === 'action_progress'
-                  ? 'ACTION'
-                  : notif.type === 'user_added'
-                  ? 'USER'
-                  : 'SYSTEM';
+              <NotificationPreviewModal
+                isOpen={showNotifications}
+                onClose={() => setShowNotifications(false)}
+                onMarkAsRead={markAsRead}
+                notifications={notifications.map(notif => {
+                  const emailMatch = typeof notif.description === 'string'
+                    ? notif.description.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)
+                    : null;
+                  const userEmail = notif.data?.userEmail || notif.data?.email || notif.data?.user?.email || emailMatch?.[0];
+                  const hasReportTarget = Boolean(notif.data?.reportId || notif.data?.incidentId || notif.data?.report?.id);
+                  const hasActionTarget = Boolean(notif.data?.actionId || notif.data?.action?.id);
+                  const hasUserTarget = Boolean(notif.data?.userId || userEmail);
+                  const type = hasReportTarget
+                    ? 'REPORT'
+                    : hasActionTarget
+                    ? 'ACTION'
+                    : hasUserTarget
+                    ? 'USER'
+                    : notif.type === 'report_submitted' || notif.type === 'report_commented'
+                    ? 'REPORT'
+                    : notif.type === 'action_closed' || notif.type === 'action_progress'
+                    ? 'ACTION'
+                    : notif.type === 'user_added'
+                    ? 'USER'
+                    : 'SYSTEM';
 
-                const reportId = notif.data?.reportId || notif.data?.incidentId || notif.data?.report?.id;
-                const relatedReport = reportId
-                  ? reports.find((report) => report.id === reportId || report._id === reportId)
-                  : undefined;
-                const reportTimestamp = formatReportTimestamp(relatedReport?.rawCreatedAt);
+                  const reportId = notif.data?.reportId || notif.data?.incidentId || notif.data?.report?.id;
+                  const relatedReport = reportId
+                    ? reports.find((report) => report.id === reportId || report._id === reportId)
+                    : undefined;
+                  const reportTimestamp = formatReportTimestamp(relatedReport?.rawCreatedAt);
 
-                return {
-                  id: notif.id,
-                  type,
-                  title: notif.title,
-                  description: notif.description,
-                  timestamp: reportTimestamp || notif.timestamp,
-                  isRead: notif.read,
-                  targetId: reportId || notif.data?.actionId || notif.data?.userId || notif.data?.action?.id || notif.data?.id,
-                  commentId: notif.data?.commentId,
-                  userEmail,
-                };
-              })}
-            />
-          </div> 
+                  return {
+                    id: notif.id,
+                    type,
+                    title: notif.title,
+                    description: notif.description,
+                    timestamp: reportTimestamp || notif.timestamp,
+                    isRead: notif.read,
+                    targetId: reportId || notif.data?.actionId || notif.data?.userId || notif.data?.action?.id || notif.data?.id,
+                    commentId: notif.data?.commentId,
+                    userEmail,
+                  };
+                })}
+              />
+            </div>
+          )}
 
           {/* User Profile */}
           <div className="relative">

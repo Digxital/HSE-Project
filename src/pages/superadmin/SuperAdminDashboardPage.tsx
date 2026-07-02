@@ -3,7 +3,7 @@ import { SuperAdminSidebar } from '@/components/layout/SuperAdminSidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { OrganizationDetailsModal } from '@/components/superadmin/OrganizationDetailsModal';
 import { useOrganizations } from '@/services/OrganizationContext';
-import { getUserData } from '@/utils/authStorage';
+import { getSuperAdminUserData } from '@/utils/authStorage';
 
 interface Organization {
   _id: string;
@@ -29,7 +29,7 @@ export const SuperAdminDashboardPage: React.FC = () => {
   // Get stats from context
   const stats = getOrganizationStats();
 
-  const userData = getUserData();
+  const userData = getSuperAdminUserData();
   const displayName = userData?.name || 'Super Admin';
   const displayRole = userData?.role || 'Super Admin';
 

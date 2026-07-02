@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Logo } from '@/components/ui/Logo';
-import { FeedbackModal } from '@/components/common/FeedbackModal';
 
 interface SuperAdminSidebarProps {
   isCollapsed: boolean;
@@ -18,7 +17,6 @@ export const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   const menuItems: {
     label: string;
@@ -143,18 +141,6 @@ export const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
 
         {!isCollapsed ? (
           <div className="p-4 border-t border-gray-100 dark:border-gray-800">
-            {/* Feedback Section */}
-            <div className="bg-[#FFF4E6] dark:bg-[#200500] rounded-xl p-4 mb-4">
-              <div className="flex flex-col">
-                <span className="text-2xl mb-2">👍</span>
-                <p className="text-sm font-bold text-gray-900 dark:text-white mb-1">Tell us what's working and what's not</p>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">We're building Aegix for you.</p>
-                <button onClick={() => setIsFeedbackOpen(true)} className="flex items-center gap-2 w-max px-4 py-2 bg-white dark:bg-[#0D0D0D] border border-[#C2410C]/20 rounded-full text-xs font-semibold text-gray-900 dark:text-white shadow-sm hover:shadow transition-all">
-                  Give Feedback <span className="w-1.5 h-1.5 rounded-full bg-[#C2410C]"></span>
-                </button>
-              </div>
-            </div>
-
             {/* Logout Button */}
             <button
               onClick={() => navigate('/superadmin/login')}
@@ -180,9 +166,6 @@ export const SuperAdminSidebar: React.FC<SuperAdminSidebarProps> = ({
           </div>
         )}
       </aside>
-
-      {/* Feedback Modal - Rendered outside sidebar for full screen centering */}
-      <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
     </>
   );
 };

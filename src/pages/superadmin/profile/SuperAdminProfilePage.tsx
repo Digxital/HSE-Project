@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { SuperAdminSidebar } from '@/components/layout/SuperAdminSidebar';
 import { TopBar } from '@/components/layout/TopBar';
-import { getUserData } from '@/utils/authStorage';
+import { getSuperAdminUserData } from '@/utils/authStorage';
 import { useOrganizations } from '@/services/OrganizationContext';
 
 interface ProfileData {
@@ -15,7 +15,7 @@ interface ProfileData {
 }
 
 const buildProfileFromUser = (): ProfileData => {
-  const userData = getUserData();
+  const userData = getSuperAdminUserData();
   const [firstName = '', ...rest] = (userData?.name || 'Super Admin').split(' ');
   return {
     firstName,

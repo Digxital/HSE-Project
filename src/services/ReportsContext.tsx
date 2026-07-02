@@ -88,11 +88,16 @@ const initialReports: Report[] = [];
 
 // Helper function to check if user is a SuperAdmin
 const isSuperAdminUser = (): boolean => {
+  // Route check is most reliable — superadmin token never has org-level access
+  if (window.location.pathname.startsWith('/superadmin')) return true;
   const userData = getUserData();
-  const role = userData?.role?.toLowerCase();
-  const isSuperAdmin = role === 'superadmin' || role === 'super_admin' || role === 'super admin';
-  console.log('[ReportsContext] User role:', role, 'Is SuperAdmin:', isSuperAdmin);
-  return isSuperAdmin;
+  const role = userData?.role?.toLowerCase() ?? '';
+  return (
+    role === 'superadmin' ||
+    role === 'super_admin' ||
+    role === 'super admin' ||
+    role === 'super-admin'
+  );
 };
 
 export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

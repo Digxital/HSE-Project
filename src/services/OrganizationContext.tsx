@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { organizationService } from '@/services/organizationService';
-import { getAuthToken } from '@/utils/authStorage';
+import { getAuthToken, getSuperAdminAuthToken } from '@/utils/authStorage';
+
+const getOrganizationSessionToken = () => getSuperAdminAuthToken() || getAuthToken();
 
 // Types
 export interface Organization {
@@ -58,19 +60,23 @@ export const OrganizationsProvider: React.FC<{ children: React.ReactNode }> = ({
   const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const fetchOrganizations = useCallback(async () => {
+    if (!getOrganizationSessionToken()) {
+      setLoading(false);
+      return;
+    }
     try {
-      console.log('[OrganizationContext] Fetching organizations...');
       setLoading(true);
       setError(null);
       const response = await organizationService.getOrganizations(1, 50);
       const orgs = response.data.organizations || [];
-      console.log('[OrganizationContext] Fetched', orgs.length, 'organizations');
       setOrganizations(orgs);
       hasLoadedOrganizationsRef.current = true;
-    } catch (err) {
-      console.error('[OrganizationContext] Failed to fetch organizations from API:', err);
-      setError('Failed to load organizations from server');
-      setOrganizations(initialOrganizations);
+    } catch (err: any) {
+      // Never call handleLogout from here — this runs on a background poll.
+      // A 401 during polling (e.g. backend restart) must not kick the user out mid-session.
+      // Only explicit user-triggered actions in organizationService should redirect on 401.
+      setError(err?.status === 401 ? 'session_expired' : 'Failed to load organizations from server');
+      if (err?.status !== 401) setOrganizations(initialOrganizations);
     } finally {
       setLoading(false);
     }
@@ -78,16 +84,23 @@ export const OrganizationsProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Fetch on mount if authenticated
   useEffect(() => {
-    console.log('[OrganizationContext] Mount: checking if should fetch organizations');
-    const token = getAuthToken();
-    console.log('[OrganizationContext] Auth token present:', !!token);
+    const token = getOrganizationSessionToken();
     if (token) {
-      console.log('[OrganizationContext] Fetching organizations on mount');
       fetchOrganizations();
     } else {
-      console.log('[OrganizationContext] No auth token, skipping fetch');
       setLoading(false);
     }
+  }, [fetchOrganizations]);
+
+  // Refresh data when user returns to the tab
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && getOrganizationSessionToken()) {
+        fetchOrganizations();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [fetchOrganizations]);
 
   // Listen for auth events (login/logout)
@@ -96,7 +109,7 @@ export const OrganizationsProvider: React.FC<{ children: React.ReactNode }> = ({
       fetchOrganizations();
     };
 
-    const handleLogout = () => {
+    const handleAuthLogout = () => {
       setOrganizations([]);
       setLoading(false);
       setError(null);
@@ -104,43 +117,37 @@ export const OrganizationsProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     window.addEventListener('auth:login', handleLogin);
-    window.addEventListener('auth:logout', handleLogout);
+    window.addEventListener('auth:logout', handleAuthLogout);
 
     return () => {
       window.removeEventListener('auth:login', handleLogin);
-      window.removeEventListener('auth:logout', handleLogout);
+      window.removeEventListener('auth:logout', handleAuthLogout);
     };
   }, [fetchOrganizations]);
 
-  // Polling every 2 minutes
+  // Polling every 2 minutes — skip while tab is hidden to prevent queued-burst on return
   useEffect(() => {
-    const token = getAuthToken();
+    const token = getOrganizationSessionToken();
     if (!token) return;
 
-    console.log('[OrganizationContext] Starting 2-minute polling interval');
     const intervalId = setInterval(() => {
-      console.log('[OrganizationContext] Polling: refreshing organizations');
-      fetchOrganizations();
-    }, 120000); // 2 minutes
+      if (!document.hidden && getOrganizationSessionToken()) {
+        fetchOrganizations();
+      }
+    }, 120000);
 
-    return () => {
-      console.log('[OrganizationContext] Clearing polling interval');
-      clearInterval(intervalId);
-    };
+    return () => clearInterval(intervalId);
   }, [fetchOrganizations]);
 
   // Listen for custom organization update events (with debounce)
   useEffect(() => {
     const handleOrganizationUpdated = () => {
-      console.log('[OrganizationContext] Event: organizationUpdated - debouncing refresh');
-      // Debounce the refresh to avoid too many requests
       if (refreshTimeoutRef.current) {
         clearTimeout(refreshTimeoutRef.current);
       }
       refreshTimeoutRef.current = setTimeout(() => {
-        console.log('[OrganizationContext] Debounce complete: refreshing organizations');
         fetchOrganizations();
-      }, 800); // Increase debounce to 800ms to allow multiple rapid events to batch
+      }, 800);
     };
 
     const handleOrganizationDeleted = () => {

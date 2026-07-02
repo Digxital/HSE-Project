@@ -47,22 +47,29 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
   const [reportsStorageLimit, setReportsStorageLimit] = useState('');
 
   // Branding form state
-  const [uploadedFileName, setUploadedFileName] = useState('');
   const [primaryThemeColor, setPrimaryThemeColor] = useState('');
   const [secondaryThemeColor, setSecondaryThemeColor] = useState('');
   const [customApplicationTitle, setCustomApplicationTitle] = useState('');
-  const [status, setStatus] = useState('Active');
+
+  const normalizeEmail = (value: string) => value.trim().toLowerCase();
+  const normalizeText = (value: string) => value.trim();
 
   const handleOrganizationSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const normalizedOrganizationName = normalizeText(organizationName);
+    const normalizedPrimaryContactName = normalizeText(primaryContactName);
+    const normalizedContactEmail = normalizeEmail(contactEmail);
+    const normalizedContactPhone = normalizeText(contactPhone);
+    const normalizedOrganizationAddress = normalizeText(organizationAddress);
+
     const newErrors: Record<string, string> = {};
-    if (!organizationName.trim()) newErrors.organizationName = 'Organization name is required';
-    if (!primaryContactName.trim()) newErrors.primaryContactName = 'Contact person name is required';
-    if (!contactEmail.trim() || !/\S+@\S+\.\S+/.test(contactEmail))
+    if (!normalizedOrganizationName) newErrors.organizationName = 'Organization name is required';
+    if (!normalizedPrimaryContactName) newErrors.primaryContactName = 'Contact person name is required';
+    if (!normalizedContactEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedContactEmail))
       newErrors.contactEmail = 'Valid email is required';
-    if (!contactPhone.trim()) newErrors.contactPhone = 'Phone number is required';
-    if (!organizationAddress.trim()) newErrors.organizationAddress = 'Address is required';
+    if (!normalizedContactPhone) newErrors.contactPhone = 'Phone number is required';
+    if (!normalizedOrganizationAddress) newErrors.organizationAddress = 'Address is required';
     if (!adminPassword) newErrors.adminPassword = 'Admin password is required';
     else if (adminPassword.length < 8) newErrors.adminPassword = 'Password must be at least 8 characters';
     if (adminPassword !== confirmAdminPassword) newErrors.confirmAdminPassword = 'Passwords do not match';
@@ -73,11 +80,11 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
     }
 
     const data: OrganizationData = {
-      organizationName,
-      primaryContactName,
-      contactEmail,
-      contactPhone,
-      organizationAddress,
+      organizationName: normalizedOrganizationName,
+      primaryContactName: normalizedPrimaryContactName,
+      contactEmail: normalizedContactEmail,
+      contactPhone: normalizedContactPhone,
+      organizationAddress: normalizedOrganizationAddress,
       password: adminPassword,
     };
 
@@ -108,7 +115,6 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
 
     setIsSubmitting(true);
 
-    // Prepare payload for API (only send fields that the backend expects)
     const payload = {
       organizationName: organizationData.organizationName,
       primaryContactPersonName: organizationData.primaryContactName,
@@ -134,21 +140,18 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
         handleClose();
       })
       .catch((error) => {
+        const backendMessage = error?.message || 'Failed to create organization. Please try again.';
+        const isDuplicateEmail = /already exists|duplicate|contact email/i.test(backendMessage);
         showToast({
           type: 'error',
-          message: error.message || 'Failed to create organization. Please try again.',
+          message: isDuplicateEmail
+            ? `Contact email \"${organizationData.contactEmail}\" is already tied to another account. Use another email or verify existing users in backend.`
+            : backendMessage,
         });
       })
       .finally(() => {
         setIsSubmitting(false);
       });
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setUploadedFileName(file.name);
-    }
   };
 
   const handleSubscriptionBack = () => {
@@ -175,12 +178,10 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
     setDataRetentionPeriod('6 Months');
     setMaximumAllowedUsers('100');
     setReportsStorageLimit('');
-    setUploadedFileName('');
     setPrimaryThemeColor('');
     setSecondaryThemeColor('');
     setCustomApplicationTitle('');
-    setStatus('Active');
-    
+
     onClose();
   };
 
@@ -557,38 +558,6 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
               {/* Form */}
               <form onSubmit={handleBrandingSubmit} className="p-6">
                 <div className="space-y-4">
-                  {/* Upload Field */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Upload Field
-                    </label>
-                    <label className="block cursor-pointer">
-                      <div className="w-full border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-6 hover:border-[#C2410C] hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-colors flex flex-col items-center justify-center">
-                        <svg
-                          className="w-8 h-8 text-gray-400 mb-2"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 4v16m8-8H4"
-                          />
-                        </svg>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, JPEG</p>
-                        {uploadedFileName && <p className="text-xs text-[#C2410C] mt-1">{uploadedFileName}</p>}
-                      </div>
-                      <input
-                        type="file"
-                        accept="image/png,image/jpeg,image/jpg"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-
                   {/* Primary Theme Color and Secondary Theme Color */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -636,15 +605,10 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Status
                       </label>
-                      <select
-                        value={status}
-                        onChange={(e) => setStatus(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C] focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                      >
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                        <option value="Suspended">Suspended</option>
-                      </select>
+                      <div className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-sm">
+                        Pending
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Default — activate after creation</p>
                     </div>
                   </div>
                 </div>

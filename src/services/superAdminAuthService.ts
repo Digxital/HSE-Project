@@ -1,4 +1,13 @@
-import { setAuthToken, setUserData } from '@/utils/authStorage';
+import {
+  setAuthToken,
+  setSuperAdminAuthToken,
+  setSuperAdminUserData,
+  setUserData,
+  removeAuthToken,
+  removeSuperAdminAuthToken,
+  removeSuperAdminUserData,
+  removeUserData,
+} from '@/utils/authStorage';
 
 interface LoginPayload {
   email: string;
@@ -46,19 +55,22 @@ class SuperAdminAuthService {
 
       // Store token and user data
       if (data.data.token) {
-        setAuthToken(data.data.token, true); // Use localStorage for remember-me
+        // Keep role-isolated token for superadmin flows.
+        setSuperAdminAuthToken(data.data.token, true);
+        // Keep generic token for backward compatibility with shared modules.
+        setAuthToken(data.data.token, true);
       }
 
       if (data.data.user) {
-        setUserData(
-          {
-            id: data.data.user.id,
-            email: data.data.user.email,
-            name: `${data.data.user.firstName} ${data.data.user.lastName}`,
-            role: data.data.user.role,
-          },
-          true // Use localStorage for remember-me
-        );
+        const userData = {
+          id: data.data.user.id,
+          email: data.data.user.email,
+          name: `${data.data.user.firstName} ${data.data.user.lastName}`,
+          role: data.data.user.role,
+        };
+        setSuperAdminUserData(userData, true);
+        // Keep generic user data for backward compatibility with shared modules.
+        setUserData(userData, true);
       }
 
       return data;
@@ -75,11 +87,16 @@ export const superAdminAuthService = new SuperAdminAuthService();
 
 // Global logout handler for when SuperAdmin token becomes invalid (called by organizationService on 401)
 export const handleLogout = () => {
-  localStorage.removeItem('auth_token');
-  sessionStorage.removeItem('auth_token');
-  localStorage.removeItem('user_data');
-  sessionStorage.removeItem('user_data');
-  // Dispatch event so OrganizationContext and other providers clean up
+  // Only act if actually in a superadmin session — prevents the polling interval from
+  // redirecting non-superadmin users to /superadmin/login when it fires without a token.
+  if (!window.location.pathname.startsWith('/superadmin')) {
+    return;
+  }
+  removeSuperAdminAuthToken();
+  removeSuperAdminUserData();
+  // Clear generic keys as well for existing shared consumers.
+  removeAuthToken();
+  removeUserData();
   window.dispatchEvent(new CustomEvent('auth:logout'));
   console.log('SuperAdmin session expired. Redirecting to login...');
   window.location.href = '/superadmin/login';

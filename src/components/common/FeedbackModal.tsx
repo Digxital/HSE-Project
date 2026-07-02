@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import api from '@/lib/axios';
+import { useToast } from '@/hooks/useToast';
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -9,10 +11,12 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { showToast } = useToast();
   const [rating, setRating] = useState(0);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [feedback, setFeedback] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
@@ -30,10 +34,30 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
     );
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (rating === 0 || selectedCategories.length === 0) return;
-    // In real app, send to backend
-    setIsSubmitted(true);
+
+    const type = selectedCategories
+      .map(id => categories.find(c => c.id === id)?.label ?? id)
+      .join(', ');
+
+    setIsSubmitting(true);
+    try {
+      await api.post('/api/feedback', {
+        rating,
+        type,
+        message: feedback,
+      });
+      setIsSubmitted(true);
+      showToast({ type: 'success', message: 'Feedback submitted successfully!' });
+    } catch (error: any) {
+      showToast({
+        type: 'error',
+        message: error?.response?.data?.message || 'Failed to submit feedback. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
@@ -41,6 +65,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
     setSelectedCategories([]);
     setFeedback('');
     setIsSubmitted(false);
+    setIsSubmitting(false);
     onClose();
   };
 
@@ -134,14 +159,14 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
             {/* Submit Button */}
             <button
               onClick={handleSubmit}
-              disabled={rating === 0 || selectedCategories.length === 0}
+              disabled={isSubmitting || rating === 0 || selectedCategories.length === 0}
               className={`w-full py-3 rounded-lg font-medium transition-colors ${
                 rating > 0 && selectedCategories.length > 0
                   ? 'bg-[#C2410C] hover:bg-[#a83409] dark:bg-[#C2410C] dark:hover:bg-[#a83409] text-white'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
               }`}
             >
-              Submit Now
+              {isSubmitting ? 'Submitting...' : 'Submit Now'}
             </button>
           </>
         ) : (
