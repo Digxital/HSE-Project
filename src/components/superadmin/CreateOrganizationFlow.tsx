@@ -43,10 +43,24 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
   // Subscription form state
   const [subscriptionPlan, setSubscriptionPlan] = useState('');
   const [dataRetentionPeriod, setDataRetentionPeriod] = useState('6 Months');
-  const [maximumAllowedUsers, setMaximumAllowedUsers] = useState('100');
+  const [maximumAllowedUsers, setMaximumAllowedUsers] = useState('');
   const [reportsStorageLimit, setReportsStorageLimit] = useState('');
 
+  const planUserLimits: Record<string, string> = {
+    Free: '10',
+    Basic: '50',
+    Premium: '200',
+    Enterprise: 'Unlimited',
+  };
+
+  const handlePlanChange = (plan: string) => {
+    setSubscriptionPlan(plan);
+    setMaximumAllowedUsers(planUserLimits[plan] ?? '');
+  };
+
   // Branding form state
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedFileName, setUploadedFileName] = useState('');
   const [primaryThemeColor, setPrimaryThemeColor] = useState('');
   const [secondaryThemeColor, setSecondaryThemeColor] = useState('');
   const [customApplicationTitle, setCustomApplicationTitle] = useState('');
@@ -122,6 +136,7 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
       contactPhoneNumber: organizationData.contactPhone,
       organizationAddress: organizationData.organizationAddress,
       password: organizationData.password,
+      logo: uploadedFile,
     };
 
     organizationService
@@ -154,6 +169,14 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
       });
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+      setUploadedFileName(file.name);
+    }
+  };
+
   const handleSubscriptionBack = () => {
     setSlideDirection('right');
     setCurrentStep('organization');
@@ -176,8 +199,10 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
     setOrgErrors({});
     setSubscriptionPlan('');
     setDataRetentionPeriod('6 Months');
-    setMaximumAllowedUsers('100');
+    setMaximumAllowedUsers('');
     setReportsStorageLimit('');
+    setUploadedFile(null);
+    setUploadedFileName('');
     setPrimaryThemeColor('');
     setSecondaryThemeColor('');
     setCustomApplicationTitle('');
@@ -438,7 +463,7 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
                     </label>
                     <select
                       value={subscriptionPlan}
-                      onChange={(e) => setSubscriptionPlan(e.target.value)}
+                      onChange={(e) => handlePlanChange(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C] focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     >
                       <option value="">Select subscription plan</option>
@@ -472,15 +497,11 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Maximum Allowed Users <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="number"
-                        value={maximumAllowedUsers}
-                        onChange={(e) => setMaximumAllowedUsers(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C] focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                        placeholder="100"
-                      />
+                      <div className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm">
+                        {maximumAllowedUsers || <span className="text-gray-400 dark:text-gray-500">Select a plan first</span>}
+                      </div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Maximum number of users allowed under this organization.
+                        Set automatically based on the selected plan.
                       </p>
                     </div>
                   </div>
@@ -558,6 +579,28 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
               {/* Form */}
               <form onSubmit={handleBrandingSubmit} className="p-6">
                 <div className="space-y-4">
+                  {/* Upload Logo */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Organization Logo
+                    </label>
+                    <label className="block cursor-pointer">
+                      <div className="w-full border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-6 hover:border-[#C2410C] hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-colors flex flex-col items-center justify-center">
+                        <svg className="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, JPEG</p>
+                        {uploadedFileName && <p className="text-xs text-[#C2410C] mt-1">{uploadedFileName}</p>}
+                      </div>
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+
                   {/* Primary Theme Color and Secondary Theme Color */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>

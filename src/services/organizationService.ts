@@ -14,6 +14,7 @@ export interface Organization {
   status: 'ACTIVE' | 'PENDING' | 'SUSPENDED';
   createdAt: string;
   updatedAt: string;
+  logo?: { url: string; filename?: string; originalName?: string; mimetype?: string; size?: number; uploadedAt?: string };
 }
 
 export interface CreateOrganizationPayload {
@@ -23,6 +24,7 @@ export interface CreateOrganizationPayload {
   contactPhoneNumber: string;
   organizationAddress: string;
   password: string;
+  logo?: File | null;
 }
 
 export interface OrganizationsResponse {
@@ -83,15 +85,25 @@ class OrganizationService {
   async createOrganization(payload: CreateOrganizationPayload): Promise<OrganizationResponse> {
     try {
       const normalizedPayload = this.normalizeCreatePayload(payload);
+      const formData = new FormData();
+      formData.append('organizationName', normalizedPayload.organizationName);
+      formData.append('primaryContactPersonName', normalizedPayload.primaryContactPersonName);
+      formData.append('contactEmail', normalizedPayload.contactEmail);
+      formData.append('contactPhoneNumber', normalizedPayload.contactPhoneNumber);
+      formData.append('organizationAddress', normalizedPayload.organizationAddress);
+      formData.append('password', normalizedPayload.password);
+      if (normalizedPayload.logo) {
+        formData.append('logo', normalizedPayload.logo);
+      }
 
       const token = getSuperAdminAuthToken() || getAuthToken();
       const response = await fetch(`${API_BASE_URL}/api/organizations`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           ...(token && { Authorization: `Bearer ${token}` }),
+          // No Content-Type — browser sets multipart boundary automatically
         },
-        body: JSON.stringify(normalizedPayload),
+        body: formData,
       });
 
       if (response.status === 401) {

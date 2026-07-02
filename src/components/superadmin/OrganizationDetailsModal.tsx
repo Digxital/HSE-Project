@@ -13,6 +13,7 @@ interface Organization {
   status: 'ACTIVE' | 'PENDING' | 'SUSPENDED' | 'INACTIVE';
   createdAt: string;
   updatedAt: string;
+  logo?: { url: string; filename?: string; originalName?: string; mimetype?: string; size?: number; uploadedAt?: string };
 }
 
 interface OrganizationDetailsModalProps {
@@ -230,13 +231,20 @@ export const OrganizationDetailsModal: React.FC<OrganizationDetailsModalProps> =
           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-6 mb-6">
             <div className="flex items-start gap-4">
               {/* Organization Avatar */}
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-xl font-semibold">
-                  {org.organizationName
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')}
-                </span>
+              <div className="w-16 h-16 rounded-full flex-shrink-0 overflow-hidden">
+                {org.logo?.url ? (
+                  <img
+                    src={org.logo.url}
+                    alt={org.organizationName}
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center">
+                    <span className="text-white text-xl font-semibold">
+                      {org.organizationName.split(' ').map((n) => n[0]).join('')}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="flex-1">

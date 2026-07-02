@@ -52,6 +52,7 @@ interface Organization {
   status: 'ACTIVE' | 'PENDING' | 'SUSPENDED' | 'INACTIVE';
   createdAt: string;
   updatedAt: string;
+  logo?: { url: string };
 }
 
 export const SuperAdminOrganizationPage: React.FC = () => {
