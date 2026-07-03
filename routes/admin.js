@@ -1,0 +1,85 @@
+const express = require("express");
+const router = express.Router();
+
+const auth = require("../middleware/auth");
+const authorize = require("../middleware/authorize");
+const handleProfilePicUpload = require("../middleware/handleProfilePicUpload");
+
+const {
+  createUser,
+  getUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
+  deactivateUser,
+  activateUser,
+  getAllCertifications
+} = require("../controller/admin.controller");
+
+// Create user
+router.post(
+  "/users",
+  auth,
+  authorize(["ADMIN"], ["web"]),
+  createUser
+);
+
+// Get all users
+router.get(
+  "/users",
+  auth,
+  authorize(["ADMIN"], ["web"]),
+  getUsers
+);
+
+// Get single user
+router.get(
+  "/users/:id",
+  auth,
+  authorize(["ADMIN"], ["web"]),
+  getUserById
+);
+
+// Update user
+router.put(
+  "/users/:id",
+  auth,
+  authorize(["ADMIN"], ["web"]),
+  handleProfilePicUpload,
+  updateUser
+);
+
+// Delete user
+router.delete(
+  "/users/:id",
+  auth,
+  authorize(["ADMIN"], ["web"]),
+  deleteUser
+);
+
+// Deactivate user
+router.patch(
+  "/users/:id/deactivate",
+  auth,
+  authorize(["ADMIN"], ["web"]),
+  deactivateUser
+);
+
+// Activate user
+router.patch(
+  "/users/:id/activate",
+  auth,
+  authorize(["ADMIN"], ["web"]),
+  activateUser
+);
+
+// Get all certifications
+router.get(
+  "/certifications",
+  auth,
+  authorize(["ADMIN"], ["web"]),
+  getAllCertifications
+);
+
+module.exports = router;
+ 

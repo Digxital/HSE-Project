@@ -1,0 +1,78 @@
+const mongoose = require("mongoose");
+
+const historySchema = new mongoose.Schema(
+  {
+    action: { type: String, required: true },
+    performedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true
+    },
+    timestamp: { type: Date, default: Date.now }
+  },
+  { _id: false }
+);
+
+const attachmentSchema = new mongoose.Schema(
+  {
+    filename: String,
+    originalName: String,
+    path: String,
+    mimetype: String,
+    size: Number,
+    uploadedAt: Date,
+    uploadedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    }
+  },
+  { _id: true }
+);
+
+const incidentSchema = new mongoose.Schema(
+  {
+    tenantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      index: true
+    },
+    title: { type: String, required: true, trim: true },
+    description: { type: String, required: true },
+    location: { type: String, required: true },
+
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "IncidentCategory",
+      required: true
+    },
+
+    riskLevel: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "RiskLevel",
+      required: true
+    },
+
+    status: {
+      type: String,
+      enum: ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED", "ESCALATED"],
+      default: "OPEN"
+    },
+
+    reportedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true
+    },
+
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    },
+
+    attachments: [attachmentSchema],
+
+    history: [historySchema]
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model("Incident", incidentSchema);

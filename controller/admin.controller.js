@@ -1,0 +1,416 @@
+const bcrypt = require("bcryptjs");
+const User = require("../model/user.model");
+const {
+    logUserCreation,
+    logUserUpdate,
+    logRoleChange,
+    logRecordDeletion
+} = require("../utils/auditLog");
+const {
+    findUserInTenant,
+    buildTenantDocumentFilter,
+    buildCertificationScopeFilter
+} = require("../utils/tenantScope");
+const { buildProfilePicPayload, deleteFile } = require("../utils/fileHandler");
+
+// ADMIN can create users with or without a role
+
+exports.createUser = async (req, res) => {
+    const { firstName, lastName, email, password, role, location } = req.body;
+
+    const exists = await User.findOne({ email });
+    if (exists) {
+        return res.status(400).json({ message: "User already exists" });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const userData = {
+        tenantId: req.user.tenantId,
+        firstName,
+        lastName,
+        email,
+        passwordHash,
+        role: role ? role.toUpperCase() : null,
+        status: "PENDING"
+    };
+
+    // Add location if provided
+    if (location !== undefined) {
+        userData.location = location.trim();
+    }
+
+    const newUser = await User.create(userData);
+
+    // Log user creation
+    // Get admin email from token or from database
+    let adminEmail = req.user.email;
+    if (!adminEmail) {
+        const adminUser = await User.findById(req.user.id);
+        adminEmail = adminUser?.email || "system@admin.com";
+    }
+
+    await logUserCreation({
+        tenantId: req.user.tenantId,
+        createdBy: req.user.id,
+        createdByEmail: adminEmail,
+        userId: newUser._id,
+        userEmail: email,
+        userData,
+        req
+    });
+
+    res.status(201).json({
+        success: true,
+        message: role ? `${role} created successfully` : "User created successfully",
+        data: {
+            id: newUser._id
+        }
+    });
+};
+
+exports.getUsers = async (req, res) => {
+    try {
+        const users = await User.find(buildTenantDocumentFilter(req.user.tenantId))
+            .select("-passwordHash");
+
+        return res.json({
+            success: true,
+            message: "Users fetched successfully",
+            data: users
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch users",
+            data: {}
+        });
+    }
+};
+
+exports.getUserById = async (req, res) => {
+    try {
+        const user = await findUserInTenant(req.params.id, req.user.tenantId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+                data: {}
+            });
+        }
+
+        const safeUser = user.toObject();
+        delete safeUser.passwordHash;
+
+        return res.json({
+            success: true,
+            message: "User fetched successfully",
+            data: safeUser
+        });
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid ID",
+            data: {}
+        });
+    }
+};
+
+exports.updateUser = async (req, res) => {
+    try {
+        let { firstName, lastName, role, status, location } = req.body;
+
+        // Normalize to uppercase
+        if (role) role = role.toUpperCase();
+        if (status) status = status.toUpperCase();
+
+        const currentUser = await findUserInTenant(req.params.id, req.user.tenantId);
+
+        if (!currentUser) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+                data: {}
+            });
+        }
+
+        // If activating user, validate that role is assigned
+        if (status === "ACTIVE") {
+            const roleToCheck = role || currentUser.role;
+
+            if (!roleToCheck || !["SUPERVISOR", "FIELD_USER", "HSE_OFFICER"].includes(roleToCheck)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Role must be assigned before activation.",
+                    data: {}
+                });
+            }
+        }
+
+        const updateData = {};
+        if (firstName !== undefined) updateData.firstName = firstName;
+        if (lastName !== undefined) updateData.lastName = lastName;
+        if (role !== undefined) updateData.role = role;
+        if (status !== undefined) updateData.status = status;
+        if (location !== undefined) updateData.location = location.trim();
+
+        const profilePic = buildProfilePicPayload(req.file);
+        if (profilePic) updateData.profilePic = profilePic;
+
+        if (Object.keys(updateData).length === 0) {
+            if (req.file?.path) {
+                deleteFile(req.file.path);
+            }
+            return res.status(400).json({
+                success: false,
+                message: "At least one field or profilePic is required",
+                data: {}
+            });
+        }
+
+        const user = await User.findOneAndUpdate(
+            { _id: req.params.id, tenantId: req.user.tenantId },
+            updateData,
+            { new: true, runValidators: true }
+        ).select("-passwordHash");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+                data: {}
+            });
+        }
+
+        // Get admin email from token or from database
+        let adminEmail = req.user.email;
+        if (!adminEmail) {
+            const adminUser = await User.findById(req.user.id);
+            adminEmail = adminUser?.email || "system@admin.com";
+        }
+
+        // Log role change if role was updated
+        if (role && role !== currentUser.role) {
+            await logRoleChange({
+                tenantId: req.user.tenantId,
+                changedBy: req.user.id,
+                changedByEmail: adminEmail,
+                userId: user._id,
+                userEmail: user.email,
+                oldRole: currentUser.role,
+                newRole: role,
+                req
+            });
+        }
+
+        // Log user update
+        await logUserUpdate({
+            tenantId: req.user.tenantId,
+            updatedBy: req.user.id,
+            updatedByEmail: adminEmail,
+            userId: user._id,
+            userEmail: user.email,
+            before: {
+                firstName: currentUser.firstName,
+                lastName: currentUser.lastName,
+                role: currentUser.role,
+                status: currentUser.status,
+                location: currentUser.location,
+                profilePic: currentUser.profilePic
+            },
+            after: {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                role: user.role,
+                status: user.status,
+                location: user.location,
+                profilePic: user.profilePic
+            },
+            req
+        });
+
+        return res.json({
+            success: true,
+            message: "User updated successfully",
+            data: user
+        });
+    } catch (error) {
+        if (req.file?.path) {
+            deleteFile(req.file.path);
+        }
+        return res.status(400).json({
+            success: false,
+            message: "Failed to update user",
+            data: {}
+        });
+    }
+};
+
+exports.deleteUser = async (req, res) => {
+    try {
+        const user = await User.findOneAndDelete({
+            _id: req.params.id,
+            tenantId: req.user.tenantId
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+                data: {}
+            });
+        }
+
+        // Get admin email from token or from database
+        let adminEmail = req.user.email;
+        if (!adminEmail) {
+            const adminUser = await User.findById(req.user.id);
+            adminEmail = adminUser?.email || "system@admin.com";
+        }
+
+        // Log user deletion
+        await logRecordDeletion({
+            tenantId: req.user.tenantId,
+            deletedBy: req.user.id,
+            deletedByEmail: adminEmail,
+            recordId: user._id,
+            recordType: "USER",
+            recordName: user.email,
+            recordData: {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                role: user.role,
+                status: user.status
+            },
+            req
+        });
+
+        return res.json({
+            success: true,
+            message: "User deleted successfully",
+            data: {}
+        });
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid ID",
+            data: {}
+        });
+    }
+};
+
+exports.deactivateUser = async (req, res) => {
+    try {
+        const user = await findUserInTenant(req.params.id, req.user.tenantId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+                data: {}
+            });
+        }
+
+        user.status = "DEACTIVATED";
+        await user.save();
+
+        return res.json({
+            success: true,
+            message: "User deactivated successfully",
+            data: {}
+        });
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid ID",
+            data: {}
+        });
+    }
+};
+
+exports.activateUser = async (req, res) => {
+    try {
+        let { role } = req.body;
+
+        // Normalize to uppercase
+        if (role) role = role.toUpperCase();
+
+        // Validate role assignment
+        if (!role || !["SUPERVISOR", "FIELD_USER", "HSE_OFFICER"].includes(role)) {
+            return res.status(400).json({
+                success: false,
+                message: "Role must be assigned before activation.",
+                data: {}
+            });
+        }
+
+        const user = await findUserInTenant(req.params.id, req.user.tenantId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+                data: {}
+            });
+        }
+
+        user.role = role;
+        user.status = "ACTIVE";
+        await user.save();
+
+        return res.json({
+            success: true,
+            message: "User activated successfully",
+            data: {}
+        });
+    } catch (error) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid ID",
+            data: {}
+        });
+    }
+};
+
+// GET /api/admin/certifications
+// Returns all certifications from all users for admin overview
+exports.getAllCertifications = async (req, res) => {
+    try {
+        const Certification = require("../model/certification.model");
+        const certificationFilter = await buildCertificationScopeFilter(req.user.tenantId);
+
+        const certifications = await Certification.find(certificationFilter)
+            .populate("userId", "firstName lastName email role")
+            .populate("createdBy", "firstName lastName")
+            .sort({ createdAt: -1 });
+
+        // Format response to rename _id to certificationId
+        const formattedCertifications = certifications.map(cert => ({
+            certificationId: cert._id.toString(),
+            referenceId: cert.externalId,
+            userId: cert.userId,
+            certificationName: cert.certificationName,
+            issuingAuthority: cert.issuingAuthority,
+            issueDate: cert.issueDate.toISOString().split('T')[0],
+            expiryDate: cert.expiryDate.toISOString().split('T')[0],
+            fileUrl: cert.fileUrl,
+            status: cert.status,
+            createdBy: cert.createdBy,
+            createdAt: cert.createdAt.toISOString()
+        }));
+
+        return res.json({
+            success: true,
+            message: "All certifications fetched successfully",
+            data: formattedCertifications
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch certifications",
+            data: {}
+        });
+    }
+};
