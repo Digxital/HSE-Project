@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
-import johnMatthewsImg from '@/assets/images/Jhn-Matthew-profileImg.jpg';
-import { getUserData } from '@/utils/authStorage';
+import { getUserData, getAuthToken } from '@/utils/authStorage';
 import { useReports } from '@/services/ReportsContext';
 import { certificationService } from '@/services/certificationService';
 import { userService, type UserResponse } from '@/services/userService';
@@ -29,6 +28,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [certCounts, setCertCounts] = useState({ valid: 0, expired: 0 });
+  const [uploadedProfilePic, setUploadedProfilePic] = useState<File | null>(null);
+  const [uploadedProfilePicPreview, setUploadedProfilePicPreview] = useState<string | null>(null);
 
   const normalizeStatus = (value?: string) => {
     if (!value) return undefined;
@@ -141,6 +142,15 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
     ? `${profileUser.firstName || ''} ${profileUser.lastName || ''}`.trim() || userData?.name || 'User'
     : userData?.name || 'User';
 
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   const profileRoleLabel = profileUser?.role
     ? profileUser.role.replace(/_/g, ' ')
     : userData?.role
@@ -189,6 +199,18 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
     }
   };
 
+  const handleProfilePicUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadedProfilePic(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUploadedProfilePicPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -219,40 +241,56 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
     setShowConfirmModal(true);
   };
 
-  const handleConfirmSave = () => {
-    const userId = profileUser?._id || profileUser?.id || userData?.id;
-    if (!userId) {
+  const handleConfirmSave = async () => {
+    try {
+      const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://hse-backend-n8d4.onrender.com';
+      const token = getAuthToken();
+
+      const formDataPayload = new FormData();
+      formDataPayload.append('firstName', formData.firstName);
+      formDataPayload.append('lastName', formData.surname);
+      formDataPayload.append('email', formData.email);
+      formDataPayload.append('jobPosition', formData.location);
+      if (uploadedProfilePic) {
+        formDataPayload.append('profilePic', uploadedProfilePic);
+      }
+
+      const response = await fetch(`${baseURL}/api/auth/profile`, {
+        method: 'PUT',
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: formDataPayload,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update profile');
+      }
+
+      const result = await response.json();
+      const updatedUser = result.data?.user;
+
+      if (updatedUser) {
+        setProfileUser(updatedUser);
+      }
+
+      showToast({
+        type: 'success',
+        message: 'Profile updated successfully',
+      });
+
+      setUploadedProfilePic(null);
+      setUploadedProfilePicPreview(null);
+    } catch (error: any) {
       showToast({
         type: 'error',
-        message: 'Unable to update profile. Please sign in again.',
+        message: error?.message || 'Failed to update profile',
       });
+    } finally {
       setShowConfirmModal(false);
-      return;
+      setIsEditMode(false);
     }
-
-    userService.updateUser(userId, {
-      firstName: formData.firstName,
-      lastName: formData.surname,
-      email: formData.email,
-      jobPosition: formData.location,
-    })
-      .then((updated) => {
-        setProfileUser(updated);
-        showToast({
-          type: 'success',
-          message: 'Profile updated successfully',
-        });
-      })
-      .catch((error: any) => {
-        showToast({
-          type: 'error',
-          message: error?.message || 'Failed to update profile',
-        });
-      })
-      .finally(() => {
-        setShowConfirmModal(false);
-        setIsEditMode(false);
-      });
   };
 
   return (
@@ -310,11 +348,45 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
                 <div className="flex items-start gap-4">
                   {/* Profile Photo */}
                   <div className="relative">
-                    <img
-                      src={johnMatthewsImg}
-                      alt={profileName}
-                      className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-sm"
-                    />
+                    {isEditMode ? (
+                      <label className="cursor-pointer group">
+                        {uploadedProfilePicPreview || (profileUser as any)?.profilePic?.url ? (
+                          <img
+                            src={uploadedProfilePicPreview || (profileUser as any)?.profilePic?.url}
+                            alt={profileName}
+                            className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-sm"
+                          />
+                        ) : (
+                          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-400 to-red-600 flex items-center justify-center border-4 border-white shadow-sm">
+                            <span className="text-white text-2xl font-semibold">{getInitials(profileName)}</span>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 w-20 h-20 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/jpg"
+                          onChange={handleProfilePicUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    ) : (
+                      (profileUser as any)?.profilePic?.url ? (
+                        <img
+                          src={(profileUser as any)?.profilePic?.url}
+                          alt={profileName}
+                          className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-sm"
+                        />
+                      ) : (
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-400 to-red-600 flex items-center justify-center border-4 border-white shadow-sm">
+                          <span className="text-white text-2xl font-semibold">{getInitials(profileName)}</span>
+                        </div>
+                      )
+                    )}
                   </div>
 
                   {/* Name, Role, Status */}
