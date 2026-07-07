@@ -1,4 +1,5 @@
 import React, { useEffect, useState, Component } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { SuperAdminSidebar } from '@/components/layout/SuperAdminSidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { CreateOrganizationFlow } from '@/components/superadmin/CreateOrganizationFlow';
@@ -56,6 +57,7 @@ interface Organization {
 }
 
 export const SuperAdminOrganizationPage: React.FC = () => {
+  const navigate = useNavigate();
   const { showToast } = useToast();
   const { organizations, loading: contextLoading, error: contextError, refreshOrganizations } = useOrganizations();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -89,6 +91,17 @@ export const SuperAdminOrganizationPage: React.FC = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Auto-redirect to login if session expired
+  useEffect(() => {
+    if (contextError === 'session_expired') {
+      // Wait briefly to show the error, then redirect
+      const timer = setTimeout(() => {
+        navigate('/superadmin/login', { replace: true });
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [contextError, navigate]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
