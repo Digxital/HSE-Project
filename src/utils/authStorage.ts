@@ -9,6 +9,7 @@ export type UserData = {
   email: string;
   name: string;
   role: string;
+  tenantId?: string;
 }
  
 export const setAuthToken = (token: string, remember: boolean = false) => {
