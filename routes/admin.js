@@ -15,6 +15,15 @@ const {
   activateUser,
   getAllCertifications
 } = require("../controller/admin.controller");
+const { getMyOrganizationStatus } = require("../controller/organization.controller");
+
+// Organization status for logged-in admin
+router.get(
+  "/organization/status",
+  auth,
+  authorize(["ADMIN"], ["web"]),
+  getMyOrganizationStatus
+);
 
 // Create user
 router.post(

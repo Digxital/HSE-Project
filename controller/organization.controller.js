@@ -635,3 +635,40 @@ exports.deleteOrganization = async (req, res) => {
         });
     }
 };
+
+exports.getMyOrganizationStatus = async (req, res) => {
+    try {
+        const organization = await Organization.findById(req.user.tenantId).select(
+            "organizationName organizationId status logo createdAt updatedAt"
+        );
+
+        if (!organization) {
+            return res.status(404).json({
+                success: false,
+                message: "Organization not found",
+                data: {}
+            });
+        }
+
+        return res.json({
+            success: true,
+            message: "Organization status fetched successfully",
+            data: {
+                organizationId: organization.organizationId,
+                organizationName: organization.organizationName,
+                status: organization.status,
+                logo: organization.logo || null,
+                createdAt: organization.createdAt,
+                updatedAt: organization.updatedAt
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching organization status:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch organization status",
+            data: {}
+        });
+    }
+};
