@@ -4,10 +4,8 @@ import { TopBar } from '@/components/layout/TopBar';
 import { StatsOverview } from '@/components/dashboard/StatsOverview';
 import { AIInsights } from '@/components/dashboard/AIInsights';
 import { RecentReportsTable } from '@/components/dashboard/RecentReportsTable';
-import { OrgSuspendedModal } from '@/components/common/OrgSuspendedModal';
 import { getUserData } from '@/utils/authStorage';
 import { useReports } from '@/services/ReportsContext';
-import { useOrgStatusMonitor } from '@/hooks/useOrgStatusMonitor';
 
 interface DashboardPageProps {
   role?: 'admin' | 'supervisor';
@@ -19,7 +17,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ role = 'admin' }) 
   const [isMobile, setIsMobile] = useState(false);
   const userData = getUserData();
   const { reports, loading, refreshReports } = useReports();
-  const { showSuspendedModal, handleDismiss } = useOrgStatusMonitor();
 
   const hasData = useMemo(() => !loading && reports.length > 0, [loading, reports.length]);
 
@@ -98,9 +95,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ role = 'admin' }) 
           <RecentReportsTable hasData={hasData} />
         </div>
       </div>
-
-      {/* Organization Suspended Modal */}
-      <OrgSuspendedModal isOpen={showSuspendedModal} onDismiss={handleDismiss} />
     </div>
   );
 };

@@ -1,5 +1,4 @@
 // hooks/useAuth.ts
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '@/services/authService';
 import { removeAuthToken, removeUserData } from '@/utils/authStorage';
@@ -16,24 +15,17 @@ export const useAuth = () => {
       // Clear storage
       removeAuthToken();
       removeUserData();
-      
+
       // Redirect to role selection page
       navigate('/');
     }
   };
 
-  // Listen for auth:logout event from axios interceptor
-  useEffect(() => {
-    const handleAuthLogout = () => {
-      navigate('/');
-    };
-
-    window.addEventListener('auth:logout', handleAuthLogout);
-
-    return () => {
-      window.removeEventListener('auth:logout', handleAuthLogout);
-    };
-  }, [navigate]);
+  // Note: the global `auth:logout` event (dispatched by the axios 401
+  // interceptor) is handled centrally in AppRoutes via useOrgStatusMonitor,
+  // which redirects to /admin/login or /supervisor/login. Do not also
+  // listen for it here — a second listener races the navigation and can
+  // send the user to the wrong page.
 
   return { handleLogout };
 };

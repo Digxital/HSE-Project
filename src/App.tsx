@@ -35,10 +35,13 @@ import { SupervisorReportsPage } from '@/pages/supervisor/SupervisorReportsPage'
 import { SupervisorSettingsPage } from '@/pages/supervisor/SupervisorSettingsPage';
 import { ReportsProvider } from '@/services/ReportsContext';
 import { OrganizationsProvider } from '@/services/OrganizationContext';
+import { useOrgStatusMonitor } from '@/hooks/useOrgStatusMonitor';
+import { OrgSuspendedModal } from '@/components/common/OrgSuspendedModal';
 
 // Create a separate component for the authenticated routes
 const AppRoutes = () => {
   const navigate = useNavigate();
+  const { showSuspendedModal, handleDismiss } = useOrgStatusMonitor();
 
   useEffect(() => {
     // Check token expiration on app load (admin/supervisor only)
@@ -76,7 +79,8 @@ const AppRoutes = () => {
   }, [navigate]);
 
   return (
-    <Routes> 
+    <>
+    <Routes>
       {/* Root route - redirect based on auth status and role */}
       <Route 
         path="/" 
@@ -117,8 +121,10 @@ const AppRoutes = () => {
       <Route path="/supervisor/certification" element={<SupervisorCertificationPage />} />
       <Route path="/supervisor/settings" element={<SupervisorSettingsPage />} />
       <Route path="/supervisor/notifications" element={<NotificationsPage role="supervisor" />} />
-        
+
     </Routes>
+      <OrgSuspendedModal isOpen={showSuspendedModal} onDismiss={handleDismiss} />
+    </>
   );
 };
 
