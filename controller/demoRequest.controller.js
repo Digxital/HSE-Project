@@ -1,4 +1,5 @@
 const DemoRequest = require("../model/demoRequest.model");
+const { notifyAllSuperAdmins } = require("../utils/notify");
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -57,6 +58,20 @@ exports.submitDemoRequest = async (req, res) => {
             message: message !== undefined ? String(message).trim() : "",
             requestedAt: new Date()
         });
+
+        notifyAllSuperAdmins({
+            type: "demo_request_submitted",
+            title: "New demo request",
+            description: `${demoRequest.firstName} ${demoRequest.lastName} from ${demoRequest.company} requested a demo.`,
+            data: {
+                demoRequestId: demoRequest._id.toString(),
+                firstName: demoRequest.firstName,
+                lastName: demoRequest.lastName,
+                email: demoRequest.email,
+                company: demoRequest.company,
+                country: demoRequest.country
+            }
+        }).catch((err) => console.error("Failed to notify super admins:", err));
 
         return res.status(201).json({
             success: true,

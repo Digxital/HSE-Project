@@ -56,7 +56,8 @@ exports.createNotification = async (req, res) => {
             "action_progress",
             "certificate_added",
             "certificate_updated",
-            "organization_created"
+            "organization_created",
+            "demo_request_submitted"
         ];
 
         if (!validTypes.includes(type)) {
@@ -218,6 +219,71 @@ exports.markAllAsRead = async (req, res) => {
 
     } catch (err) {
         console.error("Error marking all notifications as read:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            data: {}
+        });
+    }
+};
+
+exports.getSuperAdminNotifications = async (req, res) => {
+    try {
+        const notifications = await Notification.find({ superAdmin: req.superAdmin.id })
+            .sort({ createdAt: -1 });
+
+        const response = notifications.map((notification) => buildNotificationResponse(notification));
+
+        return res.status(200).json({
+            success: true,
+            message: "Notifications fetched successfully",
+            data: response
+        });
+    } catch (err) {
+        console.error("Error fetching super admin notifications:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            data: {}
+        });
+    }
+};
+
+exports.markSuperAdminNotificationAsRead = async (req, res) => {
+    try {
+        const notification = await Notification.findById(req.params.id);
+
+        if (!notification) {
+            return res.status(404).json({
+                success: false,
+                message: "Notification not found",
+                data: {}
+            });
+        }
+
+        if (
+            !notification.superAdmin
+            || notification.superAdmin.toString() !== req.superAdmin.id.toString()
+        ) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied",
+                data: {}
+            });
+        }
+
+        if (!notification.read) {
+            notification.read = true;
+            await notification.save();
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Notification marked as read",
+            data: buildNotificationResponse(notification)
+        });
+    } catch (err) {
+        console.error("Error marking super admin notification as read:", err);
         return res.status(500).json({
             success: false,
             message: "Internal server error",

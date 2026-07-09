@@ -1,5 +1,6 @@
 // utils/notify.js  ← use this everywhere in your app
 const Notification = require("../model/notification.model");
+const SuperAdmin = require("../model/superAdmin.model");
 const { sendPushToUser, sendPushToMany } = require("./fcm");
 
 /**
@@ -95,4 +96,31 @@ const notifyMany = async ({ userIds, type, title, description, data = {} }) => {
     }
 };
 
-module.exports = { notifyUser, notifyMany };
+/**
+ * Create DB notifications for all active super admins.
+ */
+const notifyAllSuperAdmins = async ({ type, title, description, data = {} }) => {
+    try {
+        const superAdmins = await SuperAdmin.find({ status: "ACTIVE" }).select("_id");
+
+        if (!superAdmins.length) {
+            return null;
+        }
+
+        const docs = superAdmins.map((superAdmin) => ({
+            superAdmin: superAdmin._id,
+            type,
+            title,
+            description,
+            read: false,
+            data
+        }));
+
+        return Notification.insertMany(docs, { ordered: false });
+    } catch (err) {
+        console.error("notifyAllSuperAdmins error:", err);
+        return null;
+    }
+};
+
+module.exports = { notifyUser, notifyMany, notifyAllSuperAdmins };
