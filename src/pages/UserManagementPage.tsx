@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/Button';
 import { userService, type UserResponse } from '@/services/userService';
 import { useToast } from '@/hooks/useToast';
 import { useAuth } from '@/hooks/useAuth';
-import { useNotifications } from '@/contexts/NotificationContext';
 import InvitationSentModal from '@/components/auth/InvitationSentModal';
 import { getUserData, type UserData } from '@/utils/authStorage';
 import { UserDetailsModal } from '@/components/users/UserDetailsModal';
@@ -136,7 +135,6 @@ export const UserManagementPage: React.FC = () => {
   const [microsoftUsers, setMicrosoftUsers] = useState<MicrosoftUser[]>([]);
   const [isMobile, setIsMobile] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-  const { addNotification } = useNotifications();
   const userIdParam = searchParams.get('userId') || '';
   const userEmailParam = (searchParams.get('email') || '').trim().toLowerCase();
    
@@ -343,23 +341,6 @@ export const UserManagementPage: React.FC = () => {
             createMicrosoftAccount: false,
             status: 'pending'
           });
-          // ✅ Add notification for each successfully imported user
-          addNotification({
-            type: 'user_added',
-            title: 'New User Added',
-            description: `${firstName} ${lastName} (${email}) has been added to the platform.`,
-            timestamp: new Date().toISOString(),
-            data: {
-              userId: newUser._id || newUser.id,
-            },
-          });
-          // addNotification({
-          //   type: 'user_added',
-          //   title: 'New User Created',
-          //   description: `${userData.firstName} ${userData.lastName} (${userData.email}) has been created.`,
-          //   timestamp: new Date().toISOString(),
-          // });
-           
           newlyCreatedUsers.push(newUser);
           imported++;
         } catch (err) {

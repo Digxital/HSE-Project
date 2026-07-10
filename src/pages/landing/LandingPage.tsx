@@ -3,6 +3,7 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Logo } from '@/components/ui/Logo';
+import { RequestDemoModal } from '@/components/common/RequestDemoModal';
 import { CountryCodeDropdown } from '@/components/ui/CountryCodeDropdown';
 import { SocialIcons } from '@/components/ui/SocialIcons';
 import { getCountryCodesData } from '@/utils/countryCodeData';
@@ -17,6 +18,7 @@ import reportImage from '@/assets/images/Report.png';
 
 export const LandingPage: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>('faq-1');
   const [contactForm, setContactForm] = useState({
     countryCode: '+1',
@@ -133,13 +135,13 @@ export const LandingPage: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Desktop Download Button */}
+                {/* Desktop Request Demo Button */}
                 <div className="hidden md:block">
-                  <button className="flex items-center gap-2 px-6 py-2 bg-[#200500] hover:bg-[#A83309] text-white rounded-lg font-medium transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Download App
+                  <button
+                    onClick={() => setIsDemoModalOpen(true)}
+                    className="flex items-center gap-2 px-6 py-2 bg-[#200500] hover:bg-[#A83309] text-white rounded-lg font-medium transition-colors"
+                  >
+                    Request Demo
                   </button>
                 </div>
 
@@ -168,9 +170,14 @@ export const LandingPage: React.FC = () => {
                       {item.label}
                     </button>
                   ))}
-                  <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#C2410C] hover:bg-[#A83309] text-white rounded-lg font-medium transition-colors">
-                    <img src={googlePlayIcon} alt="Google Play" className="w-4 h-4" />
-                    Download App
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setIsDemoModalOpen(true);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#C2410C] hover:bg-[#A83309] text-white rounded-lg font-medium transition-colors"
+                  >
+                    Request Demo
                   </button>
                 </div>
               )}
@@ -197,18 +204,22 @@ export const LandingPage: React.FC = () => {
               Aegix helps organizations capture safety observations, hazards, and incidents in real time, enabling faster response, improved compliance, and better safety outcomes.
             </p>
 
-            {/* Download Buttons */}
+            {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 justify-center mb-16">
-              {/* Google Play Button */}
-              <button className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#200500] hover:bg-[#1a0400] text-white rounded-2xl font-medium transition-colors text-sm">
-                <img src={googlePlayIcon} alt="Google Play" className="w-4 h-4" />
-                Download on Google Play
+              {/* Request Live Demo Button */}
+              <button
+                onClick={() => setIsDemoModalOpen(true)}
+                className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#C2410C] hover:bg-[#A83309] text-white rounded-lg font-semibold transition-colors text-sm"
+              >
+                Request Live Demo
               </button>
 
-              {/* App Store Button */}
-              <button className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#200500] hover:bg-[#1a0400] text-white rounded-2xl font-medium transition-colors text-sm">
-                <img src={appleIcon} alt="Apple" className="w-4 h-4" />
-                Download on App Store
+              {/* View Features Button */}
+              <button
+                onClick={() => handleNavClick('#features')}
+                className="flex items-center justify-center gap-2 px-6 py-2.5 bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 rounded-lg font-semibold transition-colors text-sm"
+              >
+                View Features
               </button>
             </div>
 
@@ -380,13 +391,28 @@ export const LandingPage: React.FC = () => {
                 Download the Aegix mobile application and enable faster reporting, better visibility, and improved management of workplace safety issues.
               </p>
               
-              {/* Download Button */}
-              <button className="flex items-center justify-center gap-2 px-8 py-3 bg-[#FFF4E6] hover:bg-[#FFE8CC] text-gray-900 rounded-lg font-semibold transition-colors w-fit">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Download App
-              </button>
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row flex-wrap gap-4">
+                {/* Request Demo Button */}
+                <button
+                  onClick={() => setIsDemoModalOpen(true)}
+                  className="flex items-center justify-center gap-2 px-8 py-3 bg-[#FFF4E6] hover:bg-[#FFE8CC] text-gray-900 rounded-lg font-semibold transition-colors w-fit"
+                >
+                  Request Demo
+                </button>
+
+                {/* Google Play Button */}
+                <button className="flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/30 text-white rounded-lg font-medium transition-colors w-fit text-sm">
+                  <img src={googlePlayIcon} alt="Google Play" className="w-5 h-5" />
+                  Download on Google Play
+                </button>
+
+                {/* App Store Button */}
+                <button className="flex items-center justify-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/30 text-white rounded-lg font-medium transition-colors w-fit text-sm">
+                  <img src={appleIcon} alt="App Store" className="w-5 h-5" />
+                  Download on App Store
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -668,6 +694,9 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {/* Request a Demo Modal */}
+      <RequestDemoModal isOpen={isDemoModalOpen} onClose={() => setIsDemoModalOpen(false)} />
     </div>
   );
 };

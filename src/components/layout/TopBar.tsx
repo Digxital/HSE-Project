@@ -14,6 +14,7 @@ import { useNotifications } from '@/contexts/NotificationContext';
 import { useOptionalReports } from '@/services/ReportsContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { NotificationPreviewModal } from '@/components/common/NotificationPreviewModal';
+import { SuperAdminNotificationBell } from '@/components/superadmin/SuperAdminNotificationBell';
 
 interface TopBarProps {
   pageTitle: string;
@@ -238,6 +239,9 @@ export const TopBar: React.FC<TopBarProps> = ({
             <span className={syncConfig.iconColor}>{syncConfig.icon}</span>
             <span className={`font-medium ${syncConfig.textColor}`}>{syncConfig.text}</span>
           </div>
+
+          {/* Notifications — superadmin only */}
+          {window.location.pathname.startsWith('/superadmin') && <SuperAdminNotificationBell />}
 
           {/* Notifications — hidden for superadmin */}
           {!window.location.pathname.startsWith('/superadmin') && (

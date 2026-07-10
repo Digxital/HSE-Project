@@ -1,6 +1,7 @@
 // contexts/NotificationContext.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { notificationService, type Notification } from '@/services/notificationService';
+import { isPublicRoute } from '@/utils/routeGuards';
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -35,33 +36,40 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setUnreadCount(notificationService.getUnreadCount());
     });
 
-    // TODO: Enable when backend notification endpoints are ready
-    // const fetchLatest = () => {
-    //   notificationService.fetchNotifications();
-    // };
-    // fetchLatest();
+    const fetchLatest = () => {
+      // SuperAdmin has its own separate notification feed — never poll
+      // /api/notifications here, it's scoped to admin/supervisor accounts.
+      if (window.location.pathname.startsWith('/superadmin')) return;
+      // Landing page / login screens have no session — don't poll with
+      // whatever stale token might be sitting in storage.
+      if (isPublicRoute()) return;
+      notificationService.fetchNotifications();
+    };
+    fetchLatest();
 
-    // const handleLogin = () => fetchLatest();
+    const handleLogin = () => fetchLatest();
     const handleLogout = () => {
       notificationService.clearAll();
     };
-    // const handleFocus = () => {
-    //   fetchLatest();
-    // };
+    const handleFocus = () => {
+      fetchLatest();
+    };
 
-    // TODO: Re-enable event listeners when notification backend is ready
-    // window.addEventListener('auth:login', handleLogin);
+    window.addEventListener('auth:login', handleLogin);
     window.addEventListener('auth:logout', handleLogout);
-    // window.addEventListener('focus', handleFocus);
+    window.addEventListener('focus', handleFocus);
 
-    // TODO: Re-enable polling when notification backend is ready
-    // const intervalId = setInterval(fetchLatest, 10000); // Poll every 10 seconds for faster updates
+    // Poll every 10 seconds so new reports/actions/comments from the mobile
+    // app show up in the bell without a full page reload.
+    const intervalId = setInterval(() => {
+      if (!document.hidden) fetchLatest();
+    }, 10000);
 
     return () => {
-      // window.removeEventListener('auth:login', handleLogin);
+      window.removeEventListener('auth:login', handleLogin);
       window.removeEventListener('auth:logout', handleLogout);
-      // window.removeEventListener('focus', handleFocus);
-      // clearInterval(intervalId);
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(intervalId);
       unsubscribe();
     };
   }, []);

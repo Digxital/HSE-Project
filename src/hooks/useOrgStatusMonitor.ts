@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserData } from '@/utils/authStorage';
+import { isPublicRoute } from '@/utils/routeGuards';
 import { useToast } from './useToast';
 import api from '@/lib/axios';
 
@@ -27,8 +28,9 @@ export const useOrgStatusMonitor = () => {
 
   useEffect(() => {
     const checkOrgStatus = async () => {
-      // Skip if tab is hidden, not logged in, or this is a superadmin session
+      // Skip if tab is hidden, on a public route, not logged in, or this is a superadmin session
       if (document.hidden) return;
+      if (isPublicRoute()) return;
       if (isSuperAdminSession()) return;
       if (!getUserData()) return;
 
@@ -90,6 +92,10 @@ export const useOrgStatusMonitor = () => {
     // organization is suspended/inactive, not just on a genuinely expired token —
     // so always warn before redirecting rather than navigating silently.
     const handleAuthLogout = () => {
+      // Landing page / login screens have no session to protect — don't warn
+      // or redirect a visitor who was never really "logged in" on this page.
+      if (isPublicRoute()) return;
+
       // SuperAdmin dispatches its own auth:logout as part of superAdminAuthService's
       // handleLogout flow — let that own its redirect, don't race it or clear its tokens.
       if (isSuperAdminSession()) return;

@@ -7,6 +7,7 @@ import {
   removeSuperAdminAuthToken,
   removeSuperAdminUserData,
   removeUserData,
+  getSuperAdminAuthToken,
 } from '@/utils/authStorage';
 
 interface LoginPayload {
@@ -84,6 +85,26 @@ class SuperAdminAuthService {
 }
 
 export const superAdminAuthService = new SuperAdminAuthService();
+
+// Same local JWT exp-decode check the regular admin flow uses (authService.isAuthenticated())
+// — the source of truth for whether the superadmin's own session is actually expired,
+// instead of blindly trusting any single endpoint's 401. A few backend routes have been
+// observed returning a spurious 401 while the token itself is still valid for hours;
+// checking locally first stops those from forcing an unnecessary logout.
+export const isSuperAdminTokenValid = (): boolean => {
+  const token = getSuperAdminAuthToken();
+  if (!token) return false;
+
+  try {
+    const base64url = token.split('.')[1];
+    const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+    const payload = JSON.parse(atob(base64));
+    const exp = payload.exp * 1000;
+    return Date.now() < exp;
+  } catch {
+    return false;
+  }
+};
 
 // Global logout handler for when SuperAdmin token becomes invalid (called by organizationService on 401)
 export const handleLogout = () => {

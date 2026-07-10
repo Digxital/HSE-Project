@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { reportService } from '@/services/reportService';
 import { getUserData, getAuthToken } from '@/utils/authStorage';
-import { useOptionalNotifications } from '@/contexts/NotificationContext';
 
 // Types
 export type RiskLevel = 'High' | 'Medium' | 'Low';
@@ -101,8 +100,6 @@ const isSuperAdminUser = (): boolean => {
 };
 
 export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const notificationApi = useOptionalNotifications();
-  const addNotification = notificationApi?.addNotification ?? (() => {});
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -302,23 +299,6 @@ export const ReportsProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return r;
       })
     );
-
-    if (report) {
-      const currentEmail = userData?.email?.toLowerCase();
-      const isSelfAction = Boolean(currentEmail);
-      if (!isSelfAction) {
-        addNotification({
-          type: 'report_commented',
-          title: `New comment on ${report.category}`,
-          description: text,
-          timestamp: newComment.timestamp,
-          data: {
-            reportId: report.id,
-            commentId: commentId,
-          },
-        });
-      }
-    }
 
     if (backendId) {
       try {

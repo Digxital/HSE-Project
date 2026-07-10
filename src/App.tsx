@@ -17,6 +17,7 @@ import { SuperAdminDashboardPage } from '@/pages/superadmin/SuperAdminDashboardP
 import SuperAdminOrganizationPageWithBoundary from '@/pages/superadmin/organization/OrganizationListPage';
 import { default as SuperAdminProfilePage } from '@/pages/superadmin/profile/SuperAdminProfilePage';
 import { default as SuperAdminSettingsPage } from '@/pages/superadmin/settings/SuperAdminSettingsPage';
+import { SuperAdminNotificationsPage } from '@/pages/superadmin/SuperAdminNotificationsPage';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -37,6 +38,7 @@ import { ReportsProvider } from '@/services/ReportsContext';
 import { OrganizationsProvider } from '@/services/OrganizationContext';
 import { useOrgStatusMonitor } from '@/hooks/useOrgStatusMonitor';
 import { OrgSuspendedModal } from '@/components/common/OrgSuspendedModal';
+import { isPublicRoute } from '@/utils/routeGuards';
 
 // Create a separate component for the authenticated routes
 const AppRoutes = () => {
@@ -47,6 +49,10 @@ const AppRoutes = () => {
     // Check token expiration on app load (admin/supervisor only)
     const checkAuth = () => {
       const currentPath = window.location.pathname;
+
+      // Landing page / login screens have no session to monitor — a stale
+      // token left over from a previous login must not force a redirect here.
+      if (isPublicRoute(currentPath)) return;
 
       // SuperAdmin has its own session handling — never interfere
       if (currentPath.startsWith('/superadmin')) return;
@@ -94,6 +100,7 @@ const AppRoutes = () => {
       <Route path="/superadmin/dashboard" element={<SuperAdminDashboardPage />} />
       <Route path="/superadmin/profile" element={<SuperAdminProfilePage />} />
       <Route path="/superadmin/settings" element={<SuperAdminSettingsPage />} />
+      <Route path="/superadmin/notifications" element={<SuperAdminNotificationsPage />} />
       <Route path="/superadmin/organization" element={<SuperAdminOrganizationPageWithBoundary />} />
       <Route path="/superadmin/organization/list" element={<SuperAdminOrganizationPageWithBoundary />} />
 
@@ -128,49 +135,11 @@ const AppRoutes = () => {
   );
 };
 
-// Component to handle root redirect or show landing page
+// Root route always shows the landing page — dashboards are only reached
+// via an explicit login (the login pages navigate straight there on success)
+// or a direct/bookmarked URL, never via an auto-redirect from "/".
 const RootRedirect = () => {
-  const navigate = useNavigate();
-  const [showLanding, setShowLanding] = useState(false);
-  
-  useEffect(() => {
-    // Check if user data exists to determine role
-    const userDataStr = localStorage.getItem('user_data') || sessionStorage.getItem('user_data');
-    const token = getAuthToken();
-    
-    // If user is authenticated, redirect to dashboard
-    if (token && userDataStr) {
-      try {
-        const userData = JSON.parse(userDataStr);
-        const role = (userData.role ?? '').toLowerCase();
-        if (role.includes('superadmin') || role.includes('super_admin') || role.includes('super-admin')) {
-          navigate('/superadmin/dashboard', { replace: true });
-          return;
-        }
-        if (role === 'supervisor') {
-          navigate('/supervisor/dashboard', { replace: true });
-          return;
-        }
-      } catch (e) {
-        // JSON parse error, continue
-      }
-
-      // Default to admin dashboard
-      navigate('/dashboard', { replace: true });
-      return;
-    }
-    
-    // If not authenticated, show landing page
-    setShowLanding(true);
-  }, [navigate]);
-
-  // Show landing page for unauthenticated users
-  if (showLanding) {
-    return <LandingPage />;
-  }
-
-  // Loading state while checking authentication
-  return <LoadingScreen />;
+  return <LandingPage />;
 };
 
 function App() {

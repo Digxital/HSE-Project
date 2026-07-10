@@ -1,5 +1,4 @@
 import React, { useEffect, useState, Component } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { SuperAdminSidebar } from '@/components/layout/SuperAdminSidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { CreateOrganizationFlow } from '@/components/superadmin/CreateOrganizationFlow';
@@ -57,7 +56,6 @@ interface Organization {
 }
 
 export const SuperAdminOrganizationPage: React.FC = () => {
-  const navigate = useNavigate();
   const { showToast } = useToast();
   const { organizations, loading: contextLoading, error: contextError, refreshOrganizations } = useOrganizations();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -92,16 +90,14 @@ export const SuperAdminOrganizationPage: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Auto-redirect to login if session expired
-  useEffect(() => {
-    if (contextError === 'session_expired') {
-      // Wait briefly to show the error, then redirect
-      const timer = setTimeout(() => {
-        navigate('/superadmin/login', { replace: true });
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [contextError, navigate]);
+  // Note: no auto-redirect on contextError === 'session_expired'. That error can be
+  // set by OrganizationsContext's silent background poll (every 2 min), and forcing
+  // a logout off a stale poll result contradicts its own documented intent ("A 401
+  // during polling... must not kick the user out mid-session") — it was kicking
+  // superadmins out a few minutes into a perfectly valid session. The inline error
+  // banner below still surfaces it; an actual expired token will correctly redirect
+  // via superAdminAuthService.handleLogout() the next time the user takes an
+  // explicit action (create/update/delete organization).
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

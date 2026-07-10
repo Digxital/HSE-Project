@@ -1,5 +1,5 @@
 import { getAuthToken, getSuperAdminAuthToken } from '@/utils/authStorage';
-import { handleLogout } from './superAdminAuthService';
+import { handleLogout, isSuperAdminTokenValid } from './superAdminAuthService';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
@@ -82,6 +82,28 @@ class OrganizationService {
     };
   }
 
+  // Mirrors how the regular admin flow decides to log out (authService.isAuthenticated()
+  // in App.tsx's checkAuth): trust the token's own exp claim as the source of truth,
+  // rather than any single endpoint's 401. Some superadmin routes have been observed
+  // returning a spurious 401 while the token is still valid for hours — logging the
+  // user out on every one of those was the "unexpected redirect to superadmin login" bug.
+  private handleUnauthorized(): never {
+    const preview = (t: string | null) => (t ? `${t.slice(0, 12)}…(${t.length} chars)` : 'null');
+
+    if (!isSuperAdminTokenValid()) {
+      console.warn('Token expired or invalid. Logging out...');
+      handleLogout();
+      throw new Error('Session expired. Please log in again.');
+    }
+
+    console.warn(
+      '[organizationService] Got a 401 but the local superadmin token is still valid — not logging out (likely a transient backend issue).',
+      'superadmin_auth_token:', preview(getSuperAdminAuthToken()),
+      'auth_token (fallback):', preview(getAuthToken())
+    );
+    throw new Error('Something went wrong. Please try again.');
+  }
+
   async createOrganization(payload: CreateOrganizationPayload): Promise<OrganizationResponse> {
     try {
       const normalizedPayload = this.normalizeCreatePayload(payload);
@@ -107,9 +129,7 @@ class OrganizationService {
       });
 
       if (response.status === 401) {
-        console.warn('Token expired or invalid. Logging out...');
-        handleLogout();
-        throw new Error('Session expired. Please log in again.');
+        this.handleUnauthorized();
       }
 
       if (!response.ok) {
@@ -135,6 +155,13 @@ class OrganizationService {
       );
 
       if (response.status === 401) {
+        const preview = (t: string | null) => (t ? `${t.slice(0, 12)}…(${t.length} chars)` : 'null');
+        console.warn(
+          '[organizationService] 401 from /api/organizations.',
+          'localTokenStillValid:', isSuperAdminTokenValid(),
+          'superadmin_auth_token:', preview(getSuperAdminAuthToken()),
+          'auth_token (fallback):', preview(getAuthToken())
+        );
         // Throw with status attached — let OrganizationContext decide whether to logout
         // (don't auto-logout here: this method is used by background polling)
         const err = new Error('Session expired. Please log in again.') as any;
@@ -163,9 +190,7 @@ class OrganizationService {
 
       // Handle unauthorized
       if (response.status === 401) {
-        console.warn('Token expired or invalid. Logging out...');
-        handleLogout();
-        throw new Error('Session expired. Please log in again.');
+        this.handleUnauthorized();
       }
 
       if (!response.ok) {
@@ -189,9 +214,7 @@ class OrganizationService {
 
       // Handle unauthorized
       if (response.status === 401) {
-        console.warn('Token expired or invalid. Logging out...');
-        handleLogout();
-        throw new Error('Session expired. Please log in again.');
+        this.handleUnauthorized();
       }
 
       if (!response.ok) {
@@ -215,9 +238,7 @@ class OrganizationService {
 
       // Handle unauthorized
       if (response.status === 401) {
-        console.warn('Token expired or invalid. Logging out...');
-        handleLogout();
-        throw new Error('Session expired. Please log in again.');
+        this.handleUnauthorized();
       }
 
       if (!response.ok) {
