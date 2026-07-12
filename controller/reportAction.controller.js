@@ -3,8 +3,6 @@ const mongoose = require("mongoose");
 const Report = require("../model/report.model");
 const ReportAction = require("../model/reportAction.model");
 const User = require("../model/user.model");
-const Notification = require("../model/notification.model");
-const { notifyUser, notifyMany } = require("../utils/notify");
 const {
     MANAGEMENT_ROLES,
     serializeReportAction

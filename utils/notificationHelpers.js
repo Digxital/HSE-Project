@@ -1,5 +1,5 @@
-const Notification = require("../model/notification.model");
 const User = require("../model/user.model");
+const { notifyMany } = require("./notify");
 
 exports.resolveActionNotificationType = (actionStatus, reportStatus) => {
     const normalizedActionStatus = String(actionStatus || "")
@@ -19,11 +19,11 @@ exports.resolveActionNotificationType = (actionStatus, reportStatus) => {
     return "action_progress";
 };
 
-exports.notifyUsers = async ({ userIds, type, title, description, data }) => {
+exports.notifyUsers = async ({ userIds, type, title, description, data = {} }) => {
     const uniqueUserIds = [...new Set(
         userIds
             .filter(Boolean)
-            .map(userId => userId.toString())
+            .map((userId) => userId.toString())
     )];
 
     if (uniqueUserIds.length === 0) {
@@ -31,15 +31,13 @@ exports.notifyUsers = async ({ userIds, type, title, description, data }) => {
     }
 
     try {
-        await Notification.insertMany(
-            uniqueUserIds.map(user => ({
-                user,
-                type,
-                title,
-                description,
-                data
-            }))
-        );
+        await notifyMany({
+            userIds: uniqueUserIds,
+            type,
+            title,
+            description,
+            data
+        });
     } catch (error) {
         console.error("Error creating notifications:", error.message);
     }
@@ -65,7 +63,7 @@ exports.notifyReportCompleted = async ({ report, actorId }) => {
             role: { $in: ["ADMIN", "SUPERVISOR", "HSE_OFFICER"] }
         }).select("_id");
 
-        managers.forEach(manager => {
+        managers.forEach((manager) => {
             const managerId = manager._id.toString();
 
             if (managerId !== actorId && !recipientIds.includes(managerId)) {

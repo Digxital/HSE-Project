@@ -21,6 +21,7 @@ const notificationSchema = new mongoose.Schema(
                 "certificate_added",
                 "certificate_updated",
                 "action_assigned",
+                "action_unassigned",
                 "incident_assigned",
                 "inspection_assigned",
                 "organization_created",

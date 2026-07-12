@@ -2,7 +2,6 @@
 const Report = require("../model/report.model");
 const ReportAction = require("../model/reportAction.model");
 const User = require("../model/user.model");
-const Notification = require("../model/notification.model");
 const mongoose = require("mongoose");
 const { notifyUser } = require("../utils/notify");
 const { serializeReportAction } = require("../utils/reportActionResponse");
@@ -16,6 +15,13 @@ const {
     findUserInTenant,
     getTenantUserIds
 } = require("../utils/tenantScope");
+const { ensureTenantOrganization } = require("../utils/ensureTenantOrganization");
+const {
+    buildReportNotificationData,
+    formatReportForResponse,
+    formatReportsForResponse,
+    fetchPopulatedReport
+} = require("../utils/reportResponse");
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -38,7 +44,7 @@ const normalizeCommentsForResponse = (report) => {
     const currentComments = Array.isArray(reportObj.comments) ? reportObj.comments : null;
     if (currentComments && currentComments.length > 0) {
         delete reportObj.adminComment;
-        return reportObj;
+        return enrichReportEventTime(reportObj);
     }
 
     const legacyComment = reportObj.adminComment;
@@ -55,6 +61,57 @@ const normalizeCommentsForResponse = (report) => {
 };
 
 const actionUserFields = "firstName lastName email role status";
+
+const resolveReportLocation = async (req, locationInput = {}) => {
+    const submittingUser = await User.findById(req.user.id).select("location tenantId");
+    let clientId = locationInput.clientId;
+
+    if (!clientId && submittingUser?.location && String(submittingUser.location).trim() !== "") {
+        const userClientId = String(submittingUser.location).trim();
+        const userClientAllowed = await clientBelongsToTenant(userClientId, req.user.tenantId);
+
+        if (userClientAllowed) {
+            clientId = userClientId;
+        }
+    }
+
+    if (!clientId) {
+        const organization = await ensureTenantOrganization(req.user.tenantId);
+        clientId = organization?.clientId?.toString();
+    }
+
+    if (!clientId) {
+        return { error: "User organization location is not configured" };
+    }
+
+    const clientAllowed = await clientBelongsToTenant(clientId, req.user.tenantId);
+
+    if (!clientAllowed) {
+        return { error: "Invalid client for your organization" };
+    }
+
+    const resolvedLocation = {
+        clientId
+    };
+
+    if (locationInput.siteId) {
+        resolvedLocation.siteId = locationInput.siteId;
+    }
+
+    if (locationInput.specificArea) {
+        resolvedLocation.specificArea = String(locationInput.specificArea).trim();
+    }
+
+    if (locationInput.latitude !== undefined && locationInput.latitude !== "") {
+        resolvedLocation.latitude = Number(locationInput.latitude);
+    }
+
+    if (locationInput.longitude !== undefined && locationInput.longitude !== "") {
+        resolvedLocation.longitude = Number(locationInput.longitude);
+    }
+
+    return { value: resolvedLocation };
+};
 
 const attachActionsToReports = async (reports, viewer) => {
     const normalizedReports = reports.map(normalizeCommentsForResponse);
@@ -133,7 +190,16 @@ exports.createReport = async (req, res) => {
     }
 
     // ── Validation ──────────────────────────────────────────────────────────
-    if (!recordType || !title || !description || !riskLevel || !location || !eventDate || !eventTime) {
+    const missingFields = [];
+
+    if (!recordType) missingFields.push("recordType");
+    if (!title) missingFields.push("title");
+    if (!description) missingFields.push("description");
+    if (!riskLevel) missingFields.push("riskLevel");
+    if (!eventDate) missingFields.push("eventDate");
+    if (!eventTime) missingFields.push("eventTime");
+
+    if (missingFields.length > 0) {
         if (req.files && Array.isArray(req.files)) {
             req.files.forEach(file => deleteFile(file.path));
         } else if (req.file) {
@@ -141,7 +207,7 @@ exports.createReport = async (req, res) => {
         }
         return res.status(400).json({
             success: false,
-            message: "Missing required report fields: recordType, title, description, riskLevel, location, eventDate, eventTime"
+            message: `Missing required report fields: ${missingFields.join(", ")}`
         });
     }
 
@@ -162,26 +228,22 @@ exports.createReport = async (req, res) => {
     }
 
     try {
-        // ── Validate client belongs to tenant ──────────────────────────────
-        if (location?.clientId) {
-            const clientAllowed = await clientBelongsToTenant(
-                location.clientId,
-                req.user.tenantId
-            );
+        const resolvedLocation = await resolveReportLocation(req, location || {});
 
-            if (!clientAllowed) {
-                if (req.files && Array.isArray(req.files)) {
-                    req.files.forEach(file => deleteFile(file.path));
-                } else if (req.file) {
-                    deleteFile(req.file.path);
-                }
-
-                return res.status(400).json({
-                    success: false,
-                    message: "Invalid client for your organization"
-                });
+        if (resolvedLocation.error) {
+            if (req.files && Array.isArray(req.files)) {
+                req.files.forEach(file => deleteFile(file.path));
+            } else if (req.file) {
+                deleteFile(req.file.path);
             }
+
+            return res.status(400).json({
+                success: false,
+                message: resolvedLocation.error
+            });
         }
+
+        location = resolvedLocation.value;
 
         // ── Process attachments ─────────────────────────────────────────────
         let processedAttachments = [];
@@ -256,28 +318,9 @@ exports.createReport = async (req, res) => {
 
         // Remove duplicates
         const uniqueRecipients = [...new Set(recipientIds)];
+        const notificationData = buildReportNotificationData(report);
 
-        // Create notifications in DB
-        await Notification.insertMany(
-            uniqueRecipients.map(userId => ({
-                user: userId,
-                type: "report_submitted",
-                title: report.title,
-                description:
-                    userId.toString() === req.user.id.toString()
-                        ? `Your report "${report.title}" was submitted successfully`
-                        : `${userName} submitted a report: ${report.title}`,
-                data: {
-                    reportId: report._id.toString(),
-                    recordType: report.recordType,
-                    riskLevel: report.riskLevel,
-                    location: report.location
-                }
-            }))
-        );
-
-        // Send push notifications (non-blocking)
-        uniqueRecipients.forEach(userId => {
+        uniqueRecipients.forEach((userId) => {
             notifyUser({
                 userId,
                 type: "report_submitted",
@@ -286,23 +329,20 @@ exports.createReport = async (req, res) => {
                     userId.toString() === req.user.id.toString()
                         ? `Your report "${report.title}" was submitted successfully`
                         : `${userName} submitted a ${recordType} report: "${report.title}"`,
-                data: {
-                    reportId: report._id.toString(),
-                    recordType: report.recordType,
-                    riskLevel: report.riskLevel,
-                    location: report.location
-                }
-            }).catch(err =>
+                data: notificationData
+            }).catch((err) =>
                 console.error("[REPORT] report_submitted push failed:", err.message)
             );
         });
+
+        const populatedReport = await fetchPopulatedReport(report._id);
+        const formattedReport = await formatReportForResponse(populatedReport);
 
         return res.status(201).json({
             success: true,
             message: "Report submitted successfully",
             data: {
-                reportId: report._id,
-                attachmentsCount: processedAttachments.length
+                report: formattedReport
             }
         });
 
@@ -343,10 +383,12 @@ exports.getReports = async (req, res) => {
             reports,
             req.user
         );
+        const formattedReports = await formatReportsForResponse(reportsWithActions);
 
         return res.status(200).json({
             success: true,
-            data: reportsWithActions
+            message: "Reports fetched successfully",
+            data: formattedReports
         });
     } catch (error) {
         console.error("getReports error:", error);
@@ -415,10 +457,12 @@ exports.getReportById = async (req, res) => {
             [report],
             req.user
         );
+        const [formattedReport] = await formatReportsForResponse([reportWithActions]);
 
         return res.status(200).json({
             success: true,
-            data: reportWithActions
+            message: "Report fetched successfully",
+            data: formattedReport
         });
     } catch (error) {
         console.error("getReportById error:", error);
@@ -473,10 +517,12 @@ exports.getReportsByUser = async (req, res) => {
             reports,
             req.user
         );
+        const formattedReports = await formatReportsForResponse(reportsWithActions);
 
         return res.status(200).json({
             success: true,
-            data: reportsWithActions,
+            message: "User reports fetched successfully",
+            data: formattedReports,
         });
     } catch (error) {
         console.error("getReportsByUser error:", error);
@@ -585,26 +631,13 @@ exports.addReportComment = async (req, res) => {
             : "User";
 
         const reporterId = report.reportedBy?.userId?.toString();
-        const notifyRoles = ["ADMIN", "SUPERVISOR"];
+        const notifyRoles = ["ADMIN", "SUPERVISOR", "HSE_OFFICER"];
 
         if (
             notifyRoles.includes(commenter?.role)
             && reporterId
             && reporterId !== req.user.id
         ) {
-            // Create notification in DB
-            await Notification.create({
-                user: reporterId,
-                type: "report_commented",
-                title: report.title,
-                description: `${commenterName} (${commenterRole}) commented on your report: ${report.title}`,
-                data: {
-                    reportId: report._id.toString(),
-                    comment: trimmedComment
-                }
-            });
-
-            // Send push notification (non-blocking)
             notifyUser({
                 userId: reporterId,
                 type: "report_commented",
@@ -614,17 +647,22 @@ exports.addReportComment = async (req, res) => {
                     reportId: report._id.toString(),
                     comment: trimmedComment
                 }
-            }).catch(err =>
+            }).catch((err) =>
                 console.error("[REPORT] report_commented push failed:", err.message)
             );
         }
+
+        const populatedReport = await fetchPopulatedReport(report._id);
+        const formattedReport = await formatReportForResponse(populatedReport);
+        const savedComment = formattedReport.comments[formattedReport.comments.length - 1];
 
         return res.status(200).json({
             success: true,
             message: "Comment added to report",
             data: {
                 reportId: report._id,
-                comment: report.comments[report.comments.length - 1]
+                comment: savedComment,
+                report: formattedReport
             }
         });
     } catch (error) {
@@ -760,33 +798,34 @@ exports.updateReportStatus = async (req, res) => {
                 report,
                 actorId: req.user.id
             });
+        } else {
+            const reporterId = report.reportedBy?.userId?.toString();
+            if (reporterId && reporterId !== req.user.id) {
+                notifyUser({
+                    userId: reporterId,
+                    type: "action_progress",
+                    title: `Report Status Updated: ${report.title}`,
+                    description: `Your report "${report.title}" status changed from "${previousStatus}" to "${normalizedStatus}"`,
+                    data: {
+                        reportId: report._id.toString(),
+                        previousStatus,
+                        newStatus: normalizedStatus,
+                    }
+                }).catch((err) =>
+                    console.error("[REPORT] status update push failed:", err.message)
+                );
+            }
         }
 
-        // ── Notify reporter of status change ────────────────────────────────
-        const reporterId = report.reportedBy?.userId?.toString();
-        if (reporterId) {
-            notifyUser({
-                userId: reporterId,
-                type: "action_progress",
-                title: `Report Status Updated: ${report.title}`,
-                description: `Your report "${report.title}" status changed from "${previousStatus}" to "${normalizedStatus}"`,
-                data: {
-                    reportId: report._id.toString(),
-                    previousStatus,
-                    newStatus: normalizedStatus,
-                }
-            }).catch(err =>
-                console.error("[REPORT] status update push failed:", err.message)
-            );
-        }
+        const populatedReport = await fetchPopulatedReport(report._id);
+        const formattedReport = await formatReportForResponse(populatedReport);
 
         return res.status(200).json({
             success: true,
             message: "Report status updated",
             data: {
-                reportId: report._id,
-                previousStatus,
-                status: report.status
+                report: formattedReport,
+                previousStatus
             }
         });
     } catch (error) {

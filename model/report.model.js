@@ -73,8 +73,7 @@ const reportSchema = new mongoose.Schema(
             },
             siteId: {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: "Location",
-                required: true
+                ref: "Location"
             },
             specificArea: {
                 type: String
