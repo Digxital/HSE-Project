@@ -1,9 +1,12 @@
 const bcrypt = require("bcryptjs");
 const Organization = require("../model/organization.model");
 const User = require("../model/user.model");
+const Client = require("../model/client.model");
+const Location = require("../model/location.model");
 const Notification = require("../model/notification.model");
 const { generateNextOrganizationId } = require("../utils/organizationId");
 const { extractFileMetadata, deleteFile } = require("../utils/fileHandler");
+const { ensureTenantOrganization } = require("../utils/ensureTenantOrganization");
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 6;
@@ -46,10 +49,15 @@ const syncOrganizationAdminStatus = async (organization, organizationStatus) => 
     });
 };
 
-const rollbackOrganizationCreation = async ({ organization, adminUser }) => {
+const rollbackOrganizationCreation = async ({ organization, adminUser, client }) => {
     if (adminUser?._id) {
         await Notification.deleteMany({ user: adminUser._id });
         await User.findByIdAndDelete(adminUser._id);
+    }
+
+    if (client?._id) {
+        await Location.deleteMany({ clientId: client._id });
+        await Client.findByIdAndDelete(client._id);
     }
 
     if (organization?._id) {
@@ -184,6 +192,7 @@ const createOrganizationWithRetry = async (payload, maxAttempts = 3) => {
 exports.createOrganization = async (req, res) => {
     let organization;
     let adminUser;
+    let client;
 
     try {
         const validationErrors = validateOrganizationInput(req.body);
@@ -208,19 +217,9 @@ exports.createOrganization = async (req, res) => {
 
         const normalizedEmail = String(contactEmail).trim().toLowerCase();
 
-        // TEMPORARY DEBUG — remove once issue is confirmed fixed
-        console.log("Checking for existing user with email:", normalizedEmail);
-
         const existingUser = await User.findOne({ email: normalizedEmail });
 
         if (existingUser) {
-            // TEMPORARY DEBUG — remove once issue is confirmed fixed
-            console.log("Found conflicting user:", {
-                id: existingUser._id,
-                email: existingUser.email,
-                createdAt: existingUser.createdAt
-            });
-
             cleanupUploadedLogo(req.file);
             return res.status(400).json({
                 success: false,
@@ -233,17 +232,31 @@ exports.createOrganization = async (req, res) => {
         const { firstName, lastName } = splitContactName(primaryContactPersonName);
         const passwordHash = await bcrypt.hash(String(password).trim(), 10);
 
-        organization = await createOrganizationWithRetry({
+        const organizationPayload = {
             organizationName: String(organizationName).trim(),
             primaryContactPersonName: String(primaryContactPersonName).trim(),
             contactEmail: normalizedEmail,
             contactPhoneNumber: String(contactPhoneNumber).trim(),
             organizationAddress: String(organizationAddress).trim(),
-            status: "PENDING",
-            ...(logo && { logo })
-        });
+            status: "PENDING"
+        };
+
+        if (logo) {
+            organizationPayload.logo = logo;
+        }
+
+        organization = await createOrganizationWithRetry(organizationPayload);
 
         try {
+            client = await Client.create({
+                tenantId: organization._id,
+                name: String(organizationName).trim(),
+                description: String(organizationAddress).trim()
+            });
+
+            organization.clientId = client._id;
+            await organization.save();
+
             adminUser = await User.create({
                 tenantId: organization._id,
                 firstName,
@@ -269,10 +282,7 @@ exports.createOrganization = async (req, res) => {
                 }
             });
         } catch (innerError) {
-            // Ensure partial writes (org created but user/notification failed)
-            // are always rolled back, even if the outer catch's rollback
-            // call has issues.
-            await rollbackOrganizationCreation({ organization, adminUser });
+            await rollbackOrganizationCreation({ organization, adminUser, client });
             throw innerError;
         }
 
@@ -293,18 +303,9 @@ exports.createOrganization = async (req, res) => {
 
         // Only attempt rollback here if it wasn't already handled above
         if (organization && !organization.adminUserId) {
-            await rollbackOrganizationCreation({ organization, adminUser });
+            await rollbackOrganizationCreation({ organization, adminUser, client });
         }
 
-        // if (error.code === 11000) {
-        //     return res.status(400).json({
-        //         success: false,
-        //         message: "An account already exists with this contact email",
-        //         data: {
-        //             error: error.message
-        //         }
-        //     });
-        // }
         if (error.code === 11000) {
             const duplicateField = error.keyValue ? Object.keys(error.keyValue)[0] : "unknown field";
             const duplicateValue = error.keyValue ? error.keyValue[duplicateField] : "unknown value";
@@ -313,29 +314,43 @@ exports.createOrganization = async (req, res) => {
 
             const isDev = process.env.NODE_ENV !== "production";
 
-            return res.status(400).json({
+            const duplicateResponse = {
                 success: false,
                 message: `An account or organization already exists with this ${duplicateField}`,
-                data: {},
-                ...(isDev && { debug: { duplicateField, duplicateValue } })
-            });
+                data: {}
+            };
+
+            if (isDev) {
+                duplicateResponse.debug = { duplicateField, duplicateValue };
+            }
+
+            return res.status(400).json(duplicateResponse);
         }
 
         const isDev = process.env.NODE_ENV !== "production";
 
-        return res.status(500).json({
+        const errorResponse = {
             success: false,
             message: "Failed to create organization",
-            data: {},
-            ...(isDev && {
-                debug: {
-                    name: error.name,
-                    message: error.message,
-                    ...(error.errors && { validationErrors: error.errors }),
-                    ...(error.keyValue && { duplicateKey: error.keyValue })
-                }
-            })
-        });
+            data: {}
+        };
+
+        if (isDev) {
+            errorResponse.debug = {
+                name: error.name,
+                message: error.message
+            };
+
+            if (error.errors) {
+                errorResponse.debug.validationErrors = error.errors;
+            }
+
+            if (error.keyValue) {
+                errorResponse.debug.duplicateKey = error.keyValue;
+            }
+        }
+
+        return res.status(500).json(errorResponse);
     }
 };
 
@@ -459,6 +474,22 @@ exports.updateOrganization = async (req, res) => {
                 message: "Organization not found",
                 data: {}
             });
+        }
+
+        if (organization.clientId) {
+            const clientUpdate = {};
+
+            if (updateData.organizationName) {
+                clientUpdate.name = updateData.organizationName;
+            }
+
+            if (updateData.organizationAddress) {
+                clientUpdate.description = updateData.organizationAddress;
+            }
+
+            if (Object.keys(clientUpdate).length > 0) {
+                await Client.findByIdAndUpdate(organization.clientId, clientUpdate);
+            }
         }
 
         return res.json({
@@ -614,6 +645,11 @@ exports.deleteOrganization = async (req, res) => {
             await User.findByIdAndDelete(organization.adminUserId);
         }
 
+        if (organization.clientId) {
+            await Location.deleteMany({ clientId: organization.clientId });
+            await Client.findByIdAndDelete(organization.clientId);
+        }
+
         await Organization.findByIdAndDelete(req.params.id);
 
         return res.json({
@@ -638,9 +674,7 @@ exports.deleteOrganization = async (req, res) => {
 
 exports.getMyOrganizationStatus = async (req, res) => {
     try {
-        const organization = await Organization.findById(req.user.tenantId).select(
-            "organizationName organizationId status logo createdAt updatedAt"
-        );
+        const organization = await ensureTenantOrganization(req.user.tenantId);
 
         if (!organization) {
             return res.status(404).json({

@@ -171,13 +171,19 @@ const inspectionBelongsToTenant = async (inspection, tenantId) => {
 
 const clientBelongsToTenant = async (clientId, tenantId) => {
     const Client = require("../model/client.model");
+    const normalizedTenantId = normalizeTenantId(tenantId);
+
+    if (!normalizedTenantId) {
+        return false;
+    }
+
     const client = await Client.findById(clientId);
 
     if (!client || !client.tenantId) {
         return false;
     }
 
-    return client.tenantId.toString() === normalizeTenantId(tenantId).toString();
+    return client.tenantId.toString() === normalizedTenantId.toString();
 };
 
 const buildCertificationScopeFilter = async (tenantId) => {

@@ -2,20 +2,8 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../model/user.model");
 const { buildProfilePicPayload, deleteFile } = require("../utils/fileHandler");
+const { formatUserWithLocation } = require("../utils/userLocation");
  // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const formatUser = (user) => ({
-    id: user._id,
-    email: user.email,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    fullName: `${user.firstName} ${user.lastName}`,
-    role: user.role,
-    status: user.status,
-    tenantId: user.tenantId,
-    location: user.location || null,
-    hasDevices: Array.isArray(user.fcmTokens) && user.fcmTokens.length > 0,
-});
 
 const signToken = (user) =>
     jwt.sign(
@@ -94,6 +82,7 @@ exports.login = async (req, res) => {
         }
 
         const token = signToken(user);
+        const formattedUser = await formatUserWithLocation(user);
 
         res.json({
             success: true,
@@ -101,7 +90,7 @@ exports.login = async (req, res) => {
             data: {
                 token,
                 role: user.role,
-                user: formatUser(user),
+                user: formattedUser,
             }
         });
     } catch (error) {
