@@ -4,6 +4,10 @@ const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const User = require("../model/user.model");
 const { logLogin, getClientIp, getUserAgent } = require("../utils/auditLog");
+const {
+    ensureTenantOrganization,
+    formatOrganizationResponse
+} = require("../utils/ensureTenantOrganization");
  
 
 exports.adminRegister = async (req, res) => {
@@ -129,6 +133,10 @@ exports.adminLogin = async (req, res) => {
         success: true,
         req
     });
+
+    const organization = await ensureTenantOrganization(user.tenantId);
+    const formattedOrganization = formatOrganizationResponse(organization);
+
     res.json({
         accessToken,
         refreshToken,
@@ -136,8 +144,10 @@ exports.adminLogin = async (req, res) => {
             id: user._id,
             email: user.email,
             name: user.name || user.email.split('@')[0],
-            role: user.role
-        }
+            role: user.role,
+            tenantId: user.tenantId
+        },
+        organization: formattedOrganization
     });
 };
 

@@ -3,6 +3,10 @@ const bcrypt = require("bcryptjs");
 const User = require("../model/user.model");
 const { buildProfilePicPayload, deleteFile } = require("../utils/fileHandler");
 const { formatUserWithLocation } = require("../utils/userLocation");
+const {
+    ensureTenantOrganization,
+    formatOrganizationResponse
+} = require("../utils/ensureTenantOrganization");
  // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const signToken = (user) =>
@@ -83,6 +87,8 @@ exports.login = async (req, res) => {
 
         const token = signToken(user);
         const formattedUser = await formatUserWithLocation(user);
+        const organization = await ensureTenantOrganization(user.tenantId);
+        const formattedOrganization = formatOrganizationResponse(organization);
 
         res.json({
             success: true,
@@ -91,6 +97,7 @@ exports.login = async (req, res) => {
                 token,
                 role: user.role,
                 user: formattedUser,
+                organization: formattedOrganization
             }
         });
     } catch (error) {
