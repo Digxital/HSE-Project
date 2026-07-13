@@ -39,7 +39,7 @@ class OrganizationPageErrorBoundary extends Component<
   }
 }
 
-type OrganizationStatus = 'All' | 'Active' | 'Pending' | 'Suspended';
+type OrganizationStatus = 'All' | 'Active' | 'Pending' | 'Inactive';
 
 interface Organization {
   _id: string;
@@ -123,7 +123,7 @@ export const SuperAdminOrganizationPage: React.FC = () => {
   const allCount = organizations.length;
   const activeCount = organizations.filter(o => o.status === 'ACTIVE').length;
   const pendingCount = organizations.filter(o => o.status === 'PENDING').length;
-  const suspendedCount = organizations.filter(o => o.status === 'SUSPENDED' || o.status === 'INACTIVE').length;
+  const inactiveCount = organizations.filter(o => o.status === 'INACTIVE').length;
 
   // Convert tab status to API status
   const getApiStatus = (tabStatus: OrganizationStatus): string | null => {
@@ -132,8 +132,8 @@ export const SuperAdminOrganizationPage: React.FC = () => {
         return 'ACTIVE';
       case 'Pending':
         return 'PENDING';
-      case 'Suspended':
-        return 'SUSPENDED';
+      case 'Inactive':
+        return 'INACTIVE';
       default:
         return null;
     }
@@ -200,9 +200,9 @@ export const SuperAdminOrganizationPage: React.FC = () => {
             
             {/* Tabs */}
             <div className="flex space-x-1 border-b border-gray-200 dark:border-gray-800 overflow-x-auto custom-scrollbar pb-[1px]">
-              {(['All', 'Active', 'Pending', 'Suspended'] as OrganizationStatus[]).map((status) => {
+              {(['All', 'Active', 'Pending', 'Inactive'] as OrganizationStatus[]).map((status) => {
                 const isSelected = selectedStatus === status;
-                const count = status === 'All' ? allCount : status === 'Active' ? activeCount : status === 'Pending' ? pendingCount : suspendedCount;
+                const count = status === 'All' ? allCount : status === 'Active' ? activeCount : status === 'Pending' ? pendingCount : inactiveCount;
                 return (
                   <button
                     key={status}

@@ -24,6 +24,48 @@ interface AuditLogPageProps {
   role?: 'admin' | 'supervisor';
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const findEmailInObject = (obj: Record<string, unknown>): string | null => {
+  const knownKeys = ['email', 'userEmail', 'newUserEmail', 'contactEmail', 'targetEmail'];
+  for (const key of knownKeys) {
+    const val = obj[key];
+    if (typeof val === 'string' && EMAIL_REGEX.test(val)) return val;
+  }
+  // No known key matched — scan every string value for anything email-shaped.
+  for (const val of Object.values(obj)) {
+    if (typeof val === 'string' && EMAIL_REGEX.test(val)) return val;
+  }
+  return null;
+};
+
+// Details often arrive as a raw object (e.g. the created user's own submitted
+// fields) rather than a written sentence. Label it with the action we already
+// know for certain, plus an identifying email/name pulled from the object
+// itself — never a guessed actor like "Admin created", which we can't verify.
+const formatDetails = (log: any) => {
+  const rawDetails = log.details || log.description;
+
+  if (typeof rawDetails === 'string' && rawDetails.trim()) return rawDetails;
+  if (rawDetails === null || rawDetails === undefined || typeof rawDetails !== 'object') return 'None';
+
+  const obj = rawDetails as Record<string, unknown>;
+  const textField = obj.message || obj.description || obj.details || obj.summary || obj.reason || obj.text;
+  if (typeof textField === 'string') return textField;
+
+  const rawAction = log.action || log.actionType;
+  const actionLabel = typeof rawAction === 'string' ? rawAction.trim() : '';
+  const email = findEmailInObject(obj);
+  if (email) return actionLabel ? `${actionLabel}: ${email}` : email;
+
+  const fullName = [obj.firstName, obj.lastName]
+    .filter((part) => typeof part === 'string' && (part as string).trim())
+    .join(' ');
+  if (fullName) return actionLabel ? `${actionLabel}: ${fullName}` : fullName;
+
+  return 'None';
+};
+
 export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) => {
   const navigate = useNavigate();
   const userData = getUserData();
@@ -48,8 +90,20 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
   const normalizeText = (value: unknown, fallback = '') => {
     if (typeof value === 'string') return value;
     if (value === null || value === undefined) return fallback;
+
+    if (typeof value === 'object') {
+      // Backends sometimes send a structured object (e.g. { message, oldValue, newValue })
+      // instead of a plain string — String(obj) would just print "[object Object]". If none
+      // of the known text fields are present, there's no reliable way to summarize an
+      // arbitrary object into a sentence, so show "None" rather than raw JSON or guessed text.
+      const obj = value as Record<string, unknown>;
+      const textField = obj.message || obj.description || obj.details || obj.summary || obj.reason || obj.text;
+      return typeof textField === 'string' ? textField : 'None';
+    }
+
     return String(value);
   };
+
   const getUserDisplay = (log: any) => {
     const emailCandidate =
       log.userEmail ||
@@ -159,7 +213,7 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ role = 'admin' }) =>
           resourceType: normalizeText(log.resourceType, 'Unknown'),
           resourceId: normalizeText(log.resourceId, ''),
           resourceName: normalizeText(log.resourceName || log.description, ''),
-          details: normalizeText(log.details || log.description, ''),
+          details: formatDetails(log),
           ipAddress: normalizeText(log.ipAddress, 'N/A'),
           status: (log.status as AuditLog['status']) || 'SUCCESS',
         }));

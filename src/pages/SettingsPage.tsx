@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { getUserData } from '@/utils/authStorage';
+import { getNotificationPreferences, setNotificationPreferences } from '@/utils/notificationPreferences';
 
 interface SettingsPageProps {
   role?: 'admin' | 'supervisor';
@@ -15,13 +16,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ role = 'admin' }) =>
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Notification toggles
-  const [notifications, setNotifications] = useState({
-    reportNotifications: false,
-    actionUpdates: false,
-    overdueAlerts: false,
-    weeklySummary: false,
-  });
+  // Notification toggles — display preference only, persisted locally and
+  // applied by NotificationContext to filter what shows in the bell/list.
+  const [notifications, setNotifications] = useState(getNotificationPreferences);
 
   // Check if mobile on mount and window resize
   useEffect(() => {
@@ -44,10 +41,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ role = 'admin' }) =>
   };
 
   const handleToggle = (key: keyof typeof notifications) => {
-    setNotifications(prev => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+    setNotifications(prev => {
+      const next = { ...prev, [key]: !prev[key] };
+      setNotificationPreferences(next);
+      return next;
+    });
   };
 
   const handleLogout = () => {
@@ -156,23 +154,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ role = 'admin' }) =>
                   />
                 </div>
 
-                {/* Receive overdue alerts */}
-                <div className="flex items-center justify-between px-4 py-3.5 bg-white dark:bg-[#121212] rounded-lg border border-gray-100 dark:border-gray-700">
-                  <span className="text-sm text-gray-700 dark:text-gray-300">Receive overdue alerts</span>
-                  <ToggleSwitch 
-                    enabled={notifications.overdueAlerts} 
-                    onToggle={() => handleToggle('overdueAlerts')} 
-                  />
-                </div>
-
-                {/* Receive weekly summary */}
-                <div className="flex items-center justify-between px-4 py-3.5 bg-white dark:bg-[#121212] rounded-lg border border-gray-100 dark:border-gray-700">
-                  <span className="text-sm text-gray-700 dark:text-gray-300">Receive weekly summary</span>
-                  <ToggleSwitch 
-                    enabled={notifications.weeklySummary} 
-                    onToggle={() => handleToggle('weeklySummary')} 
-                  />
-                </div>
               </div>
             </div>
 

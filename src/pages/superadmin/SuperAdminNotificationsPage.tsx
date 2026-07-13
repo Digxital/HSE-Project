@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { SuperAdminSidebar } from '@/components/layout/SuperAdminSidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { DemoRequestDetailModal } from '@/components/superadmin/DemoRequestDetailModal';
@@ -9,11 +10,13 @@ import type { SuperAdminNotification } from '@/services/superAdminNotificationSe
 
 export const SuperAdminNotificationsPage: React.FC = () => {
   const { notifications, loading, markAsRead } = useSuperAdminNotifications();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<DemoRequest | null>(null);
   const [loadingDetailId, setLoadingDetailId] = useState<string | null>(null);
+  const autoOpenedRef = useRef(false);
 
   const userData = getSuperAdminUserData();
   const displayName = userData?.name || 'Super Admin';
@@ -44,6 +47,25 @@ export const SuperAdminNotificationsPage: React.FC = () => {
       setLoadingDetailId(null);
     }
   };
+
+  // Arriving here from the bell dropdown (?notificationId=...) should open that
+  // specific notification's modal automatically, not just land on the plain list.
+  useEffect(() => {
+    const targetId = searchParams.get('notificationId');
+    if (!targetId || autoOpenedRef.current || loading) return;
+
+    const target = notifications.find((n) => n.id === targetId);
+    if (!target) return;
+
+    autoOpenedRef.current = true;
+    handleOpenNotification(target);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete('notificationId');
+      return next;
+    }, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notifications, loading, searchParams]);
 
   return (
     <div className="min-h-screen bg-[#fffaf5] dark:bg-[#0D0D0D] transition-colors">

@@ -142,8 +142,13 @@ const RootRedirect = () => {
   return <LandingPage />;
 };
 
+// The branded splash (logo + 2.5s delay) makes sense for the authenticated
+// app shell, but it's the wrong first impression for a public marketing page —
+// visitors should see the landing page immediately, not a loading screen.
+const isLandingPage = window.location.pathname === '/';
+
 function App() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!isLandingPage);
 
   useEffect(() => {
     AOS.init({
@@ -152,6 +157,8 @@ function App() {
       once: true,
       mirror: false,
     });
+
+    if (isLandingPage) return;
 
     // Hide loading screen after 2.5 seconds
     const timer = setTimeout(() => {

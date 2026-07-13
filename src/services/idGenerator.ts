@@ -12,7 +12,7 @@
  */
 
 interface ReportData {
-  _id: string;
+  _id?: string;
   recordType: 'hazard' | 'incident';
   displayId?: string; // Will be added by backend in future
 }
@@ -23,6 +23,12 @@ export function generateDisplayId(report: ReportData): string {
   // TEMPORARY: Use backend-provided displayId if available (for future)
   if (report.displayId) {
     return report.displayId;
+  }
+
+  // A record with no usable id at all shouldn't crash the whole list —
+  // fall back to a placeholder rather than throwing on `.slice()`.
+  if (!report._id) {
+    return `${prefix}-????`;
   }
 
   // TEMPORARY: Extract more digits from MongoDB ObjectId for better uniqueness

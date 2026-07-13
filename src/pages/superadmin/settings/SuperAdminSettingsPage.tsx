@@ -4,6 +4,10 @@ import { SuperAdminSidebar } from '@/components/layout/SuperAdminSidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { useToast } from '@/hooks/useToast';
 import { getSuperAdminUserData, getAuthToken } from '@/utils/authStorage';
+import {
+  getSuperAdminNotificationPreferences,
+  setSuperAdminNotificationPreferences,
+} from '@/utils/superAdminNotificationPreferences';
 
 interface SettingsData {
   currentPassword: string;
@@ -11,8 +15,6 @@ interface SettingsData {
   confirmPassword: string;
   receiveOrgNotifications: boolean;
   receiveAdminUpdates: boolean;
-  receiveSystemAlerts: boolean;
-  receiveWeeklySummary: boolean;
 }
 
 const SuperAdminSettingsPage: React.FC = () => {
@@ -23,10 +25,7 @@ const SuperAdminSettingsPage: React.FC = () => {
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
-    receiveOrgNotifications: true,
-    receiveAdminUpdates: true,
-    receiveSystemAlerts: false,
-    receiveWeeklySummary: true,
+    ...getSuperAdminNotificationPreferences(),
   });
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -107,12 +106,13 @@ const SuperAdminSettingsPage: React.FC = () => {
   };
 
   const handleSaveNotifications = () => {
-    // TODO: API call to save notification preferences
-    console.log('Notification preferences saved:', {
+    // Display preference only — persisted locally and applied by
+    // useSuperAdminNotifications to filter what shows in the bell/list.
+    // receiveAdminUpdates has no matching notification type yet, so it's
+    // saved but inert until the backend introduces one.
+    setSuperAdminNotificationPreferences({
       receiveOrgNotifications: settings.receiveOrgNotifications,
       receiveAdminUpdates: settings.receiveAdminUpdates,
-      receiveSystemAlerts: settings.receiveSystemAlerts,
-      receiveWeeklySummary: settings.receiveWeeklySummary,
     });
 
     showToast({
@@ -289,7 +289,7 @@ const SuperAdminSettingsPage: React.FC = () => {
               </div>
 
               {/* Admin Updates */}
-              <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+              <div className="flex items-center justify-between py-3 last:border-b-0">
                 <span className="text-sm text-gray-700 dark:text-gray-300">
                   Receive admin updates
                 </span>
@@ -306,52 +306,6 @@ const SuperAdminSettingsPage: React.FC = () => {
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                       settings.receiveAdminUpdates ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {/* System Alerts */}
-              <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-                <span className="text-sm text-gray-700 dark:text-gray-300">
-                  Receive system alerts
-                </span>
-                <button
-                  onClick={() =>
-                    handleInputChange('receiveSystemAlerts', !settings.receiveSystemAlerts)
-                  }
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    settings.receiveSystemAlerts
-                      ? 'bg-[#C2410C]'
-                      : 'bg-gray-300 dark:bg-gray-600'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      settings.receiveSystemAlerts ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {/* Weekly Summary */}
-              <div className="flex items-center justify-between py-3 last:border-b-0">
-                <span className="text-sm text-gray-700 dark:text-gray-300">
-                  Receive weekly summary
-                </span>
-                <button
-                  onClick={() =>
-                    handleInputChange('receiveWeeklySummary', !settings.receiveWeeklySummary)
-                  }
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    settings.receiveWeeklySummary
-                      ? 'bg-[#C2410C]'
-                      : 'bg-gray-300 dark:bg-gray-600'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      settings.receiveWeeklySummary ? 'translate-x-6' : 'translate-x-1'
                     }`}
                   />
                 </button>

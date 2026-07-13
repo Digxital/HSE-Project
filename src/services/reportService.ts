@@ -2,15 +2,25 @@ import api, { apiBaseUrl } from '@/lib/axios';
 import type { Report, Action, Comment } from '@/services/ReportsContext';
 import { generateDisplayId } from '@/services/idGenerator';
 
-// Backend API response types
+// Backend API response types.
+// The backend recently switched report/location identifiers from Mongo-style
+// `_id` nested objects to plain `id` strings + separate populated objects
+// (e.g. `location.clientId` is now a raw id string, with a new `location.client`
+// object carrying the name). Types below accept both shapes since not every
+// nested object's new shape has been confirmed yet — only report-level id and
+// location.client/site are confirmed from the updated API docs.
 interface ApiLocation {
-  clientId?: { _id: string; name: string };
-  siteId?: { _id: string; name: string };
+  clientId?: string | { _id?: string; id?: string; name: string };
+  client?: { _id?: string; id?: string; name: string; description?: string | null };
+  siteId?: string | { _id?: string; id?: string; name: string };
+  site?: { _id?: string; id?: string; name: string };
   specificArea?: string;
 }
 
 interface ApiReport {
-  _id: string;
+  id?: string;
+  reportId?: string;
+  _id?: string;
   recordType?: 'hazard' | 'incident';
   recordCategory?: 'hazard' | 'incident';
   title: string;
@@ -26,7 +36,7 @@ interface ApiReport {
   createdAt: string;
   location: ApiLocation;
   reportedBy: {
-    userId: { _id: string; email: string };
+    userId: { _id?: string; id?: string; email: string };
     role: string;
   };
   displayId?: string; // Will be provided by backend in future
@@ -37,7 +47,8 @@ interface ApiReport {
 }
 
 interface ApiAction {
-  _id: string;
+  id?: string;
+  _id?: string;
   actionTitle: string;
   // Backend may send a string OR a populated user object
   assignedTo: string | { _id?: string; firstName?: string; lastName?: string; email?: string; role?: string; status?: string; name?: string };
@@ -54,7 +65,8 @@ interface ApiAction {
 }
 
 interface ApiComment {
-  _id: string;
+  id?: string;
+  _id?: string;
   author?: string;
   role?: string;
   text: string;
@@ -69,6 +81,7 @@ interface ApiComment {
 }
 
 interface ApiInlineComment {
+  id?: string;
   _id?: string;
   text: string;
   commentedBy?: {
@@ -83,7 +96,11 @@ interface ApiInlineComment {
 
 function formatLocation(location: ApiLocation): string {
   const parts: string[] = [];
-  if (location.siteId?.name) parts.push(location.siteId.name);
+  // Current API: location.site.name (siteId is now a raw id string).
+  // Older shape: location.siteId was itself a populated { name } object.
+  const siteName = location.site?.name
+    || (typeof location.siteId === 'object' ? location.siteId?.name : undefined);
+  if (siteName) parts.push(siteName);
   if (location.specificArea) parts.push(location.specificArea);
   return parts.join(' - ') || 'Unknown Location';
 }
@@ -146,16 +163,19 @@ function mapApiReportToReport(apiReport: ApiReport): Report {
   const recordType = apiReport.recordType || apiReport.recordCategory || 'incident';
   const type = recordType === 'hazard' ? 'Hazard' : 'Incident';
 
+  // Current API sends `id` (and a duplicate `reportId`); older shape used `_id`.
+  const reportId = apiReport.id || apiReport.reportId || apiReport._id || '';
+
   // Generate display ID using the idGenerator service
   // When backend provides displayId field, this will automatically use it
   const displayId = generateDisplayId({
-    _id: apiReport._id,
+    _id: reportId,
     recordType,
     displayId: apiReport.displayId,
   });
 
   const actions: Action[] = (apiReport.actions || []).map((a, i) => ({
-    id: a._id || `ACT-${String(i + 1).padStart(3, '0')}`,
+    id: a.id || a._id || `ACT-${String(i + 1).padStart(3, '0')}`,
     action: a.actionTitle,
     assignedTo: resolveAssignedTo(a.assignedTo),
     dueDate: a.dueDate,
@@ -216,7 +236,7 @@ function mapApiReportToReport(apiReport: ApiReport): Report {
       : 'Admin';
     const rawTime = c.createdAt || c.commentedAt;
     return {
-      id: c._id || `CMT-${String(i + 1).padStart(3, '0')}`,
+      id: c.id || c._id || `CMT-${String(i + 1).padStart(3, '0')}`,
       author,
       role,
       text: c.text,
@@ -237,7 +257,7 @@ function mapApiReportToReport(apiReport: ApiReport): Report {
       : roleFromBackend || roleFallback;
     const rawTime = inline.commentedAt || apiReport.createdAt;
     return {
-      id: inline._id || `CMT-INLINE-${roleFallback}-${index}`,
+      id: inline.id || inline._id || `CMT-INLINE-${roleFallback}-${index}`,
       author,
       role,
       text: inline.text,
@@ -275,7 +295,7 @@ function mapApiReportToReport(apiReport: ApiReport): Report {
 
   return {
     id: displayId,
-    _id: apiReport._id,
+    _id: reportId,
     type,
     category: apiReport.title,
     description: apiReport.description,

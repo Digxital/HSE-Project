@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSuperAdminNotifications } from '@/hooks/useSuperAdminNotifications';
+import type { SuperAdminNotification } from '@/services/superAdminNotificationService';
 
 const PREVIEW_COUNT = 5;
 
@@ -16,6 +17,13 @@ export const SuperAdminNotificationBell: React.FC = () => {
   const handleSeeAll = () => {
     setIsOpen(false);
     navigate('/superadmin/notifications');
+  };
+
+  // Route to the full notifications page and have it auto-open this specific
+  // notification's detail modal, instead of just landing on the plain list.
+  const handleNotificationClick = (notification: SuperAdminNotification) => {
+    setIsOpen(false);
+    navigate(`/superadmin/notifications?notificationId=${encodeURIComponent(notification.id)}`);
   };
 
   const previewNotifications = notifications.slice(0, PREVIEW_COUNT);
@@ -61,7 +69,8 @@ export const SuperAdminNotificationBell: React.FC = () => {
                 previewNotifications.map((notification) => (
                   <div
                     key={notification.id}
-                    className={`p-3 rounded-lg border border-gray-100 dark:border-gray-800 shadow-sm ${
+                    onClick={() => handleNotificationClick(notification)}
+                    className={`p-3 rounded-lg border border-gray-100 dark:border-gray-800 shadow-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${
                       !notification.read ? 'bg-[#FFF4E64D] dark:bg-[#200500]/50' : 'bg-white dark:bg-[#111111]'
                     }`}
                   >
