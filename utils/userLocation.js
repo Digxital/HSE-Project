@@ -1,4 +1,19 @@
 const Client = require("../model/client.model");
+const mongoose = require("mongoose");
+
+const isValidObjectId = (value) => {
+    if (value === undefined || value === null || String(value).trim() === "") {
+        return false;
+    }
+
+    const normalized = String(value).trim();
+    return mongoose.Types.ObjectId.isValid(normalized)
+        && String(new mongoose.Types.ObjectId(normalized)) === normalized;
+};
+
+const normalizeLocationId = (locationId) => (
+    isValidObjectId(locationId) ? String(locationId).trim() : null
+);
 
 const buildLocationFromClient = (locationId, client) => {
     if (!locationId || String(locationId).trim() === "") {
@@ -21,20 +36,22 @@ const buildLocationFromClient = (locationId, client) => {
 };
 
 const buildUserLocationResponse = async (locationId) => {
-    if (!locationId || String(locationId).trim() === "") {
+    const normalizedLocationId = normalizeLocationId(locationId);
+
+    if (!normalizedLocationId) {
         return null;
     }
 
-    const client = await Client.findById(locationId).select("_id name description");
-    return buildLocationFromClient(locationId, client);
+    const client = await Client.findById(normalizedLocationId).select("_id name description");
+    return buildLocationFromClient(normalizedLocationId, client);
 };
 
 const enrichUserWithLocation = (user, clientMap = new Map()) => {
     const userObj = user.toObject ? user.toObject() : { ...user };
     delete userObj.passwordHash;
 
-    const locationId = userObj.location || null;
-    const client = locationId ? clientMap.get(String(locationId)) : null;
+    const locationId = normalizeLocationId(userObj.location);
+    const client = locationId ? clientMap.get(locationId) : null;
     const { location: _storedLocation, ...userWithoutLocation } = userObj;
 
     return {
@@ -48,9 +65,8 @@ const formatUsersWithLocation = async (users) => {
     const locationIds = [
         ...new Set(
             users
-                .map((user) => user.location)
-                .filter((locationId) => locationId && String(locationId).trim() !== "")
-                .map((locationId) => String(locationId))
+                .map((user) => normalizeLocationId(user.location))
+                .filter(Boolean)
         )
     ];
 
@@ -76,7 +92,7 @@ const formatUserWithLocation = async (user) => {
         role: userObj.role,
         status: userObj.status,
         tenantId: userObj.tenantId,
-        locationId: userObj.location || null,
+        locationId: normalizeLocationId(userObj.location),
         location,
         profilePic: userObj.profilePic || null,
         hasDevices: Array.isArray(userObj.fcmTokens) && userObj.fcmTokens.length > 0
