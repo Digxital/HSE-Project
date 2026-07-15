@@ -24,11 +24,19 @@ if (!hasLoggedApiInfo) {
   if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Cache-bust GET requests: the browser (or an intermediary proxy/CDN) can
+    // serve a stale 304-cached body for a repeatedly-hit URL, which hides data
+    // created after the last cached fetch (e.g. newly submitted reports/users
+    // silently missing from an otherwise-working list). A unique query param
+    // guarantees a distinct URL per request so the cache is never reused.
+    if (config.method === 'get') {
+      config.params = { ...config.params, _t: Date.now() };
+    }
     return config;
   },
   (error) => {
     return Promise.reject(error);
-  }); 
+  });
 
 // Response interceptor for error handling
 api.interceptors.response.use(

@@ -132,6 +132,7 @@ export const UserManagementPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
+  const [usersError, setUsersError] = useState<string | null>(null);
   const [microsoftUsers, setMicrosoftUsers] = useState<MicrosoftUser[]>([]);
   const [isMobile, setIsMobile] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -176,7 +177,8 @@ export const UserManagementPage: React.FC = () => {
 
  const fetchUsers = async () => {
     setIsLoading(true);
-    try { 
+    setUsersError(null);
+    try {
       const data = await userService.getUsers();
       console.log('📊 Raw user data:', data);
       
@@ -222,10 +224,13 @@ export const UserManagementPage: React.FC = () => {
     } catch (error) {
       console.error('❌ Error fetching users:', error);
       setUsers([]);
-      showToast({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Failed to fetch users',
-      });
+      const backendMessage =
+        error && typeof error === 'object' && 'response' in error
+          ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      const message = backendMessage || (error instanceof Error ? error.message : 'Failed to load users');
+      setUsersError(message);
+      showToast({ type: 'error', message });
     } finally {
       setIsLoading(false);
     }
@@ -810,8 +815,21 @@ export const UserManagementPage: React.FC = () => {
                       <tbody>
                         {currentPlatformUsers.length === 0 ? (
                           <tr>
-                            <td colSpan={7} className="text-center py-8 text-gray-500">
-                              No users found
+                            <td colSpan={7} className="text-center py-8">
+                              {usersError ? (
+                                <div className="flex flex-col items-center gap-2">
+                                  <p className="text-red-500 text-sm font-medium">Failed to load users</p>
+                                  <p className="text-gray-500 text-xs">{usersError}</p>
+                                  <button
+                                    onClick={() => fetchUsers()}
+                                    className="mt-1 px-4 py-1.5 text-sm font-medium text-[#C2410C] border border-[#C2410C] rounded-lg hover:bg-[#C2410C] hover:text-white transition-colors"
+                                  >
+                                    Try Again
+                                  </button>
+                                </div>
+                              ) : (
+                                <span className="text-gray-500">No users found</span>
+                              )}
                             </td>
                           </tr>
                         ) : (
