@@ -48,6 +48,26 @@ const serializeReportUser = (report, includePrivateFields) => {
     );
 };
 
+const serializeActionComments = (comments, includePrivateFields) => {
+    if (!Array.isArray(comments)) {
+        return [];
+    }
+
+    return comments.map((entry) => {
+        const comment = toPlainObject(entry);
+        const commenter = comment.commentedBy;
+
+        return {
+            id: comment._id?.toString(),
+            text: comment.text,
+            commentedAt: comment.commentedAt,
+            commentedBy: typeof commenter === "object"
+                ? serializeActionUser(commenter, includePrivateFields)
+                : commenter
+        };
+    });
+};
+
 const serializeReportAction = (action, viewer) => {
     const actionObj = toPlainObject(action);
     const includePrivateFields = Boolean(
@@ -64,6 +84,11 @@ const serializeReportAction = (action, viewer) => {
         actionObj.createdBy,
         includePrivateFields
     );
+    actionObj.comments = serializeActionComments(
+        actionObj.comments,
+        includePrivateFields
+    );
+    actionObj.commentsCount = actionObj.comments.length;
 
     if (actionObj.report && typeof actionObj.report === "object") {
         actionObj.report = enrichReportEventTime(toPlainObject(actionObj.report));

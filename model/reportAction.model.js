@@ -1,5 +1,24 @@
 const mongoose = require("mongoose");
 
+const actionCommentSchema = new mongoose.Schema(
+    {
+        text: {
+            type: String,
+            required: true
+        },
+        commentedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true
+        },
+        commentedAt: {
+            type: Date,
+            required: true
+        }
+    },
+    { _id: true }
+);
+
 const reportActionSchema = new mongoose.Schema(
     {
         tenantId: {
@@ -50,7 +69,8 @@ const reportActionSchema = new mongoose.Schema(
         completedAt: {
             type: Date,
             default: null
-        }
+        },
+        comments: [actionCommentSchema]
     },
     { timestamps: true }
 );

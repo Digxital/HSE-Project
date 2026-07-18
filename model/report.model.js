@@ -32,6 +32,10 @@ const commentSchema = new mongoose.Schema(
         commentedAt: {
             type: Date,
             required: true
+        },
+        actionId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "ReportAction"
         }
     },
     { _id: true }

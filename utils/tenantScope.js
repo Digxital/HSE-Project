@@ -173,11 +173,19 @@ const clientBelongsToTenant = async (clientId, tenantId) => {
     const Client = require("../model/client.model");
     const normalizedTenantId = normalizeTenantId(tenantId);
 
-    if (!normalizedTenantId) {
+    if (!normalizedTenantId || !clientId) {
         return false;
     }
 
-    const client = await Client.findById(clientId);
+    const normalizedClientId = String(clientId).trim();
+    if (
+        !mongoose.Types.ObjectId.isValid(normalizedClientId)
+        || String(new mongoose.Types.ObjectId(normalizedClientId)) !== normalizedClientId
+    ) {
+        return false;
+    }
+
+    const client = await Client.findById(normalizedClientId);
 
     if (!client || !client.tenantId) {
         return false;

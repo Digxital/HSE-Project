@@ -70,7 +70,7 @@ const resolveUserLocation = async (tenantId, role, location, { existingLocation 
 
 exports.createUser = async (req, res) => {
     try {
-        const { firstName, lastName, email, password, role, location } = req.body;
+        const { firstName, lastName, email, password, role, location, phoneNumber } = req.body;
 
         const exists = await User.findOne({ email });
         if (exists) {
@@ -119,6 +119,10 @@ exports.createUser = async (req, res) => {
 
         if (resolvedLocation.value !== undefined) {
             userData.location = resolvedLocation.value;
+        }
+
+        if (phoneNumber !== undefined && phoneNumber !== null) {
+            userData.phoneNumber = String(phoneNumber).trim();
         }
 
         const newUser = await User.create(userData);
@@ -211,7 +215,7 @@ exports.getUserById = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
     try {
-        let { firstName, lastName, role, status, location } = req.body;
+        let { firstName, lastName, role, status, location, phoneNumber } = req.body;
 
         if (role) {
             role = role.toUpperCase();
@@ -256,6 +260,8 @@ exports.updateUser = async (req, res) => {
         if (lastName !== undefined) updateData.lastName = lastName;
         if (role !== undefined) updateData.role = role;
         if (status !== undefined) updateData.status = status;
+
+        if (phoneNumber !== undefined) updateData.phoneNumber = String(phoneNumber).trim();
 
         const effectiveRole = role !== undefined ? role : currentUser.role;
         const resolvedLocation = await resolveUserLocation(
@@ -348,6 +354,7 @@ exports.updateUser = async (req, res) => {
                 role: currentUser.role,
                 status: currentUser.status,
                 location: currentUser.location,
+                phoneNumber: currentUser.phoneNumber,
                 profilePic: currentUser.profilePic
             },
             after: {
@@ -356,6 +363,7 @@ exports.updateUser = async (req, res) => {
                 role: user.role,
                 status: user.status,
                 location: user.location,
+                phoneNumber: user.phoneNumber,
                 profilePic: user.profilePic
             },
             req

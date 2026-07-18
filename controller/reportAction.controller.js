@@ -11,6 +11,7 @@ const {
     resolveActionNotificationType,
     notifyUsers
 } = require("../utils/notificationHelpers");
+const { notifyUser } = require("../utils/notify");
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -35,7 +36,8 @@ const actionPopulate = [
         ]
     },
     { path: "assignedTo", select: "firstName lastName email role status" },
-    { path: "createdBy", select: "firstName lastName email role status" }
+    { path: "createdBy", select: "firstName lastName email role status" },
+    { path: "comments.commentedBy", select: "firstName lastName email role status" }
 ];
 
 // ─── Private Helpers ──────────────────────────────────────────────────────────
@@ -70,16 +72,16 @@ const populateAction = (action) =>
 
 const syncReportStatus = async (reportId) => {
     const actions = await ReportAction.find({ report: reportId }).select("status");
-    if (!actions.length) return;
+    if (!actions.length) {
+        return;
+    }
 
-    let status = "action_required";
+    let status = "in_progress";
 
-    if (actions.every((a) => a.status === "completed")) {
+    if (actions.every((action) => action.status === "completed")) {
         status = "completed";
-    } else if (actions.some((a) => a.status === "over_due")) {
+    } else if (actions.some((action) => action.status === "over_due")) {
         status = "over_due";
-    } else if (actions.some((a) => a.status === "in_progress")) {
-        status = "in_progress";
     }
 
     await Report.findByIdAndUpdate(reportId, { status });
@@ -88,6 +90,44 @@ const syncReportStatus = async (reportId) => {
 const canManageAction = (action, user) =>
     MANAGEMENT_ROLES.includes(user.role) ||
     action.assignedTo.toString() === user.id;
+
+const canCommentOnAction = (action, user, report) => {
+    if (MANAGEMENT_ROLES.includes(user.role)) {
+        return true;
+    }
+
+    if (action.assignedTo.toString() === user.id) {
+        return true;
+    }
+
+    const reportOwnerId = report?.reportedBy?.userId?._id
+        ? report.reportedBy.userId._id.toString()
+        : report?.reportedBy?.userId?.toString();
+
+    return Boolean(reportOwnerId && reportOwnerId === user.id);
+};
+
+const appendReportCommentFromAction = async (report, actionId, commentEntry) => {
+    if (!Array.isArray(report.comments)) {
+        const legacy = report.adminComment;
+        report.comments = legacy
+            ? (Array.isArray(legacy) ? legacy : [legacy])
+            : [];
+    }
+
+    report.comments = report.comments.filter(
+        (entry) => entry && entry.text && entry.commentedBy && entry.commentedAt
+    );
+
+    report.comments.push({
+        text: commentEntry.text,
+        commentedBy: commentEntry.commentedBy,
+        commentedAt: commentEntry.commentedAt,
+        actionId
+    });
+
+    await report.save();
+};
 
 /**
  * Deduplicate userIds and exclude the acting user
@@ -173,6 +213,7 @@ exports.createReportAction = async (req, res) => {
             dueDate: parsedDueDate,
             priority,
             description,
+            status: "in_progress",
             createdBy: req.user.id
         });
 
@@ -582,6 +623,126 @@ exports.reassignAction = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Error reassigning action",
+            error: error.message
+        });
+    }
+};
+
+// ─── ADD ACTION COMMENT ───────────────────────────────────────────────────────
+
+exports.addActionComment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { comment } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid action ID format"
+            });
+        }
+
+        if (!comment || !String(comment).trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Comment is required"
+            });
+        }
+
+        const action = await ReportAction.findOne({
+            _id: id,
+            tenantId: req.user.tenantId
+        });
+
+        if (!action) {
+            return res.status(404).json({
+                success: false,
+                message: "Action not found"
+            });
+        }
+
+        const tenantReport = await findTenantReport(action.report, req.user.tenantId);
+        const report = await Report.findById(action.report);
+
+        if (!report || !tenantReport) {
+            return res.status(404).json({
+                success: false,
+                message: "Report not found"
+            });
+        }
+
+        if (!canCommentOnAction(action, req.user, report)) {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied"
+            });
+        }
+
+        const trimmedComment = String(comment).trim();
+        const commentEntry = {
+            text: trimmedComment,
+            commentedBy: req.user.id,
+            commentedAt: new Date()
+        };
+
+        if (!Array.isArray(action.comments)) {
+            action.comments = [];
+        }
+
+        action.comments.push(commentEntry);
+        await action.save();
+        await appendReportCommentFromAction(report, action._id, commentEntry);
+
+        const commenter = await User.findById(req.user.id)
+            .select("firstName lastName role")
+            .lean();
+        const commenterName = commenter
+            ? `${commenter.firstName} ${commenter.lastName}`
+            : "A user";
+
+        const recipientIds = resolveTargets(
+            [
+                action.assignedTo,
+                action.createdBy,
+                report.reportedBy?.userId
+            ],
+            req.user.id
+        );
+
+        recipientIds.forEach((userId) => {
+            notifyUser({
+                userId,
+                type: "report_commented",
+                title: `Action Comment: ${action.actionTitle}`,
+                description: `${commenterName} commented on action "${action.actionTitle}": "${trimmedComment}"`,
+                data: {
+                    reportId: report._id.toString(),
+                    actionId: action._id.toString(),
+                    comment: trimmedComment
+                }
+            }).catch((err) =>
+                console.error("[ACTION] action comment push failed:", err.message)
+            );
+        });
+
+        const populatedAction = await populateAction(action);
+        const serializedAction = serializeReportAction(populatedAction, req.user);
+        const savedComment = serializedAction.comments[serializedAction.comments.length - 1];
+
+        return res.status(200).json({
+            success: true,
+            message: "Comment added to action",
+            data: {
+                actionId: action._id,
+                comment: savedComment,
+                action: serializedAction
+            }
+        });
+    } catch (error) {
+        console.error("addActionComment error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error adding action comment",
             error: error.message
         });
     }

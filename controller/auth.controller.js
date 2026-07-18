@@ -112,19 +112,20 @@ exports.login = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
     try {
-        const { firstName, lastName, location } = req.body;
+        const { firstName, lastName, location, phoneNumber } = req.body;
         const userId = req.user.id;
         const profilePic = buildProfilePicPayload(req.file);
 
         const hasTextUpdate =
             firstName !== undefined
             || lastName !== undefined
-            || location !== undefined;
+            || location !== undefined
+            || phoneNumber !== undefined;
 
         if (!hasTextUpdate && !profilePic) {
             return res.status(400).json({
                 success: false,
-                message: "At least one of firstName, lastName, location, or profilePic is required",
+                message: "At least one of firstName, lastName, location, phoneNumber, or profilePic is required",
                 data: {}
             });
         }
@@ -162,6 +163,7 @@ exports.updateProfile = async (req, res) => {
         if (firstName !== undefined) updateData.firstName = String(firstName).trim();
         if (lastName !== undefined) updateData.lastName = String(lastName).trim();
         if (location !== undefined) updateData.location = String(location).trim();
+        if (phoneNumber !== undefined) updateData.phoneNumber = String(phoneNumber).trim();
         if (profilePic) updateData.profilePic = profilePic;
 
         const updatedUser = await User.findByIdAndUpdate(
@@ -178,11 +180,13 @@ exports.updateProfile = async (req, res) => {
             });
         }
 
+        const formattedUser = await formatUserWithLocation(updatedUser);
+
         res.json({
             success: true,
             message: "Profile updated successfully",
             data: {
-                user: updatedUser
+                user: formattedUser
             }
         });
     } catch (error) {
@@ -212,11 +216,13 @@ exports.getProfile = async (req, res) => {
             });
         }
 
+        const formattedUser = await formatUserWithLocation(user);
+
         res.json({
             success: true,
             message: "User details retrieved successfully",
             data: {
-                user: user
+                user: formattedUser
             }
         });
     } catch (error) {

@@ -262,6 +262,7 @@ exports.createOrganization = async (req, res) => {
                 firstName,
                 lastName,
                 email: normalizedEmail,
+                phoneNumber: String(contactPhoneNumber).trim(),
                 passwordHash,
                 role: "ADMIN",
                 status: "PENDING"

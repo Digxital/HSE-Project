@@ -76,6 +76,7 @@ const formatComments = (comments) => {
             id: comment._id?.toString(),
             text: comment.text,
             commentedAt: comment.commentedAt,
+            actionId: comment.actionId?.toString() || null,
             commentedBy: commenter
                 ? {
                     id: commenter._id.toString(),

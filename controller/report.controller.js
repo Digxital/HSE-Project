@@ -16,6 +16,7 @@ const {
     getTenantUserIds
 } = require("../utils/tenantScope");
 const { ensureTenantOrganization } = require("../utils/ensureTenantOrganization");
+const { normalizeLocationId } = require("../utils/userLocation");
 const {
     buildReportNotificationData,
     formatReportForResponse,
@@ -64,20 +65,26 @@ const actionUserFields = "firstName lastName email role status";
 
 const resolveReportLocation = async (req, locationInput = {}) => {
     const submittingUser = await User.findById(req.user.id).select("location tenantId");
-    let clientId = locationInput.clientId;
+    let clientId = normalizeLocationId(locationInput.clientId);
 
-    if (!clientId && submittingUser?.location && String(submittingUser.location).trim() !== "") {
-        const userClientId = String(submittingUser.location).trim();
-        const userClientAllowed = await clientBelongsToTenant(userClientId, req.user.tenantId);
+    if (!clientId) {
+        const userClientId = normalizeLocationId(submittingUser?.location);
 
-        if (userClientAllowed) {
-            clientId = userClientId;
+        if (userClientId) {
+            const userClientAllowed = await clientBelongsToTenant(
+                userClientId,
+                req.user.tenantId
+            );
+
+            if (userClientAllowed) {
+                clientId = userClientId;
+            }
         }
     }
 
     if (!clientId) {
         const organization = await ensureTenantOrganization(req.user.tenantId);
-        clientId = organization?.clientId?.toString();
+        clientId = normalizeLocationId(organization?.clientId);
     }
 
     if (!clientId) {

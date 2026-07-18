@@ -94,6 +94,7 @@ const formatUserWithLocation = async (user) => {
         tenantId: userObj.tenantId,
         locationId: normalizeLocationId(userObj.location),
         location,
+        phoneNumber: userObj.phoneNumber || null,
         profilePic: userObj.profilePic || null,
         hasDevices: Array.isArray(userObj.fcmTokens) && userObj.fcmTokens.length > 0
     };
@@ -103,5 +104,7 @@ module.exports = {
     buildUserLocationResponse,
     enrichUserWithLocation,
     formatUsersWithLocation,
-    formatUserWithLocation
+    formatUserWithLocation,
+    isValidObjectId,
+    normalizeLocationId
 };

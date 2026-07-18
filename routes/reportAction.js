@@ -9,7 +9,8 @@ const {
     getReportActions,
     getActionById,
     updateActionStatus,
-    reassignAction
+    reassignAction,
+    addActionComment
 } = require("../controller/reportAction.controller");
 
 const allRoles = ["FIELD_USER", "SUPERVISOR", "HSE_OFFICER", "ADMIN"];
@@ -62,6 +63,13 @@ router.patch(
     auth,
     authorize(["ADMIN"], ["web"]),
     reassignAction
+);
+
+router.patch(
+    "/actions/:id/comment",
+    auth,
+    authorize(allRoles, ["mobile", "web"]),
+    addActionComment
 );
 
 module.exports = router;

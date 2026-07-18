@@ -8,6 +8,7 @@ const {
     ensureTenantOrganization,
     formatOrganizationResponse
 } = require("../utils/ensureTenantOrganization");
+const { formatUserWithLocation } = require("../utils/userLocation");
  
 
 exports.adminRegister = async (req, res) => {
@@ -136,17 +137,12 @@ exports.adminLogin = async (req, res) => {
 
     const organization = await ensureTenantOrganization(user.tenantId);
     const formattedOrganization = formatOrganizationResponse(organization);
+    const formattedUser = await formatUserWithLocation(user);
 
     res.json({
         accessToken,
         refreshToken,
-        user: {
-            id: user._id,
-            email: user.email,
-            name: user.name || user.email.split('@')[0],
-            role: user.role,
-            tenantId: user.tenantId
-        },
+        user: formattedUser,
         organization: formattedOrganization
     });
 };
@@ -230,15 +226,12 @@ exports.adminMicrosoftLogin = async (req, res) => {
         user.refreshToken = refreshToken;
         await user.save();
 
+        const formattedUser = await formatUserWithLocation(user);
+
         return res.json({
             accessToken,
             refreshToken,
-            user: {
-                id: user._id,
-                email: user.email,
-                name: user.name || `${user.firstName} ${user.lastName}`.trim(),
-                role: user.role
-            }
+            user: formattedUser
         });
     } catch (error) {
         console.error("Microsoft admin login error:", error.response?.data || error.message);
