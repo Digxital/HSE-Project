@@ -29,7 +29,6 @@ import AOS from 'aos';
 import { SupervisorLoginPage } from '@/pages/SupervisorLoginPage';
 import { SupervisorActionsPage } from '@/pages/supervisor/SupervisorActionsPage';
 import { SupervisorAnalyticsPage } from '@/pages/supervisor/SupervisorAnalyticsPage';
-import { SupervisorCertificationPage } from '@/pages/supervisor/SupervisorCertificationPage';
 import { SupervisorDashboardPage } from '@/pages/supervisor/SupervisorDashboardPage';
 import { SupervisorProfilePage } from '@/pages/supervisor/SupervisorProfilePage';
 import { SupervisorReportsPage } from '@/pages/supervisor/SupervisorReportsPage';
@@ -125,7 +124,6 @@ const AppRoutes = () => {
       <Route path="/supervisor/actions" element={<SupervisorActionsPage />} />
       <Route path="/supervisor/analytics" element={<SupervisorAnalyticsPage />} />
       <Route path="/supervisor/profile" element={<SupervisorProfilePage />} />
-      <Route path="/supervisor/certification" element={<SupervisorCertificationPage />} />
       <Route path="/supervisor/settings" element={<SupervisorSettingsPage />} />
       <Route path="/supervisor/notifications" element={<NotificationsPage role="supervisor" />} />
 

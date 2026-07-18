@@ -60,9 +60,17 @@ export const SupervisorLoginPage: React.FC = () => {
 
   const handleLoginSuccess = (response: LoginResponse) => {
     setAuthToken(response.data.token, rememberMe);
+
+    // Always ensure name is populated — backend may return firstName/lastName separately
+    const u = response.data.user;
+    const resolvedName =
+      u.name ||
+      [u.firstName, u.lastName].filter(Boolean).join(' ') ||
+      u.email;
     const userData = {
-      ...response.data.user,
+      ...u,
       role: response.data.role,
+      name: resolvedName,
     } as any;
     setUserData(userData, rememberMe);
 
@@ -89,10 +97,21 @@ export const SupervisorLoginPage: React.FC = () => {
       setErrors(fieldErrors);
     }
 
-    setApiError(error.message || 'Authentication failed. Please check your credentials.');
+    // Detect pending-org error and surface a helpful message
+    const msg = error.message || '';
+    const isPending =
+      msg.toLowerCase().includes('pending') ||
+      msg.toLowerCase().includes('not activated') ||
+      msg.toLowerCase().includes('not active');
+
+    const displayMessage = isPending
+      ? 'Your organization account is pending activation by the super admin. Please contact your administrator.'
+      : msg || 'Authentication failed. Please check your credentials.';
+
+    setApiError(displayMessage);
     showToast({
       type: 'error',
-      message: error.message || 'Login failed. Please try again.',
+      message: displayMessage,
     });
   };
 

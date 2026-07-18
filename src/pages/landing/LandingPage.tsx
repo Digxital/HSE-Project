@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -17,6 +18,7 @@ import featureFrame3 from '@/assets/images/Frame-3.png';
 import reportImage from '@/assets/images/Report.png';
 
 export const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [expandedFAQ, setExpandedFAQ] = useState<string | null>('faq-1');
@@ -135,8 +137,14 @@ export const LandingPage: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Desktop Request Demo Button */}
-                <div className="hidden md:block">
+                {/* Desktop Sign In / Request Demo Buttons */}
+                <div className="hidden md:flex items-center gap-3">
+                  <button
+                    onClick={() => navigate('/admin/login')}
+                    className="flex items-center gap-2 px-6 py-2 bg-[#C24438] hover:bg-[#A83309] text-white rounded-lg font-medium transition-colors"
+                  >
+                    Sign In
+                  </button>
                   <button
                     onClick={() => setIsDemoModalOpen(true)}
                     className="flex items-center gap-2 px-6 py-2 bg-[#200500] hover:bg-[#A83309] text-white rounded-lg font-medium transition-colors"
@@ -170,6 +178,15 @@ export const LandingPage: React.FC = () => {
                       {item.label}
                     </button>
                   ))}
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      navigate('/admin/login');
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#C24438] hover:bg-[#A83309] text-white rounded-lg font-medium transition-colors"
+                  >
+                    Sign In
+                  </button>
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);
