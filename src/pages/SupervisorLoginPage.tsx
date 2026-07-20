@@ -94,7 +94,7 @@ export const SupervisorLoginPage: React.FC = () => {
       Object.entries(error.errors).forEach(([field, messages]) => {
         fieldErrors[field] = messages[0];
       });
-      setErrors(fieldErrors);
+        setErrors(fieldErrors);
     }
 
     // Detect pending-org error and surface a helpful message

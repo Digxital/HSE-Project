@@ -96,10 +96,16 @@ interface ApiInlineComment {
 
 function formatLocation(location: ApiLocation): string {
   const parts: string[] = [];
+  // Current API: location.client.name (clientId is now a raw id string).
+  // Older shape: location.clientId was itself a populated { name } object.
+  const clientName = location.client?.name
+    || (typeof location.clientId === 'object' ? location.clientId?.name : undefined);
   // Current API: location.site.name (siteId is now a raw id string).
   // Older shape: location.siteId was itself a populated { name } object.
+  // Site is optional on a report — many reports only have a client, no site.
   const siteName = location.site?.name
     || (typeof location.siteId === 'object' ? location.siteId?.name : undefined);
+  if (clientName) parts.push(clientName);
   if (siteName) parts.push(siteName);
   if (location.specificArea) parts.push(location.specificArea);
   return parts.join(' - ') || 'Unknown Location';
@@ -180,6 +186,9 @@ function mapApiReportToReport(apiReport: ApiReport): Report {
     assignedTo: resolveAssignedTo(a.assignedTo),
     dueDate: a.dueDate,
     status: mapActionStatus(a.status),
+    // Backend has no concept of AI-suggested actions yet — every action has a
+    // human createdBy, same as ones added locally via the Add Action UI.
+    type: 'User-Created',
     priority: a.priority,
     description: a.description,
     createdAt: a.createdAt,
