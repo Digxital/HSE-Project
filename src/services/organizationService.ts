@@ -1,7 +1,6 @@
 import { getAuthToken, getSuperAdminAuthToken } from '@/utils/authStorage';
 import { handleLogout, isSuperAdminTokenValid } from './superAdminAuthService';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+import { apiBaseUrl as API_BASE_URL } from '@/lib/axios';
 
 export interface Organization {
   _id: string;
@@ -11,7 +10,14 @@ export interface Organization {
   contactEmail: string;
   contactPhoneNumber: string;
   organizationAddress: string;
-  status: 'ACTIVE' | 'PENDING' | 'SUSPENDED';
+  status: 'ACTIVE' | 'PENDING' | 'SUSPENDED' | 'INACTIVE';
+  subscriptionPlan: string;
+  dataRetentionPeriod: string;
+  // Backend returns the literal string "Unlimited" for the Enterprise plan, a number otherwise.
+  maximumAllowedUsers: number | string;
+  reportsStorageLimit: number | string;
+  currentUsersCount: number;
+  currentReportsCount: number;
   createdAt: string;
   updatedAt: string;
   logo?: { url: string; filename?: string; originalName?: string; mimetype?: string; size?: number; uploadedAt?: string };
@@ -24,6 +30,8 @@ export interface CreateOrganizationPayload {
   contactPhoneNumber: string;
   organizationAddress: string;
   password: string;
+  subscriptionPlan: string;
+  dataRetentionPeriod: string;
   logo?: File | null;
 }
 
@@ -114,6 +122,8 @@ class OrganizationService {
       formData.append('contactPhoneNumber', normalizedPayload.contactPhoneNumber);
       formData.append('organizationAddress', normalizedPayload.organizationAddress);
       formData.append('password', normalizedPayload.password);
+      formData.append('subscriptionPlan', normalizedPayload.subscriptionPlan);
+      formData.append('dataRetentionPeriod', normalizedPayload.dataRetentionPeriod);
       if (normalizedPayload.logo) {
         formData.append('logo', normalizedPayload.logo);
       }

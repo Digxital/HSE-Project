@@ -45,6 +45,7 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
   const [dataRetentionPeriod, setDataRetentionPeriod] = useState('6 Months');
   const [maximumAllowedUsers, setMaximumAllowedUsers] = useState('');
   const [reportsStorageLimit, setReportsStorageLimit] = useState('');
+  const [subscriptionError, setSubscriptionError] = useState('');
 
   const planUserLimits: Record<string, string> = {
     Free: '10',
@@ -53,9 +54,19 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
     Enterprise: 'Unlimited',
   };
 
+  // Mirrors what the backend actually derives per plan (confirmed against the live API).
+  const planReportsStorageLimits: Record<string, string> = {
+    Free: '20',
+    Basic: '50',
+    Premium: '100',
+    Enterprise: 'Unlimited',
+  };
+
   const handlePlanChange = (plan: string) => {
     setSubscriptionPlan(plan);
     setMaximumAllowedUsers(planUserLimits[plan] ?? '');
+    setReportsStorageLimit(planReportsStorageLimits[plan] ?? '');
+    if (subscriptionError) setSubscriptionError('');
   };
 
   // Branding form state
@@ -112,6 +123,11 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
 
     if (!organizationData) return;
 
+    if (!subscriptionPlan) {
+      setSubscriptionError('Please select a subscription plan');
+      return;
+    }
+
     // Move to branding step
     setSlideDirection('left');
     setCurrentStep('branding');
@@ -136,6 +152,8 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
       contactPhoneNumber: organizationData.contactPhone,
       organizationAddress: organizationData.organizationAddress,
       password: organizationData.password,
+      subscriptionPlan,
+      dataRetentionPeriod,
       logo: uploadedFile,
     };
 
@@ -201,6 +219,7 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
     setDataRetentionPeriod('6 Months');
     setMaximumAllowedUsers('');
     setReportsStorageLimit('');
+    setSubscriptionError('');
     setUploadedFile(null);
     setUploadedFileName('');
     setPrimaryThemeColor('');
@@ -472,6 +491,7 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
                       <option value="Premium">Premium</option>
                       <option value="Enterprise">Enterprise</option>
                     </select>
+                    {subscriptionError && <p className="text-red-500 text-xs mt-1">{subscriptionError}</p>}
                   </div>
 
                   {/* Data Retention Period and Maximum Allowed Users */}
@@ -511,15 +531,11 @@ export const CreateOrganizationFlow: React.FC<CreateOrganizationFlowProps> = ({
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Reports Storage Limit <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
-                      value={reportsStorageLimit}
-                      onChange={(e) => setReportsStorageLimit(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C] focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                      placeholder="Enter phone number"
-                    />
+                    <div className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm">
+                      {reportsStorageLimit || <span className="text-gray-400 dark:text-gray-500">Select a plan first</span>}
+                    </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Maximum reports allowed before storage limits apply
+                      Set automatically based on the selected plan. Maximum reports allowed before storage limits apply.
                     </p>
                   </div>
                 </div>

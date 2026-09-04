@@ -9,6 +9,7 @@ import {
   removeUserData,
   getSuperAdminAuthToken,
 } from '@/utils/authStorage';
+import { apiBaseUrl as baseURL } from '@/lib/axios';
 
 interface LoginPayload {
   email: string;
@@ -34,8 +35,6 @@ interface LoginResponse {
     user: SuperAdminUser;
   };
 }
-
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 class SuperAdminAuthService {
   async login(payload: LoginPayload): Promise<LoginResponse> {

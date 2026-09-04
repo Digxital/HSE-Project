@@ -4,6 +4,7 @@ import { SuperAdminSidebar } from '@/components/layout/SuperAdminSidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { useToast } from '@/hooks/useToast';
 import { getSuperAdminUserData, getAuthToken } from '@/utils/authStorage';
+import { apiBaseUrl } from '@/lib/axios';
 import {
   getSuperAdminNotificationPreferences,
   setSuperAdminNotificationPreferences,
@@ -76,7 +77,7 @@ const SuperAdminSettingsPage: React.FC = () => {
 
     setIsChangingPassword(true);
     try {
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://hse-backend-n8d4.onrender.com';
+      const baseURL = apiBaseUrl;
       const token = getAuthToken();
       const response = await fetch(`${baseURL}/api/superadmin/profile`, {
         method: 'PUT',

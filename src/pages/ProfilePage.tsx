@@ -6,6 +6,7 @@ import { useReports } from '@/services/ReportsContext';
 import { certificationService } from '@/services/certificationService';
 import { userService, type UserResponse } from '@/services/userService';
 import { useToast } from '@/hooks/useToast';
+import { apiBaseUrl } from '@/lib/axios';
 
 interface ProfilePageProps {
   role?: 'admin' | 'supervisor';
@@ -243,7 +244,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ role = 'admin' }) => {
 
   const handleConfirmSave = async () => {
     try {
-      const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://hse-backend-n8d4.onrender.com';
+      const baseURL = apiBaseUrl;
       const token = getAuthToken();
 
       const formDataPayload = new FormData();

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { LoginPage } from '@/pages/LoginPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { UserManagementPage } from '@/pages/UserManagementPage';
@@ -18,6 +18,7 @@ import SuperAdminOrganizationPageWithBoundary from '@/pages/superadmin/organizat
 import { default as SuperAdminProfilePage } from '@/pages/superadmin/profile/SuperAdminProfilePage';
 import { default as SuperAdminSettingsPage } from '@/pages/superadmin/settings/SuperAdminSettingsPage';
 import { SuperAdminNotificationsPage } from '@/pages/superadmin/SuperAdminNotificationsPage';
+import { SuperAdminDemoRequestsPage } from '@/pages/superadmin/SuperAdminDemoRequestsPage';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -95,11 +96,13 @@ const AppRoutes = () => {
       />
 
       {/* Super Admin Routes */}
+      <Route path="/superadmin" element={<Navigate to="/superadmin/login" replace />} />
       <Route path="/superadmin/login" element={<SuperAdminLoginPage />} />
       <Route path="/superadmin/dashboard" element={<SuperAdminDashboardPage />} />
       <Route path="/superadmin/profile" element={<SuperAdminProfilePage />} />
       <Route path="/superadmin/settings" element={<SuperAdminSettingsPage />} />
       <Route path="/superadmin/notifications" element={<SuperAdminNotificationsPage />} />
+      <Route path="/superadmin/demo-requests" element={<SuperAdminDemoRequestsPage />} />
       <Route path="/superadmin/organization" element={<SuperAdminOrganizationPageWithBoundary />} />
       <Route path="/superadmin/organization/list" element={<SuperAdminOrganizationPageWithBoundary />} />
 
@@ -126,6 +129,10 @@ const AppRoutes = () => {
       <Route path="/supervisor/profile" element={<SupervisorProfilePage />} />
       <Route path="/supervisor/settings" element={<SupervisorSettingsPage />} />
       <Route path="/supervisor/notifications" element={<NotificationsPage role="supervisor" />} />
+
+      {/* Fallback for any unmatched path — without this, an unrecognized URL leaves
+          the app blank after the loading screen since no Route matches it. */}
+      <Route path="*" element={<Navigate to="/" replace />} />
 
     </Routes>
       <OrgSuspendedModal isOpen={showSuspendedModal} onDismiss={handleDismiss} />

@@ -136,7 +136,7 @@ export const SubscriptionPlanModal: React.FC<SubscriptionPlanModalProps> = ({
                 value={reportsStorageLimit}
                 onChange={(e) => setReportsStorageLimit(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C2410C] focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                placeholder="Enter phone number"
+                placeholder="Enter reports storage limit"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Maximum reports allowed before storage limits apply</p>
             </div>

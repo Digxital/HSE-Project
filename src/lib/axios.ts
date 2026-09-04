@@ -1,7 +1,12 @@
 import axios from 'axios';
 import { getAuthToken, removeAuthToken, removeUserData } from '@/utils/authStorage';
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://hse-backend-n8d4.onrender.com';
+// In dev, route through Vite's /api proxy (see vite.config.ts) instead of hitting the
+// Render backend directly from the browser — that's a cross-origin request and gets
+// blocked by CORS whenever the dev server isn't on the one origin the backend whitelists.
+const apiBaseUrl = import.meta.env.DEV
+  ? ''
+  : (import.meta.env.VITE_API_BASE_URL || 'https://hse-backend-n8d4.onrender.com');
 
 const api = axios.create({
   baseURL: apiBaseUrl,

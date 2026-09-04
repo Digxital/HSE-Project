@@ -1,20 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/useToast';
-import { organizationService } from '@/services/organizationService';
-
-interface Organization {
-  _id: string;
-  organizationName: string;
-  organizationId: string;
-  primaryContactPersonName: string;
-  contactEmail: string;
-  contactPhoneNumber: string;
-  organizationAddress: string;
-  status: 'ACTIVE' | 'PENDING' | 'SUSPENDED' | 'INACTIVE';
-  createdAt: string;
-  updatedAt: string;
-  logo?: { url: string; filename?: string; originalName?: string; mimetype?: string; size?: number; uploadedAt?: string };
-}
+import { organizationService, type Organization } from '@/services/organizationService';
 
 interface OrganizationDetailsModalProps {
   isOpen: boolean;
@@ -315,6 +301,39 @@ export const OrganizationDetailsModal: React.FC<OrganizationDetailsModalProps> =
                       }`}
                     >
                       {org.status === 'ACTIVE' ? 'Active' : org.status === 'PENDING' ? 'Pending' : org.status === 'INACTIVE' ? 'Inactive' : 'Suspended'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Subscription & Limits */}
+              <div className="mb-8 pb-6 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Subscription & Limits
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Subscription Plan</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      {org.subscriptionPlan || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Data Retention Period</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      {org.dataRetentionPeriod || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Users</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      {org.currentUsersCount ?? 0} / {org.maximumAllowedUsers ?? 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Reports Storage</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      {org.currentReportsCount ?? 0} / {org.reportsStorageLimit ?? 'N/A'}
                     </span>
                   </div>
                 </div>
