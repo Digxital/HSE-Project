@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { useToast } from '@/hooks/useToast';
 import { authService } from '@/services/authService';
 import { setAuthToken, setUserData } from '@/utils/authStorage';
+import { getSafeRedirectPath } from '@/utils/routeGuards';
 import engineerImage from '@/assets/images/engineer-cooperation-img.png';
 import darkLogo from '@/assets/images/aegix-darkmode-logo.png';
 import type { LoginResponse } from '@/types/auth';
 
 
- 
+
 interface LoginError {
   message: string;
   errors?: Record<string, string[]>;
@@ -19,6 +20,7 @@ interface LoginError {
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -89,12 +91,14 @@ export const LoginPage: React.FC = () => {
       message: 'Login successful! Redirecting to dashboard...',
     });
 
-    // Navigate based on user role
+    // Navigate based on user role — honor a `?redirect=` param from ProtectedRoute
+    // (e.g. an unauthenticated visit to /reports) if it actually belongs to this role.
     console.log(`👤 User role: ${response.data.role}`);
+    const redirectParam = searchParams.get('redirect');
     if (response.data.role === 'ADMIN') {
-      navigate('/dashboard', { replace: true });
+      navigate(getSafeRedirectPath(redirectParam, 'ADMIN') || '/dashboard', { replace: true });
     } else if (response.data.role === 'SUPERVISOR') {
-      navigate('/supervisor/dashboard', { replace: true });
+      navigate(getSafeRedirectPath(redirectParam, 'SUPERVISOR') || '/supervisor/dashboard', { replace: true });
     } else {
       // Fallback to admin dashboard
       navigate('/dashboard', { replace: true });

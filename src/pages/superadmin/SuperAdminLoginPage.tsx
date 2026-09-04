@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import darkLogo from '@/assets/images/aegix-darkmode-logo.png';
 import engineerImage from '@/assets/images/engineer-cooperation-img.png';
 import { superAdminAuthService } from '@/services/superAdminAuthService';
+import { getSafeRedirectPath } from '@/utils/routeGuards';
 
 export const SuperAdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -41,8 +43,9 @@ export const SuperAdminLoginPage: React.FC = () => {
       // Fire auth:login event so all context providers (OrganizationContext, etc.) refetch
       window.dispatchEvent(new Event('auth:login'));
 
-      // Navigate to dashboard on successful login
-      navigate('/superadmin/dashboard');
+      // Navigate to dashboard on successful login, or back to wherever the
+      // visitor originally tried to go before SuperAdminProtectedRoute bounced them.
+      navigate(getSafeRedirectPath(searchParams.get('redirect'), 'SUPERADMIN') || '/superadmin/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
     } finally {

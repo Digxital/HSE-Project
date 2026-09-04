@@ -39,6 +39,8 @@ import { OrganizationsProvider } from '@/services/OrganizationContext';
 import { useOrgStatusMonitor } from '@/hooks/useOrgStatusMonitor';
 import { OrgSuspendedModal } from '@/components/common/OrgSuspendedModal';
 import { isPublicRoute } from '@/utils/routeGuards';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { SuperAdminProtectedRoute } from '@/components/auth/SuperAdminProtectedRoute';
 
 // Create a separate component for the authenticated routes
 const AppRoutes = () => {
@@ -98,37 +100,37 @@ const AppRoutes = () => {
       {/* Super Admin Routes */}
       <Route path="/superadmin" element={<Navigate to="/superadmin/login" replace />} />
       <Route path="/superadmin/login" element={<SuperAdminLoginPage />} />
-      <Route path="/superadmin/dashboard" element={<SuperAdminDashboardPage />} />
-      <Route path="/superadmin/profile" element={<SuperAdminProfilePage />} />
-      <Route path="/superadmin/settings" element={<SuperAdminSettingsPage />} />
-      <Route path="/superadmin/notifications" element={<SuperAdminNotificationsPage />} />
-      <Route path="/superadmin/demo-requests" element={<SuperAdminDemoRequestsPage />} />
-      <Route path="/superadmin/organization" element={<SuperAdminOrganizationPageWithBoundary />} />
-      <Route path="/superadmin/organization/list" element={<SuperAdminOrganizationPageWithBoundary />} />
+      <Route path="/superadmin/dashboard" element={<SuperAdminProtectedRoute><SuperAdminDashboardPage /></SuperAdminProtectedRoute>} />
+      <Route path="/superadmin/profile" element={<SuperAdminProtectedRoute><SuperAdminProfilePage /></SuperAdminProtectedRoute>} />
+      <Route path="/superadmin/settings" element={<SuperAdminProtectedRoute><SuperAdminSettingsPage /></SuperAdminProtectedRoute>} />
+      <Route path="/superadmin/notifications" element={<SuperAdminProtectedRoute><SuperAdminNotificationsPage /></SuperAdminProtectedRoute>} />
+      <Route path="/superadmin/demo-requests" element={<SuperAdminProtectedRoute><SuperAdminDemoRequestsPage /></SuperAdminProtectedRoute>} />
+      <Route path="/superadmin/organization" element={<SuperAdminProtectedRoute><SuperAdminOrganizationPageWithBoundary /></SuperAdminProtectedRoute>} />
+      <Route path="/superadmin/organization/list" element={<SuperAdminProtectedRoute><SuperAdminOrganizationPageWithBoundary /></SuperAdminProtectedRoute>} />
 
       {/* Admin routes */}
       <Route path="/admin/login" element={<LoginPage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/users" element={<UserManagementPage />} />
-      <Route path="/reports" element={<ReportsPage />} />
-      <Route path="/actions" element={<ActionsPage />} />
-      <Route path="/analytics" element={<AnalyticsPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
-      <Route path="/certification" element={<CertificationPage />} />
-      <Route path="/settings" element={<SettingsPage />} />
-      <Route path="/notifications" element={<NotificationsPage />} />
-      <Route path="/audit-log" element={<AuditLogPage />} />
+      <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['ADMIN']}><DashboardPage /></ProtectedRoute>} />
+      <Route path="/users" element={<ProtectedRoute allowedRoles={['ADMIN']}><UserManagementPage /></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute allowedRoles={['ADMIN']}><ReportsPage /></ProtectedRoute>} />
+      <Route path="/actions" element={<ProtectedRoute allowedRoles={['ADMIN']}><ActionsPage /></ProtectedRoute>} />
+      <Route path="/analytics" element={<ProtectedRoute allowedRoles={['ADMIN']}><AnalyticsPage /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute allowedRoles={['ADMIN']}><ProfilePage /></ProtectedRoute>} />
+      <Route path="/certification" element={<ProtectedRoute allowedRoles={['ADMIN']}><CertificationPage /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute allowedRoles={['ADMIN']}><SettingsPage /></ProtectedRoute>} />
+      <Route path="/notifications" element={<ProtectedRoute allowedRoles={['ADMIN']}><NotificationsPage /></ProtectedRoute>} />
+      <Route path="/audit-log" element={<ProtectedRoute allowedRoles={['ADMIN']}><AuditLogPage /></ProtectedRoute>} />
 
       {/* Supervisor routes */}
       <Route path="/supervisor/login" element={<SupervisorLoginPage />} />
-      <Route path="/supervisor/dashboard" element={<SupervisorDashboardPage />} />
-      <Route path="/supervisor/reports" element={<SupervisorReportsPage />} />
-      <Route path="/supervisor/actions" element={<SupervisorActionsPage />} />
-      <Route path="/supervisor/analytics" element={<SupervisorAnalyticsPage />} />
-      <Route path="/supervisor/profile" element={<SupervisorProfilePage />} />
-      <Route path="/supervisor/settings" element={<SupervisorSettingsPage />} />
-      <Route path="/supervisor/notifications" element={<NotificationsPage role="supervisor" />} />
+      <Route path="/supervisor/dashboard" element={<ProtectedRoute allowedRoles={['SUPERVISOR']}><SupervisorDashboardPage /></ProtectedRoute>} />
+      <Route path="/supervisor/reports" element={<ProtectedRoute allowedRoles={['SUPERVISOR']}><SupervisorReportsPage /></ProtectedRoute>} />
+      <Route path="/supervisor/actions" element={<ProtectedRoute allowedRoles={['SUPERVISOR']}><SupervisorActionsPage /></ProtectedRoute>} />
+      <Route path="/supervisor/analytics" element={<ProtectedRoute allowedRoles={['SUPERVISOR']}><SupervisorAnalyticsPage /></ProtectedRoute>} />
+      <Route path="/supervisor/profile" element={<ProtectedRoute allowedRoles={['SUPERVISOR']}><SupervisorProfilePage /></ProtectedRoute>} />
+      <Route path="/supervisor/settings" element={<ProtectedRoute allowedRoles={['SUPERVISOR']}><SupervisorSettingsPage /></ProtectedRoute>} />
+      <Route path="/supervisor/notifications" element={<ProtectedRoute allowedRoles={['SUPERVISOR']}><NotificationsPage role="supervisor" /></ProtectedRoute>} />
 
       {/* Fallback for any unmatched path — without this, an unrecognized URL leaves
           the app blank after the loading screen since no Route matches it. */}
