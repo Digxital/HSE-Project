@@ -6,6 +6,7 @@ import { OrganizationDetailsModal } from '@/components/superadmin/OrganizationDe
 import { useToast } from '@/hooks/useToast';
 import { useOrganizations } from '@/services/OrganizationContext';
 import { getSuperAdminUserData } from '@/utils/authStorage';
+import type { Organization } from '@/services/organizationService';
 
 // Error boundary to prevent context errors from crashing the entire page
 class OrganizationPageErrorBoundary extends Component<
@@ -40,20 +41,6 @@ class OrganizationPageErrorBoundary extends Component<
 }
 
 type OrganizationStatus = 'All' | 'Active' | 'Pending' | 'Inactive';
-
-interface Organization {
-  _id: string;
-  organizationName: string;
-  organizationId: string;
-  primaryContactPersonName: string;
-  contactEmail: string;
-  contactPhoneNumber: string;
-  organizationAddress: string;
-  status: 'ACTIVE' | 'PENDING' | 'SUSPENDED' | 'INACTIVE';
-  createdAt: string;
-  updatedAt: string;
-  logo?: { url: string };
-}
 
 export const SuperAdminOrganizationPage: React.FC = () => {
   const { showToast } = useToast();

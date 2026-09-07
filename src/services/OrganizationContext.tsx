@@ -1,23 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { organizationService } from '@/services/organizationService';
+import { organizationService, type Organization } from '@/services/organizationService';
 import { getAuthToken, getSuperAdminAuthToken } from '@/utils/authStorage';
 
 const getOrganizationSessionToken = () => getSuperAdminAuthToken() || getAuthToken();
 
-// Types
-export interface Organization {
-  _id: string;
-  organizationName: string;
-  organizationId: string;
-  primaryContactPersonName: string;
-  contactEmail: string;
-  contactPhoneNumber: string;
-  organizationAddress: string;
-  status: 'ACTIVE' | 'PENDING' | 'SUSPENDED' | 'INACTIVE';
-  createdAt: string;
-  updatedAt: string;
-  logo?: { url: string; filename?: string; originalName?: string; mimetype?: string; size?: number; uploadedAt?: string };
-}
+export type { Organization };
 
 interface OrganizationsContextType {
   organizations: Organization[];

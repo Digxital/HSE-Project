@@ -4,19 +4,7 @@ import { TopBar } from '@/components/layout/TopBar';
 import { OrganizationDetailsModal } from '@/components/superadmin/OrganizationDetailsModal';
 import { useOrganizations } from '@/services/OrganizationContext';
 import { getSuperAdminUserData } from '@/utils/authStorage';
-
-interface Organization {
-  _id: string;
-  organizationName: string;
-  organizationId: string;
-  primaryContactPersonName: string;
-  contactEmail: string;
-  contactPhoneNumber: string;
-  organizationAddress: string;
-  status: 'ACTIVE' | 'PENDING' | 'SUSPENDED' | 'INACTIVE';
-  createdAt: string;
-  updatedAt: string;
-}
+import type { Organization } from '@/services/organizationService';
 
 export const SuperAdminDashboardPage: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
